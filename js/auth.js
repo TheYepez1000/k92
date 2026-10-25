@@ -148,7 +148,7 @@ class K9AuthManager {
     }
 
     const defaultCfg = {
-      clientId: '1271954022139691038',
+      clientId: '1406448851153326131 ',
       redirectUri: cleanRedirect,
       scope: 'identify'
     };
@@ -159,7 +159,7 @@ class K9AuthManager {
     try {
       const parsed = JSON.parse(saved);
       // Mantener siempre el Client ID oficial indicado por el usuario
-      parsed.clientId = '1271954022139691038';
+      parsed.clientId = '1406448851153326131 ';
       if (!parsed.scope) parsed.scope = 'identify';
       if (!parsed.redirectUri || parsed.redirectUri.startsWith('null/')) {
         parsed.redirectUri = cleanRedirect;
@@ -172,7 +172,7 @@ class K9AuthManager {
 
   saveDiscordConfig(cfg) {
     if (cfg) {
-      cfg.clientId = '1271954022139691038'; // Client ID fijo oficial
+      cfg.clientId = '1406448851153326131 '; // Client ID fijo oficial
     }
     localStorage.setItem(STORAGE_KEYS.DISCORD_CONFIG, JSON.stringify(cfg));
   }
