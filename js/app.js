@@ -1414,6 +1414,18 @@ function renderAgentsSection(container) {
 
       if (window.K9Audio) window.K9Audio.playTacticalBeep(1000, 0.12);
       showToast('✅ Rango guardado para Discord ID: ' + discordIdVal + (existingUser ? ' (Perfil de usuario actualizado)' : ' (Se aplicará en su próximo login)'), 'success');
+
+      // Limpiar el formulario sin re-renderizar toda la pestaña (evita el "flash")
+      formPreset.reset();
+
+      // Actualizar únicamente la tabla de agentes y la lista de presets en el DOM
+      const tbodyEl = document.getElementById('agentsTableBody');
+      if (tbodyEl) {
+        const freshUsers = window.K9Store.getUsers();
+        const freshDogs  = window.K9Store.getDogs();
+        tbodyEl.innerHTML = renderAgentsTableRows(freshUsers, freshDogs);
+      }
+      // Re-renderizar solo si hay cambio visual importante (presets añadidos)
       renderJefaturaSubtab('agentes');
     });
   }
@@ -1501,6 +1513,9 @@ function renderAgentsTableRows(users, dogs) {
             <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="editAgentDogAssignment('${u.id}')" title="Asignar o cambiar can">
               🐕 Can
             </button>
+            <button class="btn-tactical btn-tactical-sm" onclick="removeAgentFromRoster('${u.id}')" title="Expulsar agente de la unidad" style="background:rgba(255,59,48,0.12); border:1px solid rgba(255,59,48,0.4); color:#ff5252; font-weight:700;">
+              🚫 Expulsar
+            </button>
           </div>
         </td>
       </tr>
@@ -1513,42 +1528,230 @@ window.editAgentRank = function (userId) {
   const user = users.find(u => u.id === userId);
   if (!user) return;
 
-  const ranks = ['Aspirante K9', 'Oficial Guía K9', 'Oficial Mayor K9', 'Instructor Guía K9', 'Subinspector K9', 'Inspector K9', 'Jefe de División K9'];
-  const newRank = prompt(`Modificar rango oficial de ${user.name} (@${user.discordUsername}):\n\nOpciones:\n${ranks.join('\n')}\n\nEscribe el nuevo rango:`, user.rank || 'Oficial Guía K9');
-  if (!newRank) return;
+  const RANKS = [
+    { value: 'Aspirante K9',        label: '🔰 Aspirante K9',         color: '#94a3b8' },
+    { value: 'Oficial Guía K9',     label: '🐾 Oficial Guía K9',      color: '#38bdf8' },
+    { value: 'Oficial Mayor K9',    label: '🐾 Oficial Mayor K9',     color: '#22d3ee' },
+    { value: 'Instructor Guía K9',  label: '🎓 Instructor Guía K9',   color: '#34d399' },
+    { value: 'Subinspector K9',     label: '⭐ Subinspector K9',      color: '#a78bfa' },
+    { value: 'Inspector K9',        label: '⭐⭐ Inspector K9',        color: '#f59e0b' },
+    { value: 'Jefe de División K9', label: '🦅 Jefe de División K9',  color: '#fbbf24' }
+  ];
 
-  const newPlaca = prompt(`Asignar Placa Policial oficial para ${user.name}:`, user.placa || 'K-10');
-  if (!newPlaca) return;
+  // Crear modal inline de cambio de rango
+  const existing = document.getElementById('modalEditRank');
+  if (existing) existing.remove();
 
-  const isJef = confirm(`¿Conceder permisos de Mando / Jefatura a ${user.name}?`);
-  user.rank = newRank.trim();
-  user.placa = newPlaca.trim();
-  user.isJefatura = isJef;
-  user.isVerified = true;
-  user.permissions = isJef ? ['*'] : [];
-  user.serviceStatus = isJef ? 'En Activo / Mando' : 'En Activo';
+  const overlay = document.createElement('div');
+  overlay.id = 'modalEditRank';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(5,9,20,0.85);backdrop-filter:blur(6px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;animation:fadeIn 0.18s ease';
 
-  window.K9Store.save(STORAGE_KEYS.USERS, users);
+  overlay.innerHTML = `
+    <div style="background:linear-gradient(135deg,#0d1424,#111827);border:1px solid rgba(0,229,255,0.25);border-radius:14px;padding:2rem;width:100%;max-width:480px;box-shadow:0 25px 60px rgba(0,0,0,0.7);position:relative;">
+      <button id="closeEditRankModal" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:#64748b;font-size:1.4rem;cursor:pointer;line-height:1;">&times;</button>
+      <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem;">
+        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#00e5ff22,#7c3aed22);border:1px solid rgba(0,229,255,0.3);display:flex;align-items:center;justify-content:center;font-size:1.4rem;">🎖️</div>
+        <div>
+          <h3 style="margin:0;color:#fff;font-family:var(--font-tactical);font-size:1.05rem;letter-spacing:0.04em;">CAMBIAR RANGO OFICIAL</h3>
+          <p style="margin:0;font-size:0.78rem;color:var(--text-muted);">Agente: <span style="color:var(--police-cyan);font-weight:600;">${user.name}</span> · <span style="color:#a5b4fc;font-family:var(--font-mono);">${user.discordId || user.discordUsername || ''}</span></p>
+        </div>
+      </div>
 
-  // Guardar preset permanente para futuros logins
-  if (user.discordId) {
-    const presets = window.K9Store.getAgentPresets ? window.K9Store.getAgentPresets() : [];
-    const cleanPresets = presets.filter(p => p.discordId !== user.discordId);
-    cleanPresets.push({
-      discordId: user.discordId,
-      discordUsername: user.discordUsername,
-      placa: user.placa,
-      rank: user.rank,
-      isJefatura: user.isJefatura,
-      permissions: user.permissions,
-      serviceStatus: user.serviceStatus,
-      createdAt: new Date().toLocaleDateString('es-ES')
+      <div style="margin-bottom:1rem;">
+        <label style="display:block;font-family:var(--font-headline);font-size:0.7rem;color:var(--police-cyan);letter-spacing:0.06em;margin-bottom:0.5rem;">RANGO OFICIAL</label>
+        <div id="rankPickerGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;">
+          ${RANKS.map(r => `
+            <button type="button" class="rank-pick-btn" data-rank="${r.value}" style="
+              display:flex;align-items:center;gap:0.5rem;padding:0.55rem 0.75rem;
+              background:${user.rank === r.value ? 'rgba(0,229,255,0.15)' : 'rgba(255,255,255,0.04)'};
+              border:1px solid ${user.rank === r.value ? 'var(--police-cyan)' : 'rgba(255,255,255,0.1)'};
+              border-radius:8px;color:${r.color};font-size:0.82rem;cursor:pointer;
+              font-family:var(--font-headline);text-align:left;transition:all 0.15s;
+            ">${r.label}</button>
+          `).join('')}
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1rem;">
+        <div>
+          <label style="display:block;font-family:var(--font-headline);font-size:0.7rem;color:var(--police-cyan);letter-spacing:0.06em;margin-bottom:0.35rem;">PLACA OFICIAL</label>
+          <input type="text" id="editRankPlaca" value="${user.placa || ''}" placeholder="Ej: K-07" style="width:100%;padding:0.5rem 0.75rem;background:rgba(10,14,23,0.8);border:1px solid var(--border-tactical);border-radius:6px;color:#fff;font-family:var(--font-headline);font-size:0.85rem;box-sizing:border-box;">
+        </div>
+        <div style="display:flex;align-items:flex-end;">
+          <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.82rem;color:#fff;cursor:pointer;padding-bottom:0.5rem;">
+            <input type="checkbox" id="editRankIsJef" ${user.isJefatura ? 'checked' : ''} style="accent-color:var(--tactical-gold);width:16px;height:16px;">
+            <span>Permisos de Jefatura</span>
+          </label>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:0.75rem;">
+        <button id="cancelEditRank" type="button" class="btn-tactical btn-tactical-outline" style="flex:1;justify-content:center;">Cancelar</button>
+        <button id="confirmEditRank" type="button" class="btn-tactical btn-tactical-gold" style="flex:1;justify-content:center;">💾 Guardar Rango</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  // Estado de selección de rango
+  let selectedRank = user.rank || 'Oficial Guía K9';
+
+  // Click en tarjetas de rango
+  overlay.querySelectorAll('.rank-pick-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedRank = btn.dataset.rank;
+      overlay.querySelectorAll('.rank-pick-btn').forEach(b => {
+        b.style.background = 'rgba(255,255,255,0.04)';
+        b.style.border = '1px solid rgba(255,255,255,0.1)';
+      });
+      btn.style.background = 'rgba(0,229,255,0.15)';
+      btn.style.border = '1px solid var(--police-cyan)';
+      if (window.K9Audio) window.K9Audio.playTacticalClick();
     });
-    window.K9Store.save(STORAGE_KEYS.AGENT_PRESETS, cleanPresets);
-  }
+  });
 
-  showToast(`✅ Rango actualizado para ${user.name}: ${user.rank} [${user.placa}]`, 'success');
-  renderJefaturaSubtab('agentes');
+  // Cerrar modal
+  const closeModal = () => overlay.remove();
+  document.getElementById('closeEditRankModal').addEventListener('click', closeModal);
+  document.getElementById('cancelEditRank').addEventListener('click', closeModal);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+
+  // Confirmar cambio
+  document.getElementById('confirmEditRank').addEventListener('click', () => {
+    const newPlaca = document.getElementById('editRankPlaca').value.trim();
+    const isJef   = document.getElementById('editRankIsJef').checked;
+
+    if (!newPlaca) { showToast('Introduce una placa válida.', 'warning'); return; }
+
+    user.rank          = selectedRank;
+    user.placa         = newPlaca;
+    user.isJefatura    = isJef;
+    user.isVerified    = true;
+    user.permissions   = isJef ? ['*'] : [];
+    user.serviceStatus = isJef ? 'En Activo / Mando' : 'En Activo';
+    window.K9Store.save(STORAGE_KEYS.USERS, users);
+
+    // Persistir preset para futuros logins
+    if (user.discordId) {
+      const presets = window.K9Store.getAgentPresets ? window.K9Store.getAgentPresets() : [];
+      const cleanPresets = presets.filter(p => p.discordId !== user.discordId);
+      cleanPresets.push({
+        discordId: user.discordId,
+        discordUsername: user.discordUsername,
+        placa: user.placa,
+        rank: user.rank,
+        isJefatura: user.isJefatura,
+        permissions: user.permissions,
+        serviceStatus: user.serviceStatus,
+        createdAt: new Date().toLocaleDateString('es-ES')
+      });
+      window.K9Store.save(STORAGE_KEYS.AGENT_PRESETS, cleanPresets);
+    }
+
+    // Log webhook
+    if (window.K9Webhook) {
+      const admin = window.K9Auth.getCurrentUser();
+      if (admin) {
+        window.K9Webhook.sendLog({
+          title: '🎖️ Rango de Agente Modificado',
+          color: 0xfbbf24,
+          fields: [
+            { name: 'Mando', value: admin.name + ' (' + admin.placa + ')', inline: true },
+            { name: 'Agente', value: user.name, inline: true },
+            { name: 'Nuevo Rango', value: selectedRank + ' [' + newPlaca + ']', inline: true },
+            { name: 'Jefatura', value: isJef ? 'Sí ✅' : 'No', inline: true }
+          ]
+        });
+      }
+    }
+
+    if (window.K9Audio) window.K9Audio.playTacticalBeep(1000, 0.12);
+    showToast(`✅ Rango actualizado para ${user.name}: ${selectedRank} [${newPlaca}]`, 'success');
+    closeModal();
+    renderJefaturaSubtab('agentes');
+  });
+};
+
+// ─── Expulsar agente de la unidad (revocar rango y eliminar de la lista) ───
+window.removeAgentFromRoster = function (userId) {
+  const users = window.K9Store.getUsers();
+  const user  = users.find(u => u.id === userId);
+  if (!user) return;
+
+  // Confirmación rápida con modal inline
+  const existing = document.getElementById('modalKickAgent');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'modalKickAgent';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(5,9,20,0.85);backdrop-filter:blur(6px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;';
+  overlay.innerHTML = `
+    <div style="background:linear-gradient(135deg,#0d1424,#1a0a0a);border:1px solid rgba(255,59,48,0.35);border-radius:14px;padding:2rem;width:100%;max-width:420px;box-shadow:0 25px 60px rgba(0,0,0,0.7);text-align:center;">
+      <div style="font-size:2.5rem;margin-bottom:0.75rem;">⚠️</div>
+      <h3 style="margin:0 0 0.5rem;color:#ff5252;font-family:var(--font-tactical);font-size:1.1rem;">EXPULSAR AGENTE</h3>
+      <p style="color:var(--text-muted);font-size:0.88rem;margin-bottom:1.5rem;line-height:1.5;">
+        ¿Estás seguro de que quieres <strong style="color:#ff5252;">expulsar</strong> a
+        <strong style="color:#fff;">${user.name}</strong> [${user.placa}] de la Unidad K9?<br>
+        <small style="color:#64748b;">Se revocará su rango y dejará de tener acceso.</small>
+      </p>
+      <div style="display:flex;gap:0.75rem;">
+        <button id="cancelKick" class="btn-tactical btn-tactical-outline" style="flex:1;justify-content:center;">Cancelar</button>
+        <button id="confirmKick" class="btn-tactical btn-tactical-sm" style="flex:1;justify-content:center;background:rgba(255,59,48,0.15);border:1px solid rgba(255,59,48,0.5);color:#ff5252;font-weight:700;">🚫 Expulsar</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  const closeK = () => overlay.remove();
+  document.getElementById('cancelKick').addEventListener('click', closeK);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeK(); });
+
+  document.getElementById('confirmKick').addEventListener('click', () => {
+    // 1. Quitar rango y verificación del usuario
+    const idx = users.indexOf(user);
+    if (idx !== -1) users.splice(idx, 1); // Eliminar completamente de la lista
+    window.K9Store.save(STORAGE_KEYS.USERS, users);
+
+    // 2. Eliminar su preset para que no pueda recuperar el rango en el próximo login
+    if (user.discordId) {
+      const presets = window.K9Store.getAgentPresets ? window.K9Store.getAgentPresets() : [];
+      const cleaned = presets.filter(p => p.discordId !== user.discordId);
+      window.K9Store.save(STORAGE_KEYS.AGENT_PRESETS, cleaned);
+    }
+
+    // 3. Si tenía un can asignado, liberarlo
+    if (user.assignedDogId) {
+      const dogs = window.K9Store.getDogs();
+      const dog  = dogs.find(d => d.id === user.assignedDogId);
+      if (dog) {
+        dog.handlerId   = null;
+        dog.handlerName = 'Pendiente de Asignación';
+        window.K9Store.save(STORAGE_KEYS.DOGS, dogs);
+      }
+    }
+
+    // 4. Log webhook
+    if (window.K9Webhook) {
+      const admin = window.K9Auth.getCurrentUser();
+      if (admin) {
+        window.K9Webhook.sendLog({
+          title: '🚫 Agente Expulsado de la Unidad K9',
+          color: 0xff3b30,
+          fields: [
+            { name: 'Mando', value: admin.name + ' (' + admin.placa + ')', inline: true },
+            { name: 'Agente Expulsado', value: user.name + ' [' + user.placa + ']', inline: true },
+            { name: 'Discord', value: user.discordId || user.discordUsername || '—', inline: true }
+          ]
+        });
+      }
+    }
+
+    if (window.K9Audio) window.K9Audio.playTacticalBeep(300, 0.15);
+    showToast(`🚫 ${user.name} ha sido expulsado de la Unidad K9.`, 'error');
+    closeK();
+    renderJefaturaSubtab('agentes');
+  });
 };
 
 window.editAgentDogAssignment = function (userId) {
