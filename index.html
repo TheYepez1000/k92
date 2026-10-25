@@ -1,25 +1,30 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Unidad K9 - Portal Oficial & Sistema de Jefatura Canina</title>
-  <meta name="description" content="Plataforma operativa táctica para la Unidad Canina K9. Gestión de informes semanales, expedientes de agentes, canes operativos, régimen disciplinario, condecoraciones y control de permisos mediante Discord.">
+  <meta name="description"
+    content="Plataforma operativa táctica para la Unidad Canina K9. Gestión de informes semanales, expedientes de agentes, canes operativos, régimen disciplinario, condecoraciones y control de permisos mediante Discord.">
 
   <!-- Fuentes Oficiales Solicitadas: GoBold y Conthrax -->
   <link href="https://fonts.cdnfonts.com/css/conthrax" rel="stylesheet">
   <link href="https://fonts.cdnfonts.com/css/gobold" rel="stylesheet">
-  
+
   <!-- Fallbacks y Tipografía Secundaria -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
 
   <!-- Hojas de Estilo Tácticas -->
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="icon" type="image/jpeg" href="assets/images/emblem.jpg">
 </head>
+
 <body>
 
   <!-- ====================================================================
@@ -27,7 +32,7 @@
        ==================================================================== -->
   <header class="top-hud-bar">
     <div class="top-hud-container">
-      
+
       <!-- Marca y Emblema de la Unidad K9 -->
       <div class="brand-wrapper" onclick="switchMainView('inicio')" title="Ir a Inicio de la Unidad K9">
         <div class="brand-emblem-wrap">
@@ -54,7 +59,8 @@
           <span>🌐</span> Normativas & Canes
         </button>
         <button class="nav-tab-btn" data-view="perfil" id="navBtnPerfil">
-          <span>🐕</span> Mi Perfil K9 <span class="jefatura-lock-badge" id="perfilLockBadge" style="background:rgba(88,101,242,0.15); color:#a5b4fc; border-color:rgba(88,101,242,0.3); font-size:0.6rem;">DISCORD</span>
+          <span>🐕</span> Mi Perfil K9 <span class="jefatura-lock-badge" id="perfilLockBadge"
+            style="background:rgba(88,101,242,0.15); color:#a5b4fc; border-color:rgba(88,101,242,0.3); font-size:0.6rem;">DISCORD</span>
         </button>
         <button class="nav-tab-btn jefatura-tab" data-view="jefatura" id="navBtnJefatura">
           <span>👑</span> Jefatura K9 <span class="jefatura-lock-badge">RESTRINGIDO</span>
@@ -83,7 +89,7 @@
          VISTA 1: GENERAL & TABLÓN PÚBLICO (INICIO)
          ================================================================ -->
     <section class="view-container active" id="view-inicio">
-      
+
       <!-- Hero Banner Táctico -->
       <div class="k9-hero-banner">
         <img src="assets/images/hero_dog.jpg" alt="Patrulla Canina K9" class="hero-background-img">
@@ -96,7 +102,9 @@
               UNIDAD CANINA DE INTERVENCIÓN TÁCTICA
             </h1>
             <p class="hero-description">
-              Portal central de coordinación de la División K9. Espacio oficial para la gestión del servicio de jefatura, seguimiento del adiestramiento canino, partes semanales de servicio, custodia veterinaria y condecoraciones al mérito policial.
+              Portal central de coordinación de la División K9. Espacio oficial para la gestión del servicio de
+              jefatura, seguimiento del adiestramiento canino, partes semanales de servicio, custodia veterinaria y
+              condecoraciones al mérito policial.
             </p>
             <div class="hero-actions-row" id="heroActionsRow">
               <button class="btn-tactical btn-tactical-primary" onclick="switchGeneralSubtab('normativas')">
@@ -189,32 +197,46 @@
       <div class="modal-header-tactical">
         <div class="modal-title-tactical" style="display:flex; align-items:center; gap:0.6rem;">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="#5865F2">
-            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.893.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+            <path
+              d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.893.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
           </svg>
           <span style="color:#fff;">AUTENTICACIÓN CON DISCORD OAUTH2</span>
         </div>
         <button type="button" class="modal-close-btn" onclick="closeModal('modalDiscordLogin')">✕</button>
       </div>
       <div class="modal-body-tactical">
-        <div style="background:rgba(88,101,242,0.08); border:1px solid rgba(88,101,242,0.3); border-radius:10px; padding:1rem; margin-bottom:1.25rem;">
+        <div
+          style="background:rgba(88,101,242,0.08); border:1px solid rgba(88,101,242,0.3); border-radius:10px; padding:1rem; margin-bottom:1.25rem;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
-            <span style="font-family:var(--font-headline); font-size:0.75rem; color:var(--text-subtle); letter-spacing:0.08em;">CLIENT ID OFICIAL:</span>
-            <span style="font-family:var(--font-tactical); font-size:0.8rem; color:#a5b4fc; background:rgba(88,101,242,0.2); padding:0.15rem 0.5rem; border-radius:4px;">1406448851153326131</span>
+            <span
+              style="font-family:var(--font-headline); font-size:0.75rem; color:var(--text-subtle); letter-spacing:0.08em;">CLIENT
+              ID OFICIAL:</span>
+            <span
+              style="font-family:var(--font-tactical); font-size:0.8rem; color:#a5b4fc; background:rgba(88,101,242,0.2); padding:0.15rem 0.5rem; border-radius:4px;">1406448851153326131</span>
           </div>
           <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.5; margin:0;">
-            Verificación automática y segura mediante OAuth2. <strong>No requiere claves ni contraseñas</strong>: pulsa el botón para autorizar tu identidad de Discord y desbloquear el portal de la Unidad K9.
+            Verificación automática y segura mediante OAuth2. <strong>No requiere claves ni contraseñas</strong>: pulsa
+            el botón para autorizar tu identidad de Discord y desbloquear el portal de la Unidad K9.
           </p>
         </div>
 
         <!-- Botón Directo OAuth2 -->
-        <button type="button" id="btnModalDiscordOAuth" class="btn-tactical btn-tactical-primary" onclick="window.K9Auth.initiateDiscordOAuth()" style="width:100%; justify-content:center; background:#5865F2; border-color:#5865F2; padding:0.95rem 1.25rem; font-size:1rem; font-weight:700; box-shadow:0 6px 20px rgba(88,101,242,0.45); cursor:pointer;">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.893.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+        <button type="button" id="btnModalDiscordOAuth" class="btn-tactical btn-tactical-primary"
+          onclick="window.K9Auth.initiateDiscordOAuth()"
+          style="width:100%; justify-content:center; background:#5865F2; border-color:#5865F2; padding:0.95rem 1.25rem; font-size:1rem; font-weight:700; box-shadow:0 6px 20px rgba(88,101,242,0.45); cursor:pointer;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.893.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
+          </svg>
           Verificar & Entrar con Discord
         </button>
 
-        <div style="border-top:1px solid var(--border-subtle); padding-top:1rem; margin-top:1.25rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
-          <span style="font-size:0.75rem; color:var(--text-subtle);">Alcance: <code style="color:var(--police-cyan);">identify</code></span>
-          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="closeModal('modalDiscordLogin'); openModal('modalDiscordConfig');">
+        <div
+          style="border-top:1px solid var(--border-subtle); padding-top:1rem; margin-top:1.25rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+          <span style="font-size:0.75rem; color:var(--text-subtle);">Alcance: <code
+              style="color:var(--police-cyan);">identify</code></span>
+          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+            onclick="closeModal('modalDiscordLogin'); openModal('modalDiscordConfig');">
             ⚙️ Ajustes de Redirect URI
           </button>
         </div>
@@ -234,7 +256,9 @@
       <form id="formDiscordConfig">
         <div class="modal-body-tactical">
           <p style="font-size:0.85rem; color:var(--text-muted);">
-            Puedes vincular tu propia aplicación de Discord desde el <a href="https://discord.com/developers/applications" target="_blank" style="color:var(--police-cyan);">Discord Developer Portal</a>:
+            Puedes vincular tu propia aplicación de Discord desde el <a
+              href="https://discord.com/developers/applications" target="_blank"
+              style="color:var(--police-cyan);">Discord Developer Portal</a>:
           </p>
           <div class="form-group-tactical">
             <label class="form-label-tactical" for="cfgClientId">DISCORD CLIENT ID</label>
@@ -254,10 +278,12 @@
           <hr style="border-color: rgba(0,229,255,0.15); margin: 1.2rem 0;">
           <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.8rem;">
             <span style="font-size:1.1rem;">📡</span>
-            <span style="font-size:0.8rem; font-weight:700; letter-spacing:0.08em; color:var(--police-cyan);">WEBHOOK DE LOGS — CANAL DISCORD</span>
+            <span style="font-size:0.8rem; font-weight:700; letter-spacing:0.08em; color:var(--police-cyan);">WEBHOOK DE
+              LOGS — CANAL DISCORD</span>
           </div>
           <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.8rem;">
-            Todos los eventos del portal (logins, informes, anuncios, disciplinarios…) se enviarán automáticamente a este canal de Discord.
+            Todos los eventos del portal (logins, informes, anuncios, disciplinarios…) se enviarán automáticamente a
+            este canal de Discord.
           </p>
           <div class="form-group-tactical">
             <label class="form-label-tactical" for="cfgWebhookUrl">URL DEL WEBHOOK</label>
@@ -271,7 +297,8 @@
             <button type="button" id="btnTestWebhook" class="btn-tactical btn-tactical-outline btn-tactical-sm">
               🔔 Enviar Test
             </button>
-            <button type="button" id="btnClearWebhook" class="btn-tactical btn-tactical-outline btn-tactical-sm" style="color:#ff6b6b; border-color:#ff6b6b33;">
+            <button type="button" id="btnClearWebhook" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+              style="color:#ff6b6b; border-color:#ff6b6b33;">
               🗑️ Borrar
             </button>
           </div>
@@ -340,16 +367,20 @@
 
           <div class="form-group-tactical">
             <label class="form-label-tactical" for="repSeizures">INCAUTACIONES O SUSTANCIAS LOCALIZADAS</label>
-            <input type="text" id="repSeizures" class="form-input-tactical" placeholder="Ej: 1.2 kg estupefacientes en maletero de vehículo">
+            <input type="text" id="repSeizures" class="form-input-tactical"
+              placeholder="Ej: 1.2 kg estupefacientes en maletero de vehículo">
           </div>
 
           <div class="form-group-tactical">
             <label class="form-label-tactical" for="repNotes">DETALLES DE LAS ACTUACIONES OPERATIVAS</label>
-            <textarea id="repNotes" class="form-textarea-tactical" placeholder="Describe los despliegues de la semana, comportamiento y obediencia del can..." required></textarea>
+            <textarea id="repNotes" class="form-textarea-tactical"
+              placeholder="Describe los despliegues de la semana, comportamiento y obediencia del can..."
+              required></textarea>
           </div>
         </div>
         <div class="modal-footer-tactical">
-          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="closeModal('modalNewReport')">Cancelar</button>
+          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+            onclick="closeModal('modalNewReport')">Cancelar</button>
           <button type="submit" class="btn-tactical btn-tactical-gold btn-tactical-sm">Enviar a Jefatura</button>
         </div>
       </form>
@@ -390,7 +421,8 @@
             </div>
             <div class="form-group-tactical">
               <label class="form-label-tactical" for="agentDiscord">USUARIO DE DISCORD</label>
-              <input type="text" id="agentDiscord" class="form-input-tactical" placeholder="Ej: Santana_K9#4401" required>
+              <input type="text" id="agentDiscord" class="form-input-tactical" placeholder="Ej: Santana_K9#4401"
+                required>
             </div>
           </div>
 
@@ -408,7 +440,8 @@
           </label>
         </div>
         <div class="modal-footer-tactical">
-          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="closeModal('modalNewAgent')">Cancelar</button>
+          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+            onclick="closeModal('modalNewAgent')">Cancelar</button>
           <button type="submit" class="btn-tactical btn-tactical-primary btn-tactical-sm">Dar de Alta</button>
         </div>
       </form>
@@ -487,11 +520,13 @@
 
           <div class="form-group-tactical">
             <label class="form-label-tactical" for="dogNotesInput">NOTAS DE ADIESTRAMIENTO & COMPORTAMIENTO</label>
-            <textarea id="dogNotesInput" class="form-textarea-tactical" placeholder="Comandos conocidos, temperamento..."></textarea>
+            <textarea id="dogNotesInput" class="form-textarea-tactical"
+              placeholder="Comandos conocidos, temperamento..."></textarea>
           </div>
         </div>
         <div class="modal-footer-tactical">
-          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="closeModal('modalNewDog')">Cancelar</button>
+          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+            onclick="closeModal('modalNewDog')">Cancelar</button>
           <button type="submit" class="btn-tactical btn-tactical-gold btn-tactical-sm">Registrar Can</button>
         </div>
       </form>
@@ -526,16 +561,20 @@
 
           <div class="form-group-tactical">
             <label class="form-label-tactical" for="discReasonInput">MOTIVO Y HECHOS COMPROBADOS</label>
-            <textarea id="discReasonInput" class="form-textarea-tactical" placeholder="Explica detalladamente la infracción de las normativas de la Unidad K9..." required></textarea>
+            <textarea id="discReasonInput" class="form-textarea-tactical"
+              placeholder="Explica detalladamente la infracción de las normativas de la Unidad K9..."
+              required></textarea>
           </div>
 
           <div class="form-group-tactical">
             <label class="form-label-tactical" for="discSanctionInput">SANCIÓN APLICADA / MEDIDA CAUTELAR</label>
-            <input type="text" id="discSanctionInput" class="form-input-tactical" placeholder="Ej: Suspensión de servicio activo por 7 días" required>
+            <input type="text" id="discSanctionInput" class="form-input-tactical"
+              placeholder="Ej: Suspensión de servicio activo por 7 días" required>
           </div>
         </div>
         <div class="modal-footer-tactical">
-          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="closeModal('modalNewDisciplinary')">Cancelar</button>
+          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+            onclick="closeModal('modalNewDisciplinary')">Cancelar</button>
           <button type="submit" class="btn-tactical btn-tactical-danger btn-tactical-sm">Aplicar Sanción</button>
         </div>
       </form>
@@ -565,11 +604,14 @@
 
           <div class="form-group-tactical">
             <label class="form-label-tactical" for="awardReasonInput">CITACIÓN OFICIAL / MOTIVO DEL MÉRITO</label>
-            <textarea id="awardReasonInput" class="form-textarea-tactical" placeholder="Escribe la dedicatoria oficial de Jefatura..." required>Por su destacada actuación y valentía en servicio canino.</textarea>
+            <textarea id="awardReasonInput" class="form-textarea-tactical"
+              placeholder="Escribe la dedicatoria oficial de Jefatura..."
+              required>Por su destacada actuación y valentía en servicio canino.</textarea>
           </div>
         </div>
         <div class="modal-footer-tactical">
-          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="closeModal('modalAwardBadge')">Cancelar</button>
+          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+            onclick="closeModal('modalAwardBadge')">Cancelar</button>
           <button type="submit" class="btn-tactical btn-tactical-gold btn-tactical-sm">Conceder Insignia</button>
         </div>
       </form>
@@ -586,18 +628,27 @@
         <button type="button" class="modal-close-btn" onclick="closeModal('modalBadgeInspect')">✕</button>
       </div>
       <div class="modal-body-tactical" style="padding:2.5rem 2rem;">
-        <div style="width:130px; height:130px; margin:0 auto 1.5rem; filter:drop-shadow(0 10px 25px rgba(255,183,3,0.35));">
-          <img id="inspectBadgeImg" src="assets/images/medal_valor.jpg" alt="Insignia" style="width:100%; height:100%; object-fit:contain;">
+        <div
+          style="width:130px; height:130px; margin:0 auto 1.5rem; filter:drop-shadow(0 10px 25px rgba(255,183,3,0.35));">
+          <img id="inspectBadgeImg" src="assets/images/medal_valor.jpg" alt="Insignia"
+            style="width:100%; height:100%; object-fit:contain;">
         </div>
-        <h3 id="inspectBadgeTitle" class="font-tactical" style="font-size:1.45rem; color:#fff; margin-bottom:0.35rem;"></h3>
-        <div id="inspectBadgeCategory" style="font-family:var(--font-headline); color:var(--tactical-gold); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:1.25rem;"></div>
-        <p id="inspectBadgeDesc" style="font-size:0.92rem; color:var(--text-muted); line-height:1.6; margin-bottom:1.5rem;"></p>
-        <div style="border-top:1px solid var(--border-subtle); padding-top:1rem; font-size:0.82rem; color:var(--text-subtle);">
-          Otorgada con honores de servicio a: <strong id="inspectBadgeRecipient" style="color:var(--police-cyan);"></strong>
+        <h3 id="inspectBadgeTitle" class="font-tactical" style="font-size:1.45rem; color:#fff; margin-bottom:0.35rem;">
+        </h3>
+        <div id="inspectBadgeCategory"
+          style="font-family:var(--font-headline); color:var(--tactical-gold); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:1.25rem;">
+        </div>
+        <p id="inspectBadgeDesc"
+          style="font-size:0.92rem; color:var(--text-muted); line-height:1.6; margin-bottom:1.5rem;"></p>
+        <div
+          style="border-top:1px solid var(--border-subtle); padding-top:1rem; font-size:0.82rem; color:var(--text-subtle);">
+          Otorgada con honores de servicio a: <strong id="inspectBadgeRecipient"
+            style="color:var(--police-cyan);"></strong>
         </div>
       </div>
       <div class="modal-footer-tactical" style="justify-content:center;">
-        <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="closeModal('modalBadgeInspect')">
+        <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+          onclick="closeModal('modalBadgeInspect')">
           Cerrar
         </button>
       </div>
@@ -618,7 +669,8 @@
           <div class="form-grid-2">
             <div class="form-group-tactical">
               <label class="form-label-tactical" for="annTitleInput">TÍTULO DEL COMUNICADO</label>
-              <input type="text" id="annTitleInput" class="form-input-tactical" placeholder="Ej: PROTOCOLO DE ALIMENTACIÓN Y DESCANSO" required>
+              <input type="text" id="annTitleInput" class="form-input-tactical"
+                placeholder="Ej: PROTOCOLO DE ALIMENTACIÓN Y DESCANSO" required>
             </div>
             <div class="form-group-tactical">
               <label class="form-label-tactical" for="annPrioritySelect">PRIORIDAD / TIPO</label>
@@ -640,11 +692,13 @@
 
           <div class="form-group-tactical">
             <label class="form-label-tactical" for="annContentInput">CONTENIDO DEL COMUNICADO</label>
-            <textarea id="annContentInput" class="form-textarea-tactical" style="min-height:140px;" placeholder="Escribe el texto de la directriz oficial..." required></textarea>
+            <textarea id="annContentInput" class="form-textarea-tactical" style="min-height:140px;"
+              placeholder="Escribe el texto de la directriz oficial..." required></textarea>
           </div>
         </div>
         <div class="modal-footer-tactical">
-          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="closeModal('modalNewAnnouncement')">Cancelar</button>
+          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+            onclick="closeModal('modalNewAnnouncement')">Cancelar</button>
           <button type="submit" class="btn-tactical btn-tactical-gold btn-tactical-sm">Publicar en Tablón</button>
         </div>
       </form>
@@ -658,4 +712,5 @@
   <script src="js/auth.js"></script>
   <script src="js/app.js"></script>
 </body>
+
 </html>
