@@ -212,8 +212,7 @@
               style="font-family:var(--font-headline); font-size:0.75rem; color:var(--text-subtle); letter-spacing:0.08em;">CLIENT
               ID OFICIAL:</span>
             <span
-              style="font-family:var(--font-tactical); font-size:0.8rem; color:#a5b4fc; background:rgba(88,101,242,0.2); padding:0.15rem 0.5rem; border-radius:4px;">1406448851153326131
-            </span>
+              style="font-family:var(--font-tactical); font-size:0.8rem; color:#a5b4fc; background:rgba(88,101,242,0.2); padding:0.15rem 0.5rem; border-radius:4px;">1406448851153326131</span>
           </div>
           <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.5; margin:0;">
             Verificación automática y segura mediante OAuth2. <strong>No requiere claves ni contraseñas</strong>: pulsa
@@ -256,21 +255,43 @@
       </div>
       <form id="formDiscordConfig">
         <div class="modal-body-tactical">
-          <p style="font-size:0.85rem; color:var(--text-muted);">
-            Puedes vincular tu propia aplicación de Discord desde el <a
-              href="https://discord.com/developers/applications" target="_blank"
-              style="color:var(--police-cyan);">Discord Developer Portal</a>:
+          <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.75rem;">
+            Asegúrate de que la <strong>Redirect URI</strong> esté registrada exactamente en tu aplicación del <a
+              href="https://discord.com/developers/applications/1406448851153326131/oauth2" target="_blank"
+              style="color:var(--police-cyan); text-decoration:underline;">Discord Developer Portal (Sección OAuth2 > Redirects)</a>:
           </p>
+
+          <div style="background:rgba(255,183,3,0.1); border:1px solid rgba(255,183,3,0.3); border-radius:6px; padding:0.75rem; margin-bottom:1rem; font-size:0.78rem;">
+            <div style="color:var(--tactical-gold); font-weight:700; margin-bottom:0.3rem;">📋 URLs que debes añadir en Discord Developer Portal:</div>
+            <code style="display:block; color:#fff; background:rgba(0,0,0,0.4); padding:0.3rem 0.5rem; border-radius:4px; margin-bottom:0.3rem; user-select:all;">https://k9-livid.vercel.app/</code>
+            <code style="display:block; color:#fff; background:rgba(0,0,0,0.4); padding:0.3rem 0.5rem; border-radius:4px; margin-bottom:0.3rem; user-select:all;">https://k9-livid.vercel.app/index.html</code>
+            <code style="display:block; color:#fff; background:rgba(0,0,0,0.4); padding:0.3rem 0.5rem; border-radius:4px; margin-bottom:0.4rem; user-select:all;">https://k9-livid.vercel.app</code>
+            <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" style="font-size:0.72rem; padding:0.2rem 0.5rem;" onclick="navigator.clipboard.writeText('https://k9-livid.vercel.app/\nhttps://k9-livid.vercel.app/index.html\nhttps://k9-livid.vercel.app'); showToast('URLs copiadas al portapapeles', 'info');">
+              📋 Copiar lista de Redirects
+            </button>
+          </div>
+
           <div class="form-group-tactical">
             <label class="form-label-tactical" for="cfgClientId">DISCORD CLIENT ID</label>
-            <input type="text" id="cfgClientId" class="form-input-tactical" value="1406448851153326131 " required>
+            <input type="text" id="cfgClientId" class="form-input-tactical" value="1406448851153326131" required>
           </div>
           <div class="form-group-tactical">
-            <label class="form-label-tactical" for="cfgRedirectUri">REDIRECT URI AUTORIZADA</label>
+            <label class="form-label-tactical" for="cfgRedirectUri">REDIRECT URI AUTORIZADA (ACTUAL)</label>
             <input type="text" id="cfgRedirectUri" class="form-input-tactical" required>
+            <div style="display:flex; gap:0.4rem; flex-wrap:wrap; margin-top:0.4rem;">
+              <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" style="font-size:0.7rem; padding:0.15rem 0.4rem;" onclick="document.getElementById('cfgRedirectUri').value='https://k9-livid.vercel.app/';">
+                Vercel (con /)
+              </button>
+              <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" style="font-size:0.7rem; padding:0.15rem 0.4rem;" onclick="document.getElementById('cfgRedirectUri').value='https://k9-livid.vercel.app/index.html';">
+                Vercel (/index.html)
+              </button>
+              <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" style="font-size:0.7rem; padding:0.15rem 0.4rem;" onclick="document.getElementById('cfgRedirectUri').value='https://k9-livid.vercel.app';">
+                Vercel (sin /)
+              </button>
+            </div>
           </div>
           <div style="font-size:0.78rem; color:var(--text-subtle);">
-            Scope de autenticación: <code style="color:var(--police-cyan);">identify</code> (Sin claves ni secrets)
+            Scope de autenticación: <code style="color:var(--police-cyan);">identify</code> (Flujo implícito sin secrets)
           </div>
 
           <!-- ══════════════════════════════════════════

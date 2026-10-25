@@ -141,14 +141,13 @@ class K9AuthManager {
     let cleanRedirect;
     if (window.location.protocol === 'file:') {
       cleanRedirect = 'http://localhost:5500/index.html';
-    } else if (window.location.hostname.includes('vercel.app') || window.location.hostname.includes('k9-')) {
-      cleanRedirect = 'https://k9-livid.vercel.app/index.html';
     } else {
-      cleanRedirect = window.location.origin + window.location.pathname;
+      // Usar exactamente la URL actual sin hash ni query params
+      cleanRedirect = window.location.href.split('#')[0].split('?')[0];
     }
 
     const defaultCfg = {
-      clientId: '1406448851153326131 ',
+      clientId: '1406448851153326131',
       redirectUri: cleanRedirect,
       scope: 'identify'
     };
@@ -158,11 +157,13 @@ class K9AuthManager {
 
     try {
       const parsed = JSON.parse(saved);
-      // Mantener siempre el Client ID oficial indicado por el usuario
-      parsed.clientId = '1406448851153326131 ';
+      parsed.clientId = '1406448851153326131';
       if (!parsed.scope) parsed.scope = 'identify';
-      if (!parsed.redirectUri || parsed.redirectUri.startsWith('null/')) {
+      // Si la URL guardada no es válida o pertenece a otro host, sincronizar con la actual
+      if (!parsed.redirectUri || parsed.redirectUri.startsWith('null/') || (window.location.hostname && !parsed.redirectUri.includes(window.location.hostname) && window.location.hostname !== 'localhost')) {
         parsed.redirectUri = cleanRedirect;
+      } else {
+        parsed.redirectUri = parsed.redirectUri.trim();
       }
       return parsed;
     } catch {
@@ -172,7 +173,8 @@ class K9AuthManager {
 
   saveDiscordConfig(cfg) {
     if (cfg) {
-      cfg.clientId = '1406448851153326131 '; // Client ID fijo oficial
+      cfg.clientId = '1406448851153326131'; // Client ID fijo oficial
+      if (cfg.redirectUri) cfg.redirectUri = cfg.redirectUri.trim();
     }
     localStorage.setItem(STORAGE_KEYS.DISCORD_CONFIG, JSON.stringify(cfg));
   }
@@ -180,9 +182,11 @@ class K9AuthManager {
   // Generar URL para login real de Discord
   generateDiscordAuthUrl() {
     const cfg = this.getDiscordConfig();
+    const cleanClientId = (cfg.clientId || '1406448851153326131').trim();
+    const cleanRedirect = (cfg.redirectUri || window.location.href.split('#')[0].split('?')[0]).trim();
     const params = new URLSearchParams({
-      client_id: cfg.clientId,
-      redirect_uri: cfg.redirectUri,
+      client_id: cleanClientId,
+      redirect_uri: cleanRedirect,
       response_type: 'token',
       scope: cfg.scope || 'identify',
       state: 'k9_' + Math.random().toString(36).substring(2)
