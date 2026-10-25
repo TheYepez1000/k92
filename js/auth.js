@@ -47,7 +47,7 @@ class K9AuthManager {
   // Iniciar sesión / registrar usuario con identidad de Discord
   loginWithDiscordProfile(profileData) {
     const users = window.K9Store.getUsers();
-    let matched = users.find(u => 
+    let matched = users.find(u =>
       (profileData.discordId && u.discordId === profileData.discordId) ||
       (profileData.discordUsername && u.discordUsername.toLowerCase() === profileData.discordUsername.toLowerCase())
     );
@@ -55,16 +55,16 @@ class K9AuthManager {
     if (!matched) {
       // Buscar pre-registro por Discord ID (asignado por Jefatura antes del login)
       const presets = window.K9Store.getAgentPresets ? window.K9Store.getAgentPresets() : [];
-      const preset  = presets.find(p =>
+      const preset = presets.find(p =>
         (profileData.discordId && p.discordId === profileData.discordId) ||
         (profileData.discordUsername && p.discordUsername &&
           p.discordUsername.toLowerCase() === profileData.discordUsername.toLowerCase())
       );
 
       // El primer usuario registrado recibe Jefatura para administrar la unidad K9
-      const isFirstUser  = users.length === 0;
+      const isFirstUser = users.length === 0;
       const grantJefatura = isFirstUser || !!profileData.isJefatura || !!(preset && preset.isJefatura);
-      const assignedRank  = preset ? preset.rank : (grantJefatura ? 'Jefe de División K9' : (profileData.rank || 'Aspirante K9'));
+      const assignedRank = preset ? preset.rank : (grantJefatura ? 'Jefe de División K9' : (profileData.rank || 'Aspirante K9'));
       const assignedPlaca = preset ? preset.placa : (grantJefatura ? 'K-01' : 'K-' + Math.floor(20 + Math.random() * 80));
 
       matched = {
@@ -95,15 +95,15 @@ class K9AuthManager {
     } else {
       // Agente ya registrado: aplicar pre-registro si existe y aun no se habia aplicado
       const presets = window.K9Store.getAgentPresets ? window.K9Store.getAgentPresets() : [];
-      const preset  = presets.find(p =>
+      const preset = presets.find(p =>
         (profileData.discordId && p.discordId === profileData.discordId) ||
         (profileData.discordUsername && p.discordUsername &&
           p.discordUsername.toLowerCase() === profileData.discordUsername.toLowerCase())
       );
       if (preset) {
         // Actualizar rango y permisos si el preset tiene datos
-        if (preset.rank)        matched.rank        = preset.rank;
-        if (preset.placa)       matched.placa       = preset.placa;
+        if (preset.rank) matched.rank = preset.rank;
+        if (preset.placa) matched.placa = preset.placa;
         if (preset.isJefatura !== undefined) matched.isJefatura = preset.isJefatura;
         if (preset.permissions) matched.permissions = preset.permissions;
         if (preset.serviceStatus) matched.serviceStatus = preset.serviceStatus;
@@ -148,7 +148,7 @@ class K9AuthManager {
     }
 
     const defaultCfg = {
-      clientId: '1406448851153326131',
+      clientId: '1271954022139691038',
       redirectUri: cleanRedirect,
       scope: 'identify'
     };
@@ -159,7 +159,7 @@ class K9AuthManager {
     try {
       const parsed = JSON.parse(saved);
       // Mantener siempre el Client ID oficial indicado por el usuario
-      parsed.clientId = '1406448851153326131';
+      parsed.clientId = '1271954022139691038';
       if (!parsed.scope) parsed.scope = 'identify';
       if (!parsed.redirectUri || parsed.redirectUri.startsWith('null/')) {
         parsed.redirectUri = cleanRedirect;
@@ -172,7 +172,7 @@ class K9AuthManager {
 
   saveDiscordConfig(cfg) {
     if (cfg) {
-      cfg.clientId = '1406448851153326131'; // Client ID fijo oficial
+      cfg.clientId = '1271954022139691038'; // Client ID fijo oficial
     }
     localStorage.setItem(STORAGE_KEYS.DISCORD_CONFIG, JSON.stringify(cfg));
   }
@@ -247,8 +247,8 @@ class K9AuthManager {
         const discordData = await response.json();
         console.log('Perfil de Discord autenticado con éxito:', discordData);
 
-        const avatarUrl = discordData.avatar 
-          ? `https://cdn.discordapp.com/avatars/${discordData.id}/${discordData.avatar}.png` 
+        const avatarUrl = discordData.avatar
+          ? `https://cdn.discordapp.com/avatars/${discordData.id}/${discordData.avatar}.png`
           : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80';
 
         const usernameFormatted = discordData.discriminator && discordData.discriminator !== '0'
