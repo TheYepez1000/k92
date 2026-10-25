@@ -632,6 +632,14 @@ function renderMemberProfile() {
   const allBadges = window.K9Store.getBadges();
   const userBadges = (user.badges || []).map(bId => allBadges.find(b => b.id === bId)).filter(Boolean);
 
+  // Expedientes disciplinarios del miembro (ÚNICAMENTE faltas públicas/notificadas; expedientes internos son confidenciales de Jefatura y NO le saldrán al miembro)
+  const allDisciplinary = window.K9Store.getDisciplinary();
+  const userSanctions = allDisciplinary.filter(d =>
+    d.agentId === user.id &&
+    d.category !== 'expediente_interno' &&
+    !d.isInternal
+  );
+
   container.innerHTML = `
     <!-- Cabecera de la sección -->
     <div class="section-header-block">
@@ -819,6 +827,51 @@ function renderMemberProfile() {
               <h4 class="font-tactical" style="color:#fff; margin-bottom:0.4rem;">SIN CONDECORACIONES REGISTRADAS</h4>
               <p style="font-size:0.85rem; color:var(--text-muted);">
                 Aún no se te han otorgado insignias oficiales. Las condecoraciones son concedidas por la Jefatura K9 tras actuaciones meritorias y cumplimiento de hitos en servicio.
+              </p>
+            </div>
+          `}
+        </div>
+
+        <!-- Historial Disciplinario del Miembro (Solo faltas notificadas; los expedientes internos NO se muestran aquí) -->
+        <div class="member-badges-container" style="margin-top:1.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem;">
+            <div>
+              <h3 class="font-tactical" style="font-size:1.15rem; color:#fff;">⚖️ RÉGIMEN DISCIPLINARIO Y FALTAS</h3>
+              <span style="font-family:var(--font-headline); font-size:0.75rem; color:var(--text-muted); letter-spacing:0.06em;">HISTORIAL DISCIPLINARIO OFICIAL NOTIFICADO</span>
+            </div>
+            <span style="font-family:var(--font-tactical); font-size:0.85rem; color:${userSanctions.length > 0 ? 'var(--tactical-red)' : 'var(--tactical-green)'}; background:${userSanctions.length > 0 ? 'rgba(255,42,95,0.15)' : 'rgba(0,230,118,0.1)'}; border:1px solid currentColor; padding:0.25rem 0.75rem; border-radius:20px;">
+              ${userSanctions.length > 0 ? `${userSanctions.length} FALTAS NOTIFICADAS` : 'EXPEDIENTE LIMPIO ✓'}
+            </span>
+          </div>
+
+          ${userSanctions.length > 0 ? `
+            <div style="display:flex; flex-direction:column; gap:0.75rem;">
+              ${userSanctions.map(s => `
+                <div style="background:rgba(18,24,38,0.85); border:1px solid ${s.type === 'Muy Grave' ? 'rgba(255,42,95,0.4)' : 'rgba(255,183,3,0.3)'}; border-left:4px solid ${s.type === 'Muy Grave' ? 'var(--tactical-red)' : s.type === 'Grave' ? 'var(--tactical-amber)' : 'var(--tactical-gold)'}; border-radius:8px; padding:1rem;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem; flex-wrap:wrap; gap:0.5rem;">
+                    <div style="display:flex; align-items:center; gap:0.6rem;">
+                      <span style="font-family:var(--font-tactical); font-weight:700; color:#fff; font-size:0.9rem;">Falta ${s.type}</span>
+                      <span style="font-size:0.75rem; color:var(--text-subtle);">${s.date}</span>
+                    </div>
+                    <span style="font-family:var(--font-tactical); font-size:0.75rem; color:${s.status === 'Cumplida' ? 'var(--tactical-green)' : 'var(--tactical-red)'}; background:${s.status === 'Cumplida' ? 'rgba(0,230,118,0.1)' : 'rgba(255,42,95,0.1)'}; padding:0.15rem 0.5rem; border-radius:4px; border:1px solid currentColor;">
+                      ${s.status}
+                    </span>
+                  </div>
+                  <div style="font-size:0.85rem; color:var(--text-main); margin-bottom:0.5rem; line-height:1.4;">
+                    <strong>Hechos:</strong> ${s.reason}
+                  </div>
+                  <div style="font-size:0.8rem; color:var(--police-cyan); background:rgba(0,229,255,0.06); padding:0.4rem 0.6rem; border-radius:4px; border:1px solid rgba(0,229,255,0.15);">
+                    ⚖️ <strong>Sanción impuesta:</strong> ${s.sanction} · <span style="color:var(--text-subtle);">Oficial sancionador: ${s.issuedBy}</span>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          ` : `
+            <div class="empty-state-box" style="margin-top:0.75rem; padding:1.5rem 1rem; border-color:rgba(0,230,118,0.25);">
+              <div class="empty-icon" style="color:var(--tactical-green); font-size:2rem;">🛡️</div>
+              <h4 class="font-tactical" style="color:#fff; margin-bottom:0.3rem;">EXPEDIENTE DISCIPLINARIO INMACULADO</h4>
+              <p style="font-size:0.85rem; color:var(--text-muted); margin:0;">
+                No constan infracciones ni faltas disciplinarias registradas en tu historial policial K9.
               </p>
             </div>
           `}
@@ -1184,8 +1237,58 @@ function renderAgentsSection(container) {
   const dogs = window.K9Store.getDogs();
   const pendingReqs = (window.K9Store.getDogRequests ? window.K9Store.getDogRequests() : []).filter(r => r.status === 'pendiente');
   const presets = window.K9Store.getAgentPresets ? window.K9Store.getAgentPresets() : [];
+  const pendingDiscordUsers = users.filter(u => !u.isVerified || u.rank === 'Sin Rango Asignado' || (typeof u.rank === 'string' && u.rank.includes('Pendiente')));
 
   container.innerHTML = `
+    <!-- 0. LISTA DE USUARIOS AUTENTICADOS CON DISCORD EN ESPERA DE ASIGNACIÓN DE RANGO -->
+    <div style="margin-bottom:1.5rem; background:rgba(18,24,38,0.95); border:1px solid ${pendingDiscordUsers.length > 0 ? 'var(--tactical-gold)' : 'var(--border-subtle)'}; border-radius:10px; padding:1.25rem; box-shadow:0 4px 20px rgba(0,0,0,0.35);">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.75rem;">
+        <div style="display:flex; align-items:center; gap:0.6rem;">
+          <span style="font-size:1.4rem;">👥</span>
+          <div>
+            <h3 class="font-tactical" style="font-size:1.05rem; margin:0; color:${pendingDiscordUsers.length > 0 ? 'var(--tactical-gold)' : '#fff'};">
+              USUARIOS AUTENTICADOS CON DISCORD (${users.length} TOTAL / ${pendingDiscordUsers.length} PENDIENTES DE RANGO)
+            </h3>
+            <span style="font-size:0.75rem; color:var(--text-muted);">
+              Listado en tiempo real de todos los agentes que han iniciado sesión con su cuenta de Discord en el portal K9
+            </span>
+          </div>
+        </div>
+        <span style="font-family:var(--font-tactical); font-size:0.8rem; padding:0.25rem 0.75rem; border-radius:12px; background:${pendingDiscordUsers.length > 0 ? 'rgba(255,183,3,0.2)' : 'rgba(0,230,118,0.15)'}; color:${pendingDiscordUsers.length > 0 ? 'var(--tactical-gold)' : 'var(--tactical-green)'}; border:1px solid currentColor; font-weight:700;">
+          ${pendingDiscordUsers.length > 0 ? `⚠️ ${pendingDiscordUsers.length} EN ESPERA DE RANGO` : '✓ TODOS ASIGNADOS'}
+        </span>
+      </div>
+
+      ${pendingDiscordUsers.length > 0 ? `
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:0.75rem; margin-top:0.75rem;">
+          ${pendingDiscordUsers.map(u => `
+            <div style="background:rgba(255,183,3,0.06); border:1px solid rgba(255,183,3,0.35); border-radius:8px; padding:0.9rem; display:flex; justify-content:space-between; align-items:center; gap:0.75rem;">
+              <div style="display:flex; align-items:center; gap:0.75rem; min-width:0;">
+                <img src="${u.avatar}" style="width:42px; height:42px; border-radius:50%; object-fit:cover; border:2px solid var(--tactical-gold);" alt="${u.name}" onerror="this.src='assets/images/emblem.jpg'">
+                <div style="min-width:0;">
+                  <strong style="color:#fff; font-family:var(--font-tactical); font-size:0.95rem; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${u.name}</strong>
+                  <div style="font-size:0.75rem; color:var(--text-muted); display:flex; align-items:center; gap:0.3rem;">
+                    <span>@${u.discordUsername || '—'}</span>
+                  </div>
+                  <div style="display:flex; align-items:center; gap:0.4rem; margin-top:0.2rem;">
+                    <code style="font-size:0.72rem; color:#a5b4fc; background:rgba(88,101,242,0.15); padding:0.1rem 0.35rem; border-radius:4px; font-family:var(--font-mono);">${u.discordId || '—'}</code>
+                    <button class="btn-tactical btn-tactical-outline btn-tactical-sm" style="font-size:0.65rem; padding:0.1rem 0.35rem;" onclick="navigator.clipboard.writeText('${u.discordId}'); showToast('Discord ID copiado', 'info');" title="Copiar Discord ID">📋</button>
+                  </div>
+                </div>
+              </div>
+              <button class="btn-tactical btn-tactical-gold btn-tactical-sm" onclick="window.editAgentRank('${u.id}')" style="white-space:nowrap; font-weight:700; padding:0.45rem 0.75rem;">
+                🎖️ Dar Rango
+              </button>
+            </div>
+          `).join('')}
+        </div>
+      ` : `
+        <div style="padding:0.75rem 1rem; background:rgba(0,0,0,0.2); border-radius:6px; font-size:0.85rem; color:var(--text-muted); text-align:center;">
+          ✓ Todos los usuarios que han entrado con Discord disponen actualmente de un rango oficial y placa asignados.
+        </div>
+      `}
+    </div>
+
     <!-- 1. SOLICITUDES DE CAN PENDIENTES DE APROBACIÓN -->
     <div style="margin-bottom:1.5rem; background:rgba(18,24,38,0.9); border:1px solid ${pendingReqs.length > 0 ? 'var(--tactical-gold)' : 'var(--border-subtle)'}; border-radius:8px; padding:1.25rem; box-shadow:0 4px 20px rgba(0,0,0,0.3);">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.75rem;">
@@ -1479,9 +1582,15 @@ function renderAgentsTableRows(users, dogs) {
           </div>
         </td>
         <td>
-          <span style="font-family:var(--font-headline); letter-spacing:0.05em; color:${u.isJefatura ? 'var(--tactical-gold)' : 'var(--text-main)'}; font-size:0.85rem;">
-            ${u.rank}
-          </span>
+          ${(!u.isVerified || u.rank === 'Sin Rango Asignado') ? `
+            <span style="font-family:var(--font-headline); letter-spacing:0.05em; color:var(--tactical-gold); background:rgba(255,183,3,0.15); border:1px solid var(--border-gold); padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem; font-weight:700; display:inline-block;">
+              ⚠️ PENDIENTE DE RANGO
+            </span>
+          ` : `
+            <span style="font-family:var(--font-headline); letter-spacing:0.05em; color:${u.isJefatura ? 'var(--tactical-gold)' : 'var(--text-main)'}; font-size:0.85rem;">
+              ${u.rank}
+            </span>
+          `}
         </td>
         <td>
           <div style="display:flex; flex-direction:column; gap:0.25rem;">
@@ -1501,14 +1610,14 @@ function renderAgentsTableRows(users, dogs) {
           <span style="font-family:var(--font-tactical); color:var(--tactical-gold);">${(u.badges || []).length} 🎖️</span>
         </td>
         <td>
-          <span style="font-family:var(--font-tactical); font-size:0.75rem; color:var(--tactical-green); background:rgba(0,230,118,0.1); border:1px solid rgba(0,230,118,0.3); padding:0.2rem 0.5rem; border-radius:15px;">
-            ${u.serviceStatus}
+          <span style="font-family:var(--font-tactical); font-size:0.75rem; color:${(!u.isVerified || u.rank === 'Sin Rango Asignado') ? 'var(--tactical-gold)' : 'var(--tactical-green)'}; background:${(!u.isVerified || u.rank === 'Sin Rango Asignado') ? 'rgba(255,183,3,0.12)' : 'rgba(0,230,118,0.1)'}; border:1px solid currentColor; padding:0.2rem 0.5rem; border-radius:15px;">
+            ${u.serviceStatus || 'En Espera'}
           </span>
         </td>
         <td>
           <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
             <button class="btn-tactical btn-tactical-gold btn-tactical-sm" onclick="editAgentRank('${u.id}')" title="Modificar rango y permisos">
-              🎖️ Rango
+              ${(!u.isVerified || u.rank === 'Sin Rango Asignado') ? '🎖️ Asignar Rango' : '🎖️ Rango'}
             </button>
             <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="editAgentDogAssignment('${u.id}')" title="Asignar o cambiar can">
               🐕 Can
@@ -1872,15 +1981,65 @@ function renderDogsTableRows(dogs) {
         </span>
       </td>
       <td>
-        <div style="display:flex; gap:0.4rem;">
-          <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="editDogTraining('${d.id}')">
+        <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+          <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="editDogTraining('${d.id}')" title="Modificar nivel de adiestramiento">
             ⚡ Adiestramiento
+          </button>
+          <button class="btn-tactical btn-tactical-sm" onclick="window.deleteDog('${d.id}')" style="background:rgba(255,59,48,0.12); border:1px solid rgba(255,59,48,0.4); color:#ff5252; font-weight:700;" title="Dar de baja y eliminar can">
+            🗑️ Eliminar
           </button>
         </div>
       </td>
     </tr>
   `).join('');
 }
+
+window.deleteDog = function (dogId) {
+  const dogs = window.K9Store.getDogs();
+  const dog = dogs.find(d => d.id === dogId);
+  if (!dog) return;
+
+  if (!confirm(`¿Estás seguro de que deseas dar de baja y eliminar al can ${dog.name} [${dog.tag}] del registro K9?`)) {
+    return;
+  }
+
+  // Desasignar de cualquier guía
+  const users = window.K9Store.getUsers();
+  let usersChanged = false;
+  users.forEach(u => {
+    if (u.assignedDogId === dogId) {
+      u.assignedDogId = null;
+      usersChanged = true;
+    }
+  });
+  if (usersChanged) {
+    window.K9Store.save(STORAGE_KEYS.USERS, users);
+  }
+
+  const updatedDogs = dogs.filter(d => d.id !== dogId);
+  window.K9Store.save(STORAGE_KEYS.DOGS, updatedDogs);
+  if (window.K9CloudSync) window.K9CloudSync.push();
+
+  if (window.K9Webhook) {
+    const admin = window.K9Auth.getCurrentUser();
+    if (admin) {
+      window.K9Webhook.sendLog({
+        title: '🗑️ Can K9 Dado de Baja / Eliminado',
+        color: 0xff3b30,
+        fields: [
+          { name: 'Mando', value: `${admin.name} (${admin.placa})`, inline: true },
+          { name: 'Can Eliminado', value: `${dog.name} [${dog.tag}]`, inline: true },
+          { name: 'Raza / Especialidad', value: `${dog.breed} - ${dog.specialty}`, inline: true }
+        ]
+      });
+    }
+  }
+
+  if (window.K9Audio) window.K9Audio.playTacticalBeep(350, 0.15);
+  showToast(`Can ${dog.name} [${dog.tag}] eliminado del registro K9`, 'info');
+  renderJefaturaSubtab('canes');
+  if (typeof updateLiveCounters === 'function') updateLiveCounters();
+};
 
 window.editDogTraining = function (dogId) {
   const dogs = window.K9Store.getDogs();
@@ -1893,6 +2052,7 @@ window.editDogTraining = function (dogId) {
     if (!isNaN(parsed) && parsed >= 0 && parsed <= 100) {
       dog.syncLevel = parsed;
       window.K9Store.save(STORAGE_KEYS.DOGS, dogs);
+      if (window.K9CloudSync) window.K9CloudSync.push();
       showToast(`Adiestramiento de ${dog.name} actualizado a ${parsed}%`, 'success');
       renderJefaturaSubtab('canes');
     } else {
@@ -1915,7 +2075,7 @@ function renderDisciplinarySection(container) {
           <span style="font-size:0.75rem; color:var(--text-muted);">Registro de infracciones, negligencias y sanciones impuestas</span>
         </div>
         <div>
-          <button class="btn-tactical btn-tactical-danger btn-tactical-sm" id="btnNewDisciplinary">
+          <button class="btn-tactical btn-tactical-danger btn-tactical-sm" id="btnNewDisciplinary" onclick="openModal('modalNewDisciplinary')">
             <span>+</span> Abrir Expediente de Falta
           </button>
         </div>
@@ -1926,20 +2086,34 @@ function renderDisciplinarySection(container) {
           <thead>
             <tr>
               <th>Fecha</th>
-              <th>Agente Sancionado</th>
+              <th>Agente Implicado</th>
+              <th>Tipo / Visibilidad</th>
               <th>Gravedad</th>
-              <th>Motivo de la Falta</th>
-              <th>Sanción Aplicada</th>
+              <th>Motivo de la Falta / Hechos</th>
+              <th>Sanción / Medida</th>
               <th>Oficial Sancionador</th>
               <th>Estado</th>
               <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
-            ${records.map(rec => `
+            ${records.map(rec => {
+              const isInternal = rec.category === 'expediente_interno' || rec.isInternal;
+              return `
               <tr>
                 <td style="font-family:var(--font-tactical); font-size:0.8rem;">${rec.date}</td>
                 <td><strong style="color:#fff;">${rec.agentName}</strong></td>
+                <td>
+                  ${isInternal ? `
+                    <span style="font-family:var(--font-headline); font-size:0.75rem; padding:0.2rem 0.5rem; border-radius:4px; font-weight:700; background:rgba(124,58,237,0.2); border:1px solid #a78bfa; color:#c4b5fd;">
+                      🔒 Confidencial (Jefatura)
+                    </span>
+                  ` : `
+                    <span style="font-family:var(--font-headline); font-size:0.75rem; padding:0.2rem 0.5rem; border-radius:4px; font-weight:700; background:rgba(255,183,3,0.15); border:1px solid var(--border-gold); color:var(--tactical-gold);">
+                      ⚠️ Falta Notificada
+                    </span>
+                  `}
+                </td>
                 <td>
                   <span style="font-family:var(--font-tactical); font-size:0.75rem; padding:0.2rem 0.6rem; border-radius:4px; font-weight:700; background:${rec.type === 'Muy Grave' ? 'rgba(255,42,95,0.25)' : rec.type === 'Grave' ? 'rgba(251,133,0,0.2)' : 'rgba(255,183,3,0.15)'}; color:${rec.type === 'Muy Grave' ? 'var(--tactical-red)' : rec.type === 'Grave' ? 'var(--tactical-amber)' : 'var(--tactical-gold)'}; border:1px solid currentColor;">
                     ${rec.type}
@@ -1954,14 +2128,19 @@ function renderDisciplinarySection(container) {
                   </span>
                 </td>
                 <td>
-                  ${rec.status !== 'Cumplida' ? `
-                    <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="markSanctionFulfilled('${rec.id}')">
-                      Dar Cumplida
+                  <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+                    ${rec.status !== 'Cumplida' ? `
+                      <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="markSanctionFulfilled('${rec.id}')" title="Marcar sanción como cumplida">
+                        ✓ Cumplida
+                      </button>
+                    ` : '<span style="color:var(--text-subtle); font-size:0.75rem; padding:0.2rem 0.4rem;">Archivado</span>'}
+                    <button class="btn-tactical btn-tactical-sm" onclick="deleteDisciplinaryRecord('${rec.id}')" style="background:rgba(255,59,48,0.12); border:1px solid rgba(255,59,48,0.4); color:#ff5252;" title="Eliminar registro">
+                      🗑️
                     </button>
-                  ` : '<span style="color:var(--text-subtle); font-size:0.75rem;">Archivado</span>'}
+                  </div>
                 </td>
               </tr>
-            `).join('')}
+            `;}).join('')}
           </tbody>
         </table>
       </div>
@@ -1973,12 +2152,22 @@ function renderDisciplinarySection(container) {
   });
 }
 
+window.deleteDisciplinaryRecord = function (id) {
+  if (!confirm('¿Deseas eliminar este registro disciplinario?')) return;
+  const records = window.K9Store.getDisciplinary().filter(r => r.id !== id);
+  window.K9Store.save(STORAGE_KEYS.DISCIPLINARY, records);
+  if (window.K9CloudSync) window.K9CloudSync.push();
+  showToast('Registro disciplinario eliminado', 'info');
+  renderJefaturaSubtab('disciplinario');
+};
+
 window.markSanctionFulfilled = function (id) {
   const records = window.K9Store.getDisciplinary();
   const rec = records.find(r => r.id === id);
   if (rec) {
     rec.status = 'Cumplida';
     window.K9Store.save(STORAGE_KEYS.DISCIPLINARY, records);
+    if (window.K9CloudSync) window.K9CloudSync.push();
     showToast('Falta marcada como cumplida y archivada en expediente', 'info');
     renderJefaturaSubtab('disciplinario');
   }
@@ -1992,21 +2181,83 @@ function renderBadgesSection(container) {
   const users = window.K9Store.getUsers();
 
   container.innerHTML = `
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
+    <!-- 1. GESTIÓN Y REVOCACIÓN DE INSIGNIAS POR AGENTE -->
+    <div style="background:var(--bg-surface); border:1px solid var(--border-tactical); border-radius:14px; padding:1.5rem; margin-bottom:2rem; box-shadow:var(--shadow-elevation);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem; flex-wrap:wrap; gap:1rem;">
+        <div>
+          <h4 class="font-tactical" style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:0.5rem; margin:0 0 0.3rem 0;">
+            <span>🛡️</span> GESTOR DE INSIGNIAS POR AGENTE (OTORGAR & QUITAR)
+          </h4>
+          <span style="font-size:0.8rem; color:var(--text-muted);">
+            Consulta las condecoraciones de cada miembro, retira insignias concedidas (botón ✕) o añade nuevas condecoraciones
+          </span>
+        </div>
+        <button class="btn-tactical btn-tactical-gold btn-tactical-sm" id="btnAwardBadge" onclick="window.openModal('modalAwardBadge')">
+          <span>🎖️</span> + Otorgar Condecoración
+        </button>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table class="tactical-table-element">
+          <thead>
+            <tr>
+              <th>Agente & Placa</th>
+              <th>Rango Oficial</th>
+              <th>Condecoraciones Concedidas</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${users.map(u => {
+              const uBadges = (u.badges || []).map(bid => badges.find(b => b.id === bid)).filter(Boolean);
+              return `
+                <tr>
+                  <td>
+                    <div style="display:flex; align-items:center; gap:0.6rem;">
+                      <img src="${u.avatar}" style="width:34px; height:34px; border-radius:50%; object-fit:cover; border:1px solid var(--border-tactical);" alt="${u.name}" onerror="this.src='assets/images/emblem.jpg'">
+                      <div>
+                        <strong style="color:#fff;">${u.name}</strong>
+                        <div style="font-size:0.72rem; color:var(--police-cyan); font-family:var(--font-headline);">PLACA #${u.placa}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span style="font-size:0.82rem; color:var(--text-main); font-family:var(--font-headline);">${u.rank}</span>
+                  </td>
+                  <td>
+                    <div style="display:flex; flex-wrap:wrap; gap:0.4rem; align-items:center;">
+                      ${uBadges.length > 0 ? uBadges.map(b => `
+                        <span style="display:inline-flex; align-items:center; gap:0.35rem; background:rgba(255,183,3,0.1); border:1px solid rgba(255,183,3,0.3); border-radius:4px; padding:0.25rem 0.55rem; font-size:0.78rem; color:#fff;">
+                          <img src="${b.image}" style="width:18px; height:18px; object-fit:contain;">
+                          <span>${b.name}</span>
+                          <button onclick="window.removeBadgeFromAgent('${u.id}', '${b.id}')" style="background:none; border:none; color:#ff5252; cursor:pointer; font-weight:700; margin-left:0.25rem; padding:0 0.15rem; font-size:0.85rem;" title="Quitar condecoración ${b.name}">✕</button>
+                        </span>
+                      `).join('') : '<span style="color:var(--text-subtle); font-size:0.75rem;">Sin condecoraciones asignadas</span>'}
+                    </div>
+                  </td>
+                  <td>
+                    <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="window.openAwardBadgeForAgent('${u.id}')" title="Conceder medalla a ${u.name}">
+                      + Otorgar
+                    </button>
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 2. CATÁLOGO GENERAL DE MEDALLAS E INSIGNIAS -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem; flex-wrap:wrap; gap:1rem;">
       <div>
         <h4 class="font-tactical" style="font-size:1.15rem; color:#fff;">CATÁLOGO DE CONDECORACIONES K9</h4>
-        <p style="font-size:0.85rem; color:var(--text-muted);">Otorga medallas e insignias oficiales al valor y especialidad a los miembros de la división</p>
-      </div>
-      <div>
-        <button class="btn-tactical btn-tactical-gold btn-tactical-sm" id="btnAwardBadge">
-          <span>🎖️</span> Otorgar Condecoración a Miembro
-        </button>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin:0;">Medallas e insignias oficiales al valor, peritaje y especialidad táctica</p>
       </div>
     </div>
 
     <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:1.25rem;">
       ${badges.map(b => {
-    // Contar cuántos miembros la tienen
     const awardedCount = users.filter(u => u.badges && u.badges.includes(b.id)).length;
     return `
           <div style="background:var(--bg-surface); border:1px solid var(--border-tactical); border-radius:14px; padding:1.25rem; display:flex; flex-direction:column; justify-content:space-between; box-shadow:var(--shadow-elevation);">
@@ -2026,7 +2277,7 @@ function renderBadgesSection(container) {
             </div>
             <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-subtle); padding-top:0.75rem; font-size:0.78rem;">
               <span style="color:var(--text-subtle);">Otorgada a: <strong style="color:var(--police-cyan);">${awardedCount} miembros</strong></span>
-              <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="openAwardBadgePrefilled('${b.id}')">
+              <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="window.openAwardBadgePrefilled('${b.id}')">
                 Otorgar
               </button>
             </div>
@@ -2036,10 +2287,55 @@ function renderBadgesSection(container) {
     </div>
   `;
 
-  document.getElementById('btnAwardBadge').addEventListener('click', () => {
-    openModal('modalAwardBadge');
-  });
+  const btnAward = document.getElementById('btnAwardBadge');
+  if (btnAward) {
+    btnAward.addEventListener('click', () => {
+      openModal('modalAwardBadge');
+    });
+  }
 }
+
+window.removeBadgeFromAgent = function (userId, badgeId) {
+  const users = window.K9Store.getUsers();
+  const user = users.find(u => u.id === userId);
+  const badges = window.K9Store.getBadges();
+  const badge = badges.find(b => b.id === badgeId);
+  if (!user) return;
+
+  const bName = badge ? badge.name : 'Insignia';
+  if (!confirm(`¿Estás seguro de que deseas retirar la condecoración "${bName}" al agente ${user.name}?`)) {
+    return;
+  }
+
+  user.badges = (user.badges || []).filter(id => id !== badgeId);
+  window.K9Store.save(STORAGE_KEYS.USERS, users);
+  if (window.K9CloudSync) window.K9CloudSync.push();
+
+  if (window.K9Webhook) {
+    const admin = window.K9Auth.getCurrentUser();
+    if (admin) {
+      window.K9Webhook.sendLog({
+        title: '🎖️ Condecoración K9 Revocada',
+        color: 0xff6b6b,
+        fields: [
+          { name: 'Mando', value: `${admin.name} (${admin.placa})`, inline: true },
+          { name: 'Agente', value: `${user.name} (${user.placa})`, inline: true },
+          { name: 'Insignia Retirada', value: bName, inline: true }
+        ]
+      });
+    }
+  }
+
+  if (window.K9Audio) window.K9Audio.playTacticalBeep(400, 0.12);
+  showToast(`Insignia "${bName}" retirada de ${user.name}`, 'info');
+  renderJefaturaSubtab('insignias');
+};
+
+window.openAwardBadgeForAgent = function (userId) {
+  openModal('modalAwardBadge');
+  const sel = document.getElementById('awardUserSelect');
+  if (sel) sel.value = userId;
+};
 
 window.openAwardBadgePrefilled = function (badgeId) {
   openModal('modalAwardBadge');
@@ -2138,7 +2434,10 @@ function renderUserPermissionsMatrix(userId) {
 function saveUserPermissions(userId) {
   const users = window.K9Store.getUsers();
   const user = users.find(u => u.id === userId);
-  if (!user) return;
+  if (!user) {
+    showToast('Selecciona un agente válido.', 'warning');
+    return;
+  }
 
   const checkboxes = document.querySelectorAll('#permissionsMatrixContainer .perm-checkbox');
   const selected = [];
@@ -2147,12 +2446,49 @@ function saveUserPermissions(userId) {
   });
 
   user.permissions = selected;
-  // Si tiene al menos un permiso de jefatura, marcar isJefatura como true
-  user.isJefatura = selected.length > 0;
+  user.isJefatura = selected.length > 0 || user.rank === 'Jefe de División K9';
 
   window.K9Store.save(STORAGE_KEYS.USERS, users);
+
+  // Persistir también en AGENT_PRESETS para que en próximos logins se mantengan intactos
+  if (user.discordId) {
+    const presets = window.K9Store.getAgentPresets ? window.K9Store.getAgentPresets() : [];
+    const p = presets.find(x => x.discordId === user.discordId);
+    if (p) {
+      p.permissions = selected;
+      p.isJefatura = user.isJefatura;
+    } else {
+      presets.push({
+        discordId: user.discordId,
+        discordUsername: user.discordUsername || user.name,
+        placa: user.placa || 'S/P',
+        rank: user.rank || 'Oficial Guía K9',
+        isJefatura: user.isJefatura,
+        permissions: selected,
+        serviceStatus: user.serviceStatus || 'En Activo',
+        createdAt: new Date().toLocaleDateString('es-ES')
+      });
+    }
+    window.K9Store.save(STORAGE_KEYS.AGENT_PRESETS, presets);
+  }
+
+  // Sincronizar cambios a la nube en tiempo real
+  if (window.K9CloudSync) {
+    window.K9CloudSync.push();
+  }
+
+  // Si el usuario actualizado es el usuario logueado en este navegador, recargar sesión
+  if (window.K9Auth) {
+    const current = window.K9Auth.getCurrentUser();
+    if (current && current.id === user.id) {
+      window.K9Auth.loadUser();
+      if (typeof window.setupAuthUI === 'function') window.setupAuthUI();
+    }
+  }
+
   if (window.K9Audio) window.K9Audio.playTacticalBeep(1100, 0.12);
-  showToast(`Permisos actualizados para el agente ${user.name}`, 'success');
+  showToast(`✅ Permisos actualizados para el agente ${user.name} (${selected.length} módulos)`, 'success');
+  renderUserPermissionsMatrix(user.id);
 }
 
 // -------------------------------------------------------------
@@ -2292,6 +2628,7 @@ function setupModals() {
 
       dogs.push(newDog);
       window.K9Store.save(STORAGE_KEYS.DOGS, dogs);
+      if (window.K9CloudSync) window.K9CloudSync.push();
       closeModal('modalNewDog');
       formDog.reset();
       showToast(`Can ${newDog.name} [${newDog.tag}] incorporado al servicio K9`, 'success');
@@ -2307,12 +2644,11 @@ function setupModals() {
   // Formulario: Registrar Falta Disciplinaria
   const formDisc = document.getElementById('formNewDisciplinary');
   if (formDisc) {
-    // Rellenar select de agentes
     const fillDiscAgents = () => {
       const sel = document.getElementById('discAgentSelect');
       if (sel) {
         const users = window.K9Store.getUsers();
-        sel.innerHTML = users.map(u => `<option value="${u.id}">${u.name} (Placa ${u.placa})</option>`).join('');
+        sel.innerHTML = users.map(u => `<option value="${u.id}">${u.name} (Placa ${u.placa}) - ${u.rank}</option>`).join('');
       }
     };
     fillDiscAgents();
@@ -2324,12 +2660,16 @@ function setupModals() {
       const targetUserId = document.getElementById('discAgentSelect').value;
       const targetUser = users.find(u => u.id === targetUserId);
       const records = window.K9Store.getDisciplinary();
+      const categoryVal = document.getElementById('discCategorySelect') ? document.getElementById('discCategorySelect').value : 'falta_notificada';
+      const isInternalVal = categoryVal === 'expediente_interno';
 
       const newDisc = {
         id: 'disc_' + Date.now(),
         agentId: targetUserId,
         agentName: targetUser ? `${targetUser.name} (${targetUser.placa})` : 'Agente',
         type: document.getElementById('discTypeSelect').value,
+        category: categoryVal,
+        isInternal: isInternalVal,
         reason: document.getElementById('discReasonInput').value,
         sanction: document.getElementById('discSanctionInput').value,
         status: 'Vigente',
@@ -2339,13 +2679,14 @@ function setupModals() {
 
       records.unshift(newDisc);
       window.K9Store.save(STORAGE_KEYS.DISCIPLINARY, records);
+      if (window.K9CloudSync) window.K9CloudSync.push();
       closeModal('modalNewDisciplinary');
       formDisc.reset();
       if (window.K9Audio) window.K9Audio.playAlert();
-      showToast(`Falta ${newDisc.type} impuesta y registrada en expediente`, 'warning');
+      showToast(isInternalVal ? 'Expediente interno confidencial abierto en Jefatura (no visible para el miembro)' : `Falta ${newDisc.type} impuesta y notificada al agente`, 'warning');
       if (window.K9Webhook) window.K9Webhook.onDisciplinaryCreate(user,
         targetUser ? targetUser.name : 'Desconocido',
-        { type: newDisc.type, penalty: newDisc.sanction, reason: newDisc.reason }
+        { type: newDisc.type + (isInternalVal ? ' [Expediente Interno]' : ''), penalty: newDisc.sanction, reason: newDisc.reason }
       );
       renderJefaturaSubtab('disciplinario');
     });
@@ -2384,6 +2725,7 @@ function setupModals() {
         if (!user.badges.includes(targetBadgeId)) {
           user.badges.push(targetBadgeId);
           window.K9Store.save(STORAGE_KEYS.USERS, users);
+          if (window.K9CloudSync) window.K9CloudSync.push();
           closeModal('modalAwardBadge');
           formAward.reset();
           if (window.K9Audio) window.K9Audio.playTacticalBeep(1400, 0.15);
@@ -2569,6 +2911,29 @@ window.openModal = function (modalId) {
       const endpointInput = document.getElementById('syncEndpointInput');
       if (endpointInput) endpointInput.value = window.K9CloudSync.getEndpointUrl() || '';
       window.K9CloudSync.updateIndicatorUI();
+    }
+    if (modalId === 'modalNewDisciplinary') {
+      const sel = document.getElementById('discAgentSelect');
+      if (sel) {
+        const users = window.K9Store.getUsers();
+        sel.innerHTML = users.map(u => `<option value="${u.id}">${u.name} (Placa ${u.placa}) - ${u.rank}</option>`).join('');
+      }
+    }
+    if (modalId === 'modalAwardBadge') {
+      const userSel = document.getElementById('awardUserSelect');
+      const badgeSel = document.getElementById('awardBadgeSelect');
+      if (userSel) {
+        const users = window.K9Store.getUsers();
+        const currentVal = userSel.value;
+        userSel.innerHTML = users.map(u => `<option value="${u.id}">${u.name} [Placa ${u.placa}] - ${u.rank}</option>`).join('');
+        if (currentVal) userSel.value = currentVal;
+      }
+      if (badgeSel) {
+        const badges = window.K9Store.getBadges();
+        const currentVal = badgeSel.value;
+        badgeSel.innerHTML = badges.map(b => `<option value="${b.id}">${b.name} (${b.category})</option>`).join('');
+        if (currentVal) badgeSel.value = currentVal;
+      }
     }
     modal.classList.add('show');
     if (window.K9Audio) window.K9Audio.playTacticalClick();

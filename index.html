@@ -335,6 +335,8 @@
         </div>
       </form>
     </div>
+  </div>
+
   <!-- MODAL: SINCRONIZACIÓN EN LA NUBE MULTI-USUARIO -->
   <div class="tactical-modal-overlay" id="modalCloudSync">
     <div class="tactical-modal-card">
@@ -610,7 +612,7 @@
         <div class="modal-body-tactical">
           <div class="form-grid-2">
             <div class="form-group-tactical">
-              <label class="form-label-tactical" for="discAgentSelect">AGENTE INFRACTOR</label>
+              <label class="form-label-tactical" for="discAgentSelect">AGENTE IMPLICADO</label>
               <select id="discAgentSelect" class="form-select-tactical" required></select>
             </div>
             <div class="form-group-tactical">
@@ -621,6 +623,17 @@
                 <option value="Muy Grave">Falta Muy Grave</option>
               </select>
             </div>
+          </div>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="discCategorySelect">TIPO DE REGISTRO / VISIBILIDAD PARA EL MIEMBRO</label>
+            <select id="discCategorySelect" class="form-select-tactical">
+              <option value="falta_notificada" selected>⚠️ Falta Notificada (Visible para el miembro en Mi Perfil)</option>
+              <option value="expediente_interno">🔒 Expediente Interno / Confidencial (Solo Jefatura — NO le saldrá al miembro)</option>
+            </select>
+            <small style="color:var(--text-subtle); font-size:0.75rem; margin-top:0.3rem; display:block;">
+              Si es un expediente interno confidencial, solo la Jefatura tendrá acceso a él y nunca le aparecerá al agente en su perfil.
+            </small>
           </div>
 
           <div class="form-group-tactical">
