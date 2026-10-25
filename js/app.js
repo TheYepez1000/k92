@@ -3225,7 +3225,168 @@ function renderJefaturaSubtab(subtab) {
   else if (subtab === 'disciplinario') renderDisciplinarySection(container);
   else if (subtab === 'insignias') renderBadgesSection(container);
   else if (subtab === 'permisos') renderPermissionsSection(container);
+  else if (subtab === 'logs') renderLogsSection(container);
 }
+
+// -------------------------------------------------------------
+// SUBTAB 7: REGISTRO DE AUDITORÍA & LOGS (EXCLUSIVO JEFATURA)
+// -------------------------------------------------------------
+function renderLogsSection(container) {
+  const logs = window.K9Store.getLogs();
+
+  container.innerHTML = `
+    <div class="tactical-table-wrapper">
+      <div class="table-toolbar-row">
+        <div>
+          <h4 class="font-tactical" style="color:#fff; font-size:1.05rem;">📋 REGISTRO TÁCTICO DE ACTIVIDAD & AUDITORÍA</h4>
+          <span style="font-size:0.75rem; color:var(--text-muted);">Historial de eventos de mando, accesos, sanciones, informes y sincronización (Exclusivo Jefatura)</span>
+        </div>
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+          <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="renderJefaturaSubtab('logs')">
+            🔄 Refrescar
+          </button>
+          <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="exportLogsDossier()">
+            📄 Exportar JSON
+          </button>
+          <button class="btn-tactical btn-tactical-danger btn-tactical-sm" onclick="clearLogsTactical()">
+            🗑️ Purgar Registro
+          </button>
+        </div>
+      </div>
+
+      <!-- Filtros y buscador de logs -->
+      <div style="display:flex; gap:0.75rem; padding: 0.75rem 1rem; background:rgba(0,0,0,0.25); border-bottom:1px solid var(--border-color); flex-wrap:wrap;">
+        <div class="table-search-box" style="flex:1; min-width:240px;">
+          <span>🔍</span>
+          <input type="text" id="searchLogsInput" placeholder="Filtrar por evento, autor, detalle o fecha...">
+        </div>
+        <select id="filterLogTypeSelect" class="form-select-tactical" style="max-width:200px; padding:0.4rem 0.75rem; font-size:0.8rem;">
+          <option value="ALL">Todas las Categorías</option>
+          <option value="auth">Autenticación / Discord</option>
+          <option value="announcement">Comunicados</option>
+          <option value="report">Informes Semanales</option>
+          <option value="promotion">Ascensos Oficiales</option>
+          <option value="disciplinary">Régimen Disciplinario</option>
+          <option value="dog">Canes K9</option>
+          <option value="badge">Condecoraciones</option>
+          <option value="normative">Normativas & Manuales</option>
+          <option value="info">Información General</option>
+        </select>
+      </div>
+
+      <div class="tactical-table-scroll" style="max-height: 550px; overflow-y: auto;">
+        <table class="tactical-table">
+          <thead>
+            <tr>
+              <th style="width: 170px;">FECHA Y HORA</th>
+              <th style="width: 130px;">TIPO</th>
+              <th>EVENTO / TÍTULO</th>
+              <th style="width: 180px;">RESPONSABLE</th>
+              <th>DETALLES</th>
+            </tr>
+          </thead>
+          <tbody id="logsTableBody">
+            ${renderLogRowsHtml(logs)}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  // Listeners de búsqueda y filtrado de logs
+  const inputSearch = document.getElementById('searchLogsInput');
+  const selectType = document.getElementById('filterLogTypeSelect');
+
+  const filterHandler = () => {
+    const query = (inputSearch?.value || '').toLowerCase().trim();
+    const typeFilter = selectType?.value || 'ALL';
+    const allLogs = window.K9Store.getLogs();
+
+    const filtered = allLogs.filter(log => {
+      const matchType = typeFilter === 'ALL' || (log.type && log.type.toLowerCase().includes(typeFilter.toLowerCase()));
+      const combined = `${log.title || ''} ${log.description || ''} ${log.author || ''} ${log.displayTime || ''} ${JSON.stringify(log.fields || '')}`.toLowerCase();
+      const matchQuery = !query || combined.includes(query);
+      return matchType && matchQuery;
+    });
+
+    const tbody = document.getElementById('logsTableBody');
+    if (tbody) tbody.innerHTML = renderLogRowsHtml(filtered);
+  };
+
+  inputSearch?.addEventListener('input', filterHandler);
+  selectType?.addEventListener('change', filterHandler);
+}
+
+function renderLogRowsHtml(logs) {
+  if (!logs || logs.length === 0) {
+    return `
+      <tr>
+        <td colspan="5" style="text-align:center; padding:2.5rem; color:var(--text-muted);">
+          <span>ℹ️</span> No hay registros de auditoría almacenados actualmente
+        </td>
+      </tr>
+    `;
+  }
+
+  return logs.map(l => {
+    const typeBadge = (l.type || 'info').toLowerCase();
+    let typeClass = 'log-badge-tag';
+    if (typeBadge.includes('danger') || typeBadge.includes('disciplinary')) typeClass += ' log-badge-danger';
+    else if (typeBadge.includes('promotion') || typeBadge.includes('gold')) typeClass += ' log-badge-gold';
+    else if (typeBadge.includes('success')) typeClass += ' log-badge-success';
+    else if (typeBadge.includes('auth')) typeClass += ' log-badge-auth';
+
+    let fieldsHtml = '';
+    if (l.fields && Array.isArray(l.fields) && l.fields.length > 0) {
+      fieldsHtml = `<div style="display:flex; flex-wrap:wrap; gap:0.4rem; margin-top:0.3rem;">` +
+        l.fields.map(f => `<span style="font-size:0.7rem; background:rgba(255,255,255,0.06); padding:0.15rem 0.4rem; border-radius:4px; border:1px solid rgba(255,255,255,0.08);"><strong>${f.name}:</strong> ${f.value}</span>`).join('') +
+        `</div>`;
+    }
+
+    return `
+      <tr>
+        <td style="font-family:monospace; font-size:0.75rem; color:var(--text-muted); white-space:nowrap;">
+          ${l.displayTime || l.timestamp || '—'}
+        </td>
+        <td>
+          <span class="${typeClass}">
+            ${l.emoji || '📌'} ${(l.type || 'INFO').toUpperCase()}
+          </span>
+        </td>
+        <td style="font-weight:600; color:#fff;">
+          ${l.title || 'Evento'}
+        </td>
+        <td style="font-size:0.8rem; color:var(--police-cyan);">
+          ${l.author || 'Sistema'}
+        </td>
+        <td style="font-size:0.8rem; color:var(--text-muted);">
+          ${l.description || '—'}
+          ${fieldsHtml}
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+window.clearLogsTactical = function() {
+  window.K9Store.save(STORAGE_KEYS.LOGS, []);
+  if (window.K9CloudSync) window.K9CloudSync.push();
+  if (window.K9Audio) window.K9Audio.playTacticalBeep(350, 0.15);
+  showToast('Registro de logs purgado correctamente', 'info');
+  renderJefaturaSubtab('logs');
+};
+
+window.exportLogsDossier = function() {
+  const logs = window.K9Store.getLogs();
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(logs, null, 2));
+  const dl = document.createElement('a');
+  dl.setAttribute("href", dataStr);
+  dl.setAttribute("download", `k9_logs_audit_${Date.now()}.json`);
+  document.body.appendChild(dl);
+  dl.click();
+  dl.remove();
+  showToast('Auditoría de logs exportada a JSON', 'success');
+};
 
 // ==========================================
 // MODALES TÁCTICOS Y FORMULARIOS
@@ -3248,6 +3409,7 @@ function setupModals() {
       const user = window.K9Auth.getCurrentUser();
       const reports = window.K9Store.getReports();
 
+      const isConfidential = !!document.getElementById('repConfidentialInput')?.checked;
       const newRep = {
         id: 'rep_' + Date.now(),
         week: document.getElementById('repWeek').value,
@@ -3262,14 +3424,16 @@ function setupModals() {
         notes: document.getElementById('repNotes').value,
         status: 'En Revisión por Jefatura',
         signedBy: 'Pendiente de Validación',
-        date: new Date().toLocaleDateString('es-ES')
+        date: new Date().toLocaleDateString('es-ES'),
+        isConfidential: isConfidential
       };
 
       reports.unshift(newRep);
       window.K9Store.save(STORAGE_KEYS.REPORTS, reports);
+      if (window.K9CloudSync) window.K9CloudSync.push();
       closeModal('modalNewReport');
       formReport.reset();
-      showToast('Informe semanal registrado correctamente', 'success');
+      showToast(isConfidential ? 'Informe semanal confidencial registrado (solo Jefatura)' : 'Informe semanal registrado correctamente', 'success');
       if (window.K9Webhook) window.K9Webhook.onReportSubmit(user, {
         weekLabel: newRep.week,
         hours: newRep.patrolHours,
@@ -3471,13 +3635,17 @@ function setupModals() {
       const user = window.K9Auth.getCurrentUser();
       const announcements = window.K9Store.getAnnouncements();
 
+      const rawPriority = (document.getElementById('annPrioritySelect')?.value || 'OFICIAL').toUpperCase();
+      const imageUrl = (document.getElementById('annImageInput')?.value || '').trim() || null;
       const newAnn = {
         id: 'ann_' + Date.now(),
         title: document.getElementById('annTitleInput').value.toUpperCase(),
-        priority: document.getElementById('annPrioritySelect').value,
+        priority: rawPriority,
+        type: rawPriority,
+        imageUrl: imageUrl,
         date: new Date().toLocaleDateString('es-ES'),
         author: `${user.rank} - ${user.name}`,
-        pinned: document.getElementById('annPinnedInput').checked,
+        pinned: !!document.getElementById('annPinnedInput').checked,
         content: document.getElementById('annContentInput').value
       };
 
@@ -3488,6 +3656,7 @@ function setupModals() {
       }
 
       window.K9Store.save(STORAGE_KEYS.ANNOUNCEMENTS, announcements);
+      if (window.K9CloudSync) window.K9CloudSync.push();
       closeModal('modalNewAnnouncement');
       formAnn.reset();
       showToast('Comunicado oficial publicado con éxito', 'success');
