@@ -368,6 +368,10 @@ class K9DataStore {
   save(key, val) {
     try {
       localStorage.setItem(key, JSON.stringify(val));
+      // Sincronizar automáticamente en la nube cuando se modifica cualquier dato compartido
+      if (key !== STORAGE_KEYS.CURRENT_USER && window.K9CloudSync) {
+        window.K9CloudSync.schedulePush();
+      }
     } catch (e) {
       console.error(`Error saving ${key} to storage:`, e);
     }

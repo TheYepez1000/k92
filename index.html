@@ -47,10 +47,10 @@
         </div>
       </div>
 
-      <!-- Indicador de Red Táctica Operativa -->
-      <div class="tactical-live-status">
-        <span class="pulse-dot"></span>
-        <span>RED OPERATIVA K9 EN LÍNEA</span>
+      <!-- Indicador de Red Táctica Operativa y Sincronización en la Nube -->
+      <div class="tactical-live-status" onclick="openModal('modalCloudSync')" style="cursor:pointer;" title="Ver estado de sincronización en la nube">
+        <span class="pulse-dot" id="cloudSyncDot"></span>
+        <span id="cloudSyncLabel">SINC NUBE: CONECTADO</span>
       </div>
 
       <!-- Pestañas de Navegación Principal -->
@@ -335,8 +335,50 @@
         </div>
       </form>
     </div>
-  </div>
+  <!-- MODAL: SINCRONIZACIÓN EN LA NUBE MULTI-USUARIO -->
+  <div class="tactical-modal-overlay" id="modalCloudSync">
+    <div class="tactical-modal-card">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical">
+          <span>☁️</span> SINCRONIZACIÓN EN TIEMPO REAL EN LA NUBE
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalCloudSync')">✕</button>
+      </div>
+      <div class="modal-body-tactical">
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.75rem;">
+          Todos los cambios (agentes, solicitudes de canes, comunicados, informes y expedientes) se sincronizan automáticamente en la nube para que cualquier usuario o administrador los vea en vivo.
+        </p>
 
+        <div style="background:rgba(0,0,0,0.3); border:1px solid var(--border-tactical); border-radius:8px; padding:1rem; margin-bottom:1rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+            <span style="font-size:0.8rem; color:var(--text-muted);">ESTADO DEL ENLACE:</span>
+            <span id="syncModalStatusBadge" style="font-family:var(--font-tactical); font-size:0.75rem; color:var(--tactical-green); background:rgba(0,230,118,0.15); padding:0.2rem 0.6rem; border-radius:12px; border:1px solid var(--tactical-green);">
+              ● ACTIVO / EN LÍNEA
+            </span>
+          </div>
+          <div class="form-group-tactical" style="margin-bottom:0.6rem;">
+            <label class="form-label-tactical" for="syncEndpointInput">ENDPOINT DE SINCRONIZACIÓN CLOUD</label>
+            <input type="text" id="syncEndpointInput" class="form-input-tactical" placeholder="Predeterminado: /api/sync o URL de Firebase">
+          </div>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <button type="button" class="btn-tactical btn-tactical-gold btn-tactical-sm" id="btnForceSyncNow">
+              🔄 Sincronizar Ahora
+            </button>
+            <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" id="btnSaveSyncEndpoint">
+              💾 Guardar Servidor
+            </button>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-subtle); padding-top:1rem; flex-wrap:wrap; gap:0.5rem;">
+          <span style="font-size:0.75rem; color:var(--text-subtle);">Sincronización continua cada 5 segundos</span>
+          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" id="btnExportSyncData">
+            📋 Copiar Respaldo JSON
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- MODAL: NUEVO INFORME SEMANAL -->
   <div class="tactical-modal-overlay" id="modalNewReport">
@@ -729,6 +771,7 @@
 
   <!-- Scripts de la Aplicación -->
   <script src="js/data.js"></script>
+  <script src="js/sync.js"></script>
   <script src="js/audio.js"></script>
   <script src="js/webhook.js"></script>
   <script src="js/auth.js"></script>

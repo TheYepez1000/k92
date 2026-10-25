@@ -2314,6 +2314,41 @@ function setupModals() {
       window.K9Auth.initiateDiscordOAuth();
     });
   }
+  // Sincronización en la Nube
+  const btnForceSync = document.getElementById('btnForceSyncNow');
+  if (btnForceSync) {
+    btnForceSync.addEventListener('click', async () => {
+      showToast('Sincronizando con la nube…', 'info');
+      if (window.K9CloudSync) {
+        await window.K9CloudSync.pull(true);
+        await window.K9CloudSync.push();
+        if (window.K9Audio) window.K9Audio.playTacticalBeep(1200, 0.15);
+        showToast('✅ Sincronización en la nube completada', 'success');
+      }
+    });
+  }
+
+  const btnSaveEndpoint = document.getElementById('btnSaveSyncEndpoint');
+  if (btnSaveEndpoint) {
+    btnSaveEndpoint.addEventListener('click', () => {
+      const val = (document.getElementById('syncEndpointInput').value || '').trim();
+      if (window.K9CloudSync) {
+        window.K9CloudSync.setEndpointUrl(val);
+        showToast(val ? 'Servidor de nube actualizado' : 'Usando endpoint predeterminado /api/sync', 'success');
+      }
+    });
+  }
+
+  const btnExportSync = document.getElementById('btnExportSyncData');
+  if (btnExportSync) {
+    btnExportSync.addEventListener('click', () => {
+      if (window.K9CloudSync) {
+        const payload = window.K9CloudSync.exportPayload();
+        navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
+        showToast('Respaldo JSON copiado al portapapeles', 'success');
+      }
+    });
+  }
 }
 
 // Abrir y cerrar modales
@@ -2326,6 +2361,11 @@ window.openModal = function (modalId) {
       const redirectInput = document.getElementById('cfgRedirectUri');
       if (clientInput) clientInput.value = cfg.clientId;
       if (redirectInput) redirectInput.value = cfg.redirectUri;
+    }
+    if (modalId === 'modalCloudSync' && window.K9CloudSync) {
+      const endpointInput = document.getElementById('syncEndpointInput');
+      if (endpointInput) endpointInput.value = window.K9CloudSync.getEndpointUrl() || '';
+      window.K9CloudSync.updateIndicatorUI();
     }
     modal.classList.add('show');
     if (window.K9Audio) window.K9Audio.playTacticalClick();
