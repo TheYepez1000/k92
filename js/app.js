@@ -2942,7 +2942,156 @@ function setupModals() {
       }
     });
   }
+
+  // Botón Confirmar Baja de Can K9 (modal táctico, sin confirm() nativo)
+  const btnConfirmDog = document.getElementById('btnConfirmDeleteDogAction');
+  if (btnConfirmDog) {
+    btnConfirmDog.addEventListener('click', () => {
+      if (window._confirmDeleteDog) window._confirmDeleteDog();
+    });
+  }
+
+  // Botón Confirmar Retirada de Expediente (modal táctico, sin confirm() nativo)
+  const btnConfirmDisc = document.getElementById('btnConfirmDeleteDiscAction');
+  if (btnConfirmDisc) {
+    btnConfirmDisc.addEventListener('click', () => {
+      if (window._confirmDeleteDisc) window._confirmDeleteDisc();
+    });
+  }
 }
+
+// ==========================================
+// CHAT — DESPACHO TÁCTICO CON JEFATURA
+// ==========================================
+function renderChatSection(container) {
+  const user      = window.K9Auth.getCurrentUser();
+  const msgs      = window.K9Store.getChatMessages();
+  const isJefU    = user && user.isJefatura;
+
+  container.innerHTML = `
+    <div class="chat-dispatch-container">
+      <div class="chat-dispatch-header">
+        <div>
+          <h3 class="font-gobold" style="color:#fff; font-size:1.1rem; margin-bottom:0.2rem;">💬 DESPACHO CON JEFATURA</h3>
+          <span style="font-size:0.78rem; color:var(--text-muted);">Canal oficial de comunicación directa con los mandos de la Unidad K9</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:0.6rem;">
+          <span style="width:9px; height:9px; border-radius:50%; background:var(--tactical-green); box-shadow:0 0 8px var(--tactical-green); flex-shrink:0;"></span>
+          <span style="font-family:'Gobold','GoBold',sans-serif; font-size:0.72rem; color:var(--tactical-green); letter-spacing:0.08em;">CANAL ACTIVO</span>
+        </div>
+      </div>
+
+      <div class="chat-dispatch-feed" id="chatFeedContainer">
+        ${msgs.length === 0 ? '<div style="text-align:center;color:var(--text-subtle);font-size:0.85rem;margin:3rem auto;">Sin mensajes aún. Inicia la comunicación con Jefatura.</div>' : ''}
+        ${msgs.map(m => {
+          const isMine = user && (m.authorId === user.id || m.authorId === user.discordId);
+          const isJef  = m.isJefatura;
+          const ts     = m.timestamp || '';
+          const rankBadge = isJef
+            ? '<span class="chat-author-badge chat-badge-jefatura">👑 JEFATURA</span>'
+            : '<span class="chat-author-badge chat-badge-member">🐾 ' + (m.authorRank || 'AGENTE') + '</span>';
+          const deleteBtn = isJefU && !isMine
+            ? '<button onclick="window._deleteChatMsg(\'' + m.id + '\')" style="background:none;border:none;color:var(--text-subtle);cursor:pointer;font-size:0.72rem;padding:0 0.3rem;margin-left:auto;" title="Retirar mensaje">🗑️</button>'
+            : '';
+          return '<div class="chat-msg-row ' + (isMine ? 'mine' : '') + '">' +
+            '<div class="chat-avatar-wrap ' + (isJef ? 'jefatura' : '') + '">' +
+              '<img src="' + (m.authorAvatar || 'assets/images/emblem.jpg') + '" class="chat-avatar-img" onerror="this.src=\'assets/images/emblem.jpg\'">' +
+            '</div>' +
+            '<div class="chat-bubble ' + (isJef ? 'jefatura' : '') + '">' +
+              '<div class="chat-meta-bar">' +
+                '<span class="chat-author-name">' + m.authorName + '</span>' +
+                rankBadge +
+                '<span class="chat-time-tag">' + ts + '</span>' +
+                deleteBtn +
+              '</div>' +
+              '<div class="chat-body-text">' + (m.text || '').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>' +
+            '</div>' +
+          '</div>';
+        }).join('')}
+      </div>
+
+      <div class="chat-input-bar">
+        ${user ? (
+          '<img src="' + (user.avatar || 'assets/images/emblem.jpg') + '" onerror="this.src=\'assets/images/emblem.jpg\'" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--border-tactical);flex-shrink:0;">' +
+          '<input type="text" id="chatMsgInput" class="chat-input-field" placeholder="Escribe un mensaje a Jefatura… (Intro para enviar)" maxlength="500">' +
+          '<button class="btn-tactical btn-tactical-primary btn-tactical-sm" id="btnSendChatMsg" style="flex-shrink:0;">📡 Enviar</button>'
+        ) : (
+          '<div style="flex:1;text-align:center;font-size:0.85rem;color:var(--text-muted);"><a href="#" onclick="window.K9Auth.initiateDiscordOAuth();return false;" style="color:var(--police-cyan);">Inicia sesión con Discord</a> para escribir en el Despacho.</div>'
+        )}
+      </div>
+    </div>
+  `;
+
+  // Scroll automático al último mensaje
+  const feed = document.getElementById('chatFeedContainer');
+  if (feed) setTimeout(() => { feed.scrollTop = feed.scrollHeight; }, 30);
+
+  const msgInput = document.getElementById('chatMsgInput');
+  const sendBtn  = document.getElementById('btnSendChatMsg');
+
+  const doSend = () => {
+    if (!user) return;
+    const text = (msgInput.value || '').trim();
+    if (!text) return;
+
+    const allMsgs = window.K9Store.getChatMessages();
+    const newMsg = {
+      id: 'msg_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+      authorId:     user.discordId || user.id,
+      authorName:   user.name,
+      authorPlaca:  user.placa,
+      authorRank:   user.rank,
+      authorAvatar: user.avatar || 'assets/images/emblem.jpg',
+      isJefatura:   !!user.isJefatura,
+      text:         text,
+      timestamp: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) +
+                 ' · ' + new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })
+    };
+
+    allMsgs.push(newMsg);
+    const trimmed = allMsgs.slice(-60);
+    window.K9Store.save(STORAGE_KEYS.CHAT_MESSAGES, trimmed);
+    if (window.K9CloudSync) window.K9CloudSync.push();
+
+    if (window.K9Webhook && user.isJefatura) {
+      window.K9Webhook.sendLog({
+        title: '💬 Jefatura K9 en Despacho',
+        color: 0xffb703,
+        fields: [
+          { name: 'Mando', value: user.name + ' [' + user.placa + ']', inline: true },
+          { name: 'Mensaje', value: text.slice(0, 200), inline: false }
+        ]
+      });
+    }
+
+    if (window.K9Audio) window.K9Audio.playTacticalClick();
+    msgInput.value = '';
+    renderChatSection(container);
+  };
+
+  if (sendBtn)  sendBtn.addEventListener('click', doSend);
+  if (msgInput) msgInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSend(); }
+  });
+
+  // Escuchar actualizaciones remotas del chat en tiempo real
+  if (window._chatListenerRef) window.removeEventListener('k9_chat_updated', window._chatListenerRef);
+  window._chatListenerRef = (evt) => {
+    window.K9Store.save(STORAGE_KEYS.CHAT_MESSAGES, evt.detail);
+    renderChatSection(container);
+  };
+  window.addEventListener('k9_chat_updated', window._chatListenerRef);
+}
+
+// Retirar mensaje del despacho (solo Jefatura puede moderar)
+window._deleteChatMsg = function (msgId) {
+  const msgs = window.K9Store.getChatMessages().filter(m => m.id !== msgId);
+  window.K9Store.save(STORAGE_KEYS.CHAT_MESSAGES, msgs);
+  if (window.K9CloudSync) window.K9CloudSync.push();
+  const c = document.getElementById('generalSubtabContent');
+  if (c) renderChatSection(c);
+};
+
 
 // Abrir y cerrar modales
 window.openModal = function (modalId) {
