@@ -1586,6 +1586,9 @@ function checkJefaturaAccessAndRender() {
       <button class="subnav-pill-btn jefatura-subnav ${currentJefaturaSubtab === 'permisos' ? 'active' : ''}" data-subtab="permisos">
         🔐 Control de Permisos
       </button>
+      <button class="subnav-pill-btn jefatura-subnav ${currentJefaturaSubtab === 'logs' ? 'active' : ''}" data-subtab="logs">
+        📋 Registro de Logs
+      </button>
     </div>
 
     <!-- Contenedor dinámico del subtab -->
