@@ -77,7 +77,7 @@ function renderGeneralSubnavTabs() {
   });
 }
 
-window.switchGeneralSubtab = function(subtab) {
+window.switchGeneralSubtab = function (subtab) {
   currentGeneralSubtab = subtab;
   switchMainView('inicio');
   const row = document.getElementById('generalSubnavRow');
@@ -681,13 +681,13 @@ function renderMemberProfile() {
               <span style="font-family:var(--font-headline); font-size:0.75rem; color:var(--tactical-gold); letter-spacing:0.06em;">CARTILLA SANITARIA Y CHIP VERIFICADOS ✓</span>
             </div>
           ` : (() => {
-            // Comprobar si hay solicitud pendiente del usuario actual
-            const reqs = window.K9Store.getDogRequests ? window.K9Store.getDogRequests() : [];
-            const pendingReq = reqs.find(r => r.agentId === user.id && r.status === 'pendiente');
-            const availableDogs = allDogs.filter(d => !d.handlerId);
-            if (pendingReq) {
-              const reqDog = allDogs.find(d => d.id === pendingReq.dogId);
-              return `
+      // Comprobar si hay solicitud pendiente del usuario actual
+      const reqs = window.K9Store.getDogRequests ? window.K9Store.getDogRequests() : [];
+      const pendingReq = reqs.find(r => r.agentId === user.id && r.status === 'pendiente');
+      const availableDogs = allDogs.filter(d => !d.handlerId);
+      if (pendingReq) {
+        const reqDog = allDogs.find(d => d.id === pendingReq.dogId);
+        return `
                 <div class="empty-state-box" style="padding:2rem 1rem; border-color: rgba(255,183,3,0.3);">
                   <div class="empty-icon">⏳</div>
                   <h4 class="font-tactical" style="color:var(--tactical-gold); margin-bottom:0.4rem;">SOLICITUD EN REVISIÓN</h4>
@@ -699,17 +699,17 @@ function renderMemberProfile() {
                   </button>
                 </div>
               `;
-            }
-            if (availableDogs.length === 0) {
-              return `
+      }
+      if (availableDogs.length === 0) {
+        return `
                 <div class="empty-state-box" style="padding:2rem 1rem;">
                   <div class="empty-icon">🐾</div>
                   <h4 class="font-tactical" style="color:#fff; margin-bottom:0.4rem;">SIN UNIDAD K9 ASIGNADA</h4>
                   <p style="font-size:0.85rem; color:var(--text-muted);">No hay canes disponibles en este momento. Todos están asignados a binomio activo.</p>
                 </div>
               `;
-            }
-            return `
+      }
+      return `
               <div class="empty-state-box" style="padding:1.5rem 1rem;">
                 <div class="empty-icon">🐾</div>
                 <h4 class="font-tactical" style="color:#fff; margin-bottom:0.5rem;">SIN UNIDAD K9 ASIGNADA</h4>
@@ -726,7 +726,7 @@ function renderMemberProfile() {
                 <p style="font-size:0.75rem; color:var(--text-subtle);">Selecciona un can para enviar la solicitud formal de binomio</p>
               </div>
             `;
-          })()}
+    })()}
         </div>
 
         <!-- Vitrina de Insignias y Condecoraciones Otorgadas -->
@@ -795,9 +795,9 @@ function checkJefaturaAccessAndRender() {
         <div class="denied-icon-wrap">${user ? '⚠️' : '🔒'}</div>
         <h2 class="denied-title font-tactical">ACCESO RESTRINGIDO A JEFATURA</h2>
         <p class="denied-desc">
-          ${user 
-            ? `Nivel de seguridad insuficiente. Tu cuenta actual de Discord <strong>(${user.name} - ${user.discordUsername})</strong> no dispone de permisos de Jefatura K9.` 
-            : 'Se requiere iniciar sesión con tu cuenta de <strong>Discord</strong> y contar con acreditación de mando o permisos de Jefatura K9 para acceder a este panel de administración.'}
+          ${user
+        ? `Nivel de seguridad insuficiente. Tu cuenta actual de Discord <strong>(${user.name} - ${user.discordUsername})</strong> no dispone de permisos de Jefatura K9.`
+        : 'Se requiere iniciar sesión con tu cuenta de <strong>Discord</strong> y contar con acreditación de mando o permisos de Jefatura K9 para acceder a este panel de administración.'}
         </p>
         <div style="display:flex; justify-content:center; gap:1rem; flex-wrap:wrap;">
           ${!user ? `
@@ -937,7 +937,7 @@ function renderReportsSection(container) {
 
   document.getElementById('searchReportsInput').addEventListener('input', (e) => {
     const q = e.target.value.toLowerCase();
-    const filtered = reports.filter(r => 
+    const filtered = reports.filter(r =>
       r.agentName.toLowerCase().includes(q) ||
       r.week.toLowerCase().includes(q) ||
       r.status.toLowerCase().includes(q)
@@ -987,7 +987,7 @@ function renderReportsTableRows(reports) {
   `).join('');
 }
 
-window.approveReport = function(reportId) {
+window.approveReport = function (reportId) {
   const reports = window.K9Store.getReports();
   const rep = reports.find(r => r.id === reportId);
   if (rep) {
@@ -1001,7 +1001,7 @@ window.approveReport = function(reportId) {
   }
 };
 
-window.viewReportDetails = function(reportId) {
+window.viewReportDetails = function (reportId) {
   const reports = window.K9Store.getReports();
   const rep = reports.find(r => r.id === reportId);
   if (rep) {
@@ -1014,7 +1014,7 @@ window.viewReportDetails = function(reportId) {
 // ─────────────────────────────────────────────────────────────────
 function submitDogRequest(user, dogId) {
   const dogs = window.K9Store.getDogs();
-  const dog  = dogs.find(d => d.id === dogId);
+  const dog = dogs.find(d => d.id === dogId);
   if (!dog) return;
   const reqs = window.K9Store.getDogRequests();
   // Verificar que no tenga ya una solicitud pendiente
@@ -1042,33 +1042,33 @@ function submitDogRequest(user, dogId) {
   renderMemberProfile();
 }
 
-window.cancelDogRequest = function(reqId) {
+window.cancelDogRequest = function (reqId) {
   const reqs = window.K9Store.getDogRequests();
-  const updated = reqs.map(r => r.id === reqId ? {...r, status: 'cancelada'} : r);
+  const updated = reqs.map(r => r.id === reqId ? { ...r, status: 'cancelada' } : r);
   window.K9Store.save(STORAGE_KEYS.DOG_REQUESTS, updated);
   showToast('Solicitud cancelada.', 'info');
   renderMemberProfile();
 };
 
-window.approveDogRequest = function(reqId) {
-  const reqs    = window.K9Store.getDogRequests();
-  const req     = reqs.find(r => r.id === reqId);
+window.approveDogRequest = function (reqId) {
+  const reqs = window.K9Store.getDogRequests();
+  const req = reqs.find(r => r.id === reqId);
   if (!req) return;
-  const users   = window.K9Store.getUsers();
-  const dogs    = window.K9Store.getDogs();
-  const agent   = users.find(u => u.id === req.agentId);
-  const dog     = dogs.find(d => d.id === req.dogId);
+  const users = window.K9Store.getUsers();
+  const dogs = window.K9Store.getDogs();
+  const agent = users.find(u => u.id === req.agentId);
+  const dog = dogs.find(d => d.id === req.dogId);
   if (!agent || !dog) { showToast('Agente o can no encontrado.', 'warning'); return; }
   if (dog.handlerId && dog.handlerId !== req.agentId) {
     showToast('Este can ya fue asignado a otro agente.', 'warning');
     return;
   }
   agent.assignedDogId = dog.id;
-  dog.handlerId   = agent.id;
+  dog.handlerId = agent.id;
   dog.handlerName = agent.name;
   window.K9Store.save(STORAGE_KEYS.USERS, users);
   window.K9Store.save(STORAGE_KEYS.DOGS, dogs);
-  const updated = reqs.map(r => r.id === reqId ? {...r, status: 'aprobada'} : r);
+  const updated = reqs.map(r => r.id === reqId ? { ...r, status: 'aprobada' } : r);
   window.K9Store.save(STORAGE_KEYS.DOG_REQUESTS, updated);
   if (window.K9Audio) window.K9Audio.playTacticalBeep(1200, 0.15);
   if (window.K9Webhook) {
@@ -1079,19 +1079,19 @@ window.approveDogRequest = function(reqId) {
   renderJefaturaSubtab('agentes');
 };
 
-window.denyDogRequest = function(reqId) {
+window.denyDogRequest = function (reqId) {
   const reqs = window.K9Store.getDogRequests();
-  const req  = reqs.find(r => r.id === reqId);
-  const updated = reqs.map(r => r.id === reqId ? {...r, status: 'denegada'} : r);
+  const req = reqs.find(r => r.id === reqId);
+  const updated = reqs.map(r => r.id === reqId ? { ...r, status: 'denegada' } : r);
   window.K9Store.save(STORAGE_KEYS.DOG_REQUESTS, updated);
   if (window.K9Webhook && req) {
     const admin = window.K9Auth.getCurrentUser();
     window.K9Webhook.log('dog', 'Solicitud de Binomio Denegada',
       'Jefatura ha denegado la solicitud de can para **' + req.agentName + '** (' + req.dogName + ').', [
-        { name: 'Mando', value: admin ? admin.name : 'Jefatura', inline: true },
-        { name: 'Agente', value: req.agentName, inline: true },
-        { name: 'Can', value: req.dogName, inline: true }
-      ]);
+      { name: 'Mando', value: admin ? admin.name : 'Jefatura', inline: true },
+      { name: 'Agente', value: req.agentName, inline: true },
+      { name: 'Can', value: req.dogName, inline: true }
+    ]);
   }
   if (window.K9Audio) window.K9Audio.playAlert();
   showToast('Solicitud de binomio denegada.', 'warning');
@@ -1102,10 +1102,10 @@ window.denyDogRequest = function(reqId) {
 // SUBTAB 2: APARTADO DE AGENTES
 // ─────────────────────────────────────────────────────────────────
 function renderAgentsSection(container) {
-  const users       = window.K9Store.getUsers();
-  const dogs        = window.K9Store.getDogs();
+  const users = window.K9Store.getUsers();
+  const dogs = window.K9Store.getDogs();
   const pendingReqs = (window.K9Store.getDogRequests ? window.K9Store.getDogRequests() : []).filter(r => r.status === 'pendiente');
-  const presets     = window.K9Store.getAgentPresets ? window.K9Store.getAgentPresets() : [];
+  const presets = window.K9Store.getAgentPresets ? window.K9Store.getAgentPresets() : [];
 
   container.innerHTML = `
     <!-- 1. SOLICITUDES DE CAN PENDIENTES DE APROBACIÓN -->
@@ -1134,8 +1134,8 @@ function renderAgentsSection(container) {
       ` : `
         <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:0.75rem;">
           ${pendingReqs.map(req => {
-            const dog = dogs.find(d => d.id === req.dogId);
-            return `
+    const dog = dogs.find(d => d.id === req.dogId);
+    return `
               <div style="background:rgba(255,183,3,0.05); border:1px solid rgba(255,183,3,0.3); border-radius:6px; padding:0.85rem; display:flex; flex-direction:column; justify-content:space-between; gap:0.75rem;">
                 <div>
                   <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.4rem;">
@@ -1159,7 +1159,7 @@ function renderAgentsSection(container) {
                 </div>
               </div>
             `;
-          }).join('')}
+  }).join('')}
         </div>
       `}
     </div>
@@ -1276,10 +1276,10 @@ function renderAgentsSection(container) {
   if (formPreset) {
     formPreset.addEventListener('submit', (e) => {
       e.preventDefault();
-      const discordIdVal   = document.getElementById('presetDiscordId').value.trim();
-      const placaVal       = document.getElementById('presetPlaca').value.trim();
-      const rankVal        = document.getElementById('presetRank').value;
-      const isJefaturaVal  = document.getElementById('presetIsJefatura').checked;
+      const discordIdVal = document.getElementById('presetDiscordId').value.trim();
+      const placaVal = document.getElementById('presetPlaca').value.trim();
+      const rankVal = document.getElementById('presetRank').value;
+      const isJefaturaVal = document.getElementById('presetIsJefatura').checked;
 
       if (!discordIdVal || !placaVal) {
         showToast('Completa el Discord ID y la placa.', 'warning');
@@ -1303,7 +1303,7 @@ function renderAgentsSection(container) {
 
       // 2. Si el agente ya había iniciado sesión antes, actualizar directamente su perfil actual
       const currentUsers = window.K9Store.getUsers();
-      const existingUser = currentUsers.find(u => 
+      const existingUser = currentUsers.find(u =>
         (u.discordId && u.discordId === discordIdVal) ||
         (u.discordUsername && u.discordUsername.toLowerCase() === discordIdVal.toLowerCase())
       );
@@ -1354,7 +1354,7 @@ function renderAgentsSection(container) {
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
       const q = e.target.value.toLowerCase();
-      const filtered = users.filter(u => 
+      const filtered = users.filter(u =>
         u.name.toLowerCase().includes(q) ||
         u.placa.toLowerCase().includes(q) ||
         u.rank.toLowerCase().includes(q)
@@ -1364,7 +1364,7 @@ function renderAgentsSection(container) {
   }
 }
 
-window.removeAgentPreset = function(index) {
+window.removeAgentPreset = function (index) {
   const presets = window.K9Store.getAgentPresets ? window.K9Store.getAgentPresets() : [];
   if (index >= 0 && index < presets.length) {
     presets.splice(index, 1);
@@ -1425,7 +1425,7 @@ function renderAgentsTableRows(users, dogs) {
   }).join('');
 }
 
-window.editAgentDogAssignment = function(userId) {
+window.editAgentDogAssignment = function (userId) {
   const users = window.K9Store.getUsers();
   const user = users.find(u => u.id === userId);
   const dogs = window.K9Store.getDogs();
@@ -1504,7 +1504,7 @@ function renderDogsSection(container) {
 
   document.getElementById('searchDogsInput').addEventListener('input', (e) => {
     const q = e.target.value.toLowerCase();
-    const filtered = dogs.filter(d => 
+    const filtered = dogs.filter(d =>
       d.name.toLowerCase().includes(q) ||
       d.tag.toLowerCase().includes(q) ||
       d.specialty.toLowerCase().includes(q)
@@ -1553,7 +1553,7 @@ function renderDogsTableRows(dogs) {
   `).join('');
 }
 
-window.editDogTraining = function(dogId) {
+window.editDogTraining = function (dogId) {
   const dogs = window.K9Store.getDogs();
   const dog = dogs.find(d => d.id === dogId);
   if (!dog) return;
@@ -1644,7 +1644,7 @@ function renderDisciplinarySection(container) {
   });
 }
 
-window.markSanctionFulfilled = function(id) {
+window.markSanctionFulfilled = function (id) {
   const records = window.K9Store.getDisciplinary();
   const rec = records.find(r => r.id === id);
   if (rec) {
@@ -1677,9 +1677,9 @@ function renderBadgesSection(container) {
 
     <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:1.25rem;">
       ${badges.map(b => {
-        // Contar cuántos miembros la tienen
-        const awardedCount = users.filter(u => u.badges && u.badges.includes(b.id)).length;
-        return `
+    // Contar cuántos miembros la tienen
+    const awardedCount = users.filter(u => u.badges && u.badges.includes(b.id)).length;
+    return `
           <div style="background:var(--bg-surface); border:1px solid var(--border-tactical); border-radius:14px; padding:1.25rem; display:flex; flex-direction:column; justify-content:space-between; box-shadow:var(--shadow-elevation);">
             <div>
               <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.75rem;">
@@ -1703,7 +1703,7 @@ function renderBadgesSection(container) {
             </div>
           </div>
         `;
-      }).join('')}
+  }).join('')}
     </div>
   `;
 
@@ -1712,7 +1712,7 @@ function renderBadgesSection(container) {
   });
 }
 
-window.openAwardBadgePrefilled = function(badgeId) {
+window.openAwardBadgePrefilled = function (badgeId) {
   openModal('modalAwardBadge');
   const sel = document.getElementById('awardBadgeSelect');
   if (sel) sel.value = badgeId;
@@ -1784,8 +1784,8 @@ function renderUserPermissionsMatrix(userId) {
 
     <div class="permissions-grid">
       ${window.SYSTEM_PERMISSIONS.map(perm => {
-        const isChecked = isSupreme || userPerms.includes(perm.id);
-        return `
+    const isChecked = isSupreme || userPerms.includes(perm.id);
+    return `
           <label class="perm-toggle-card ${isChecked ? 'checked' : ''}">
             <input type="checkbox" class="perm-checkbox" data-permid="${perm.id}" ${isChecked ? 'checked' : ''} ${isSupreme ? 'disabled' : ''}>
             <div class="perm-details">
@@ -1794,7 +1794,7 @@ function renderUserPermissionsMatrix(userId) {
             </div>
           </label>
         `;
-      }).join('')}
+  }).join('')}
     </div>
   `;
 
@@ -2125,7 +2125,7 @@ function setupModals() {
     formDiscordCfg.addEventListener('submit', (e) => {
       e.preventDefault();
       const updated = {
-        clientId: '1406448851153326131',
+        clientId: '1271954022139691038',
         redirectUri: document.getElementById('cfgRedirectUri').value.trim(),
         scope: 'identify'
       };
@@ -2143,7 +2143,7 @@ function setupModals() {
         if (window.K9Webhook) {
           const ok = window.K9Webhook.setWebhookUrl(url);
           if (ok) showToast('✅ Webhook guardado correctamente', 'success');
-          else    showToast('URL inválida — debe comenzar por discord.com/api/webhooks/', 'warning');
+          else showToast('URL inválida — debe comenzar por discord.com/api/webhooks/', 'warning');
         }
       });
     }
@@ -2191,7 +2191,7 @@ function setupModals() {
 }
 
 // Abrir y cerrar modales
-window.openModal = function(modalId) {
+window.openModal = function (modalId) {
   const modal = document.getElementById(modalId);
   if (modal) {
     modal.classList.add('show');
@@ -2199,7 +2199,7 @@ window.openModal = function(modalId) {
   }
 };
 
-window.closeModal = function(modalId) {
+window.closeModal = function (modalId) {
   const modal = document.getElementById(modalId);
   if (modal) {
     modal.classList.remove('show');
@@ -2207,7 +2207,7 @@ window.closeModal = function(modalId) {
 };
 
 // Inspeccionar insignia en modal de condecoración
-window.openBadgeInspection = function(badgeId, recipientName) {
+window.openBadgeInspection = function (badgeId, recipientName) {
   const badges = window.K9Store.getBadges();
   const badge = badges.find(b => b.id === badgeId);
   if (!badge) return;
@@ -2296,7 +2296,7 @@ function showToast(message, type = 'info') {
 }
 
 // Exportar registro completo en formato JSON
-window.exportDataDossier = function() {
+window.exportDataDossier = function () {
   const dossier = {
     exportDate: new Date().toISOString(),
     department: 'División Canina K9 - Jefatura Central',
