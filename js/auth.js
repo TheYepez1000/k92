@@ -52,20 +52,20 @@ class K9AuthManager {
       (profileData.discordUsername && u.discordUsername.toLowerCase() === profileData.discordUsername.toLowerCase())
     );
 
-    if (!matched) {
-      // Buscar pre-registro por Discord ID (asignado por Jefatura antes del login)
-      const presets = window.K9Store.getAgentPresets ? window.K9Store.getAgentPresets() : [];
-      const preset = presets.find(p =>
-        (profileData.discordId && p.discordId === profileData.discordId) ||
-        (profileData.discordUsername && p.discordUsername &&
-          p.discordUsername.toLowerCase() === profileData.discordUsername.toLowerCase())
-      );
+    // Buscar si la Jefatura le asignó previamente rango en AGENT_PRESETS
+    const presets = window.K9Store.getAgentPresets ? window.K9Store.getAgentPresets() : [];
+    const preset = presets.find(p =>
+      (profileData.discordId && p.discordId === profileData.discordId) ||
+      (profileData.discordUsername && p.discordUsername &&
+        p.discordUsername.toLowerCase() === profileData.discordUsername.toLowerCase())
+    );
 
-      // El primer usuario registrado recibe Jefatura para administrar la unidad K9
-      const isFirstUser = users.length === 0;
-      const grantJefatura = isFirstUser || !!profileData.isJefatura || !!(preset && preset.isJefatura);
-      const assignedRank = preset ? preset.rank : (grantJefatura ? 'Jefe de División K9' : (profileData.rank || 'Aspirante K9'));
-      const assignedPlaca = preset ? preset.placa : (grantJefatura ? 'K-01' : 'K-' + Math.floor(20 + Math.random() * 80));
+    if (!matched) {
+      // Usuario nuevo que inicia sesión con Discord
+      const hasPreset = !!preset;
+      const assignedRank = hasPreset ? preset.rank : 'Sin Rango Asignado';
+      const assignedPlaca = hasPreset ? preset.placa : 'S/P';
+      const grantJefatura = hasPreset && !!preset.isJefatura;
 
       matched = {
         id: 'user_' + (profileData.discordId ? profileData.discordId.slice(-6) : Math.random().toString(36).substring(2, 8)),
@@ -75,57 +75,87 @@ class K9AuthManager {
         discordUsername: profileData.discordUsername,
         discordId: profileData.discordId || Math.floor(100000000000000000 + Math.random() * 900000000000000000).toString(),
         avatar: profileData.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80',
-        isJefatura: grantJefatura || !!(preset && preset.isJefatura),
+        isJefatura: grantJefatura,
+        isVerified: hasPreset, // Solo verificado si Jefatura le asignó rango previamente
         assignedDogId: null,
         badges: grantJefatura ? ['badge_master', 'badge_veteran', 'badge_valor'] : [],
-        permissions: grantJefatura ? ['*'] : (preset ? preset.permissions || [] : []),
-        serviceStatus: grantJefatura ? 'En Activo / Mando' : (preset ? preset.serviceStatus || 'En Activo' : 'Aspirante / Verificado'),
+        permissions: grantJefatura ? ['*'] : (hasPreset ? preset.permissions || [] : []),
+        serviceStatus: grantJefatura ? 'En Activo / Mando' : (hasPreset ? preset.serviceStatus || 'En Activo' : 'Pendiente de Asignación por Jefatura'),
         joinedDate: new Date().toLocaleDateString('es-ES'),
         patrolHoursTotal: grantJefatura ? 120 : 0,
         interventionsTotal: grantJefatura ? 18 : 0
       };
       users.push(matched);
       window.K9Store.save(STORAGE_KEYS.USERS, users);
-
-      // Eliminar el pre-registro si fue usado
-      if (preset && window.K9Store.getAgentPresets) {
-        const updatedPresets = presets.filter(p => p !== preset);
-        window.K9Store.save(STORAGE_KEYS.AGENT_PRESETS, updatedPresets);
-      }
     } else {
-      // Agente ya registrado: aplicar pre-registro si existe y aun no se habia aplicado
-      const presets = window.K9Store.getAgentPresets ? window.K9Store.getAgentPresets() : [];
-      const preset = presets.find(p =>
-        (profileData.discordId && p.discordId === profileData.discordId) ||
-        (profileData.discordUsername && p.discordUsername &&
-          p.discordUsername.toLowerCase() === profileData.discordUsername.toLowerCase())
-      );
+      // Usuario ya registrado: si Jefatura le puso rango o lo cambió, sincronizar
       if (preset) {
-        // Actualizar rango y permisos si el preset tiene datos
-        if (preset.rank) matched.rank = preset.rank;
-        if (preset.placa) matched.placa = preset.placa;
-        if (preset.isJefatura !== undefined) matched.isJefatura = preset.isJefatura;
-        if (preset.permissions) matched.permissions = preset.permissions;
-        if (preset.serviceStatus) matched.serviceStatus = preset.serviceStatus;
+        matched.rank = preset.rank;
+        matched.placa = preset.placa;
+        matched.isJefatura = !!preset.isJefatura;
+        matched.isVerified = true;
+        matched.permissions = preset.isJefatura ? ['*'] : (preset.permissions || []);
+        matched.serviceStatus = preset.isJefatura ? 'En Activo / Mando' : (preset.serviceStatus || 'En Activo');
         window.K9Store.save(STORAGE_KEYS.USERS, users);
-        // Borrar el preset ya aplicado
-        window.K9Store.save(STORAGE_KEYS.AGENT_PRESETS, presets.filter(p2 => p2 !== preset));
+      } else if (!matched.isVerified && !matched.isJefatura) {
+        // Asegurar que si no tiene preset ni jefatura, permanezca sin verificar
+        matched.rank = 'Sin Rango Asignado';
+        matched.placa = matched.placa || 'S/P';
+        matched.isJefatura = false;
+        matched.isVerified = false;
+        matched.permissions = [];
+        window.K9Store.save(STORAGE_KEYS.USERS, users);
       }
     }
 
     window.K9Store.setCurrentUser(matched.id);
     this.loadUser();
     if (window.K9Audio) window.K9Audio.playRadioChirp();
-    // Log de login/registro al webhook de Discord
+
+    // Log de login al webhook
     if (window.K9Webhook) {
-      const isNew = !users.find(u =>
-        (profileData.discordId && u.discordId === profileData.discordId) ||
-        (profileData.discordUsername && u.discordUsername &&
-          u.discordUsername.toLowerCase() === profileData.discordUsername.toLowerCase())
-      );
-      window.K9Webhook.onLogin(matched, isNew);
+      window.K9Webhook.onLogin(matched, !matched.isVerified);
     }
     return matched;
+  }
+
+  // Reclamar Jefatura con clave de mando maestro (para el fundador inicial)
+  claimMasterJefatura(passcode) {
+    const user = this.getCurrentUser();
+    if (!user) {
+      return { ok: false, msg: 'Debes iniciar sesión con Discord primero.' };
+    }
+    const cleanPass = (passcode || '').trim();
+    if (cleanPass !== 'K9MANDO' && cleanPass !== 'K9-MANDO-2026' && cleanPass !== '1406448851153326131') {
+      return { ok: false, msg: 'Clave de mando no válida.' };
+    }
+    const users = window.K9Store.getUsers();
+    const found = users.find(u => u.id === user.id);
+    if (found) {
+      found.rank = 'Jefe de División K9';
+      found.placa = 'K-01';
+      found.isJefatura = true;
+      found.isVerified = true;
+      found.permissions = ['*'];
+      found.serviceStatus = 'En Activo / Mando';
+      found.badges = ['badge_master', 'badge_veteran', 'badge_valor'];
+      window.K9Store.save(STORAGE_KEYS.USERS, users);
+    }
+    const presets = window.K9Store.getAgentPresets ? window.K9Store.getAgentPresets() : [];
+    const cleanPresets = presets.filter(p => p.discordId !== user.discordId);
+    cleanPresets.push({
+      discordId: user.discordId,
+      discordUsername: user.discordUsername,
+      placa: 'K-01',
+      rank: 'Jefe de División K9',
+      isJefatura: true,
+      permissions: ['*'],
+      serviceStatus: 'En Activo / Mando',
+      createdAt: new Date().toLocaleDateString('es-ES')
+    });
+    window.K9Store.save(STORAGE_KEYS.AGENT_PRESETS, cleanPresets);
+    this.loadUser();
+    return { ok: true, msg: '¡Acreditación de Jefatura K9 concedida exitosamente!' };
   }
 
   // Desconectar sesión de Discord

@@ -184,22 +184,38 @@ function setupAuthUI() {
   renderGeneralSubnavTabs();
 
   if (perfilLockBadge) {
-    perfilLockBadge.style.display = user ? 'none' : 'inline-block';
+    perfilLockBadge.style.display = (user && user.isVerified) ? 'none' : 'inline-block';
   }
 
   if (heroActions) {
     if (user) {
-      heroActions.innerHTML = `
-        <button class="btn-tactical btn-tactical-primary" onclick="switchMainView('perfil')">
-          <span>🐕</span> Ver Mi Perfil Canino
-        </button>
-        <button class="btn-tactical btn-tactical-gold" onclick="switchMainView('jefatura')">
-          <span>👑</span> Panel de Jefatura K9
-        </button>
-        <button class="btn-tactical btn-tactical-outline" onclick="switchGeneralSubtab('anuncios')">
-          <span>📢</span> Anuncios de Jefatura
-        </button>
-      `;
+      if (user.isVerified) {
+        heroActions.innerHTML = `
+          <button class="btn-tactical btn-tactical-primary" onclick="switchMainView('perfil')">
+            <span>🐕</span> Ver Mi Perfil Canino
+          </button>
+          ${user.isJefatura ? `
+            <button class="btn-tactical btn-tactical-gold" onclick="switchMainView('jefatura')">
+              <span>👑</span> Panel de Jefatura K9
+            </button>
+          ` : ''}
+          <button class="btn-tactical btn-tactical-outline" onclick="switchGeneralSubtab('normativas')">
+            <span>⚖️</span> Normativas Oficiales
+          </button>
+        `;
+      } else {
+        heroActions.innerHTML = `
+          <button class="btn-tactical btn-tactical-primary" onclick="switchMainView('perfil')">
+            <span>🔒</span> Estado de Mi Cuenta (Pendiente de Alta)
+          </button>
+          <button class="btn-tactical btn-tactical-gold" onclick="switchGeneralSubtab('galeria')">
+            <span>🐕</span> Plantilla de Canes K9
+          </button>
+          <button class="btn-tactical btn-tactical-outline" onclick="switchGeneralSubtab('normativas')">
+            <span>⚖️</span> Ver Normativas Oficiales
+          </button>
+        `;
+      }
     } else {
       heroActions.innerHTML = `
         <button class="btn-tactical btn-tactical-primary" onclick="switchGeneralSubtab('normativas')">
@@ -344,16 +360,21 @@ function renderGeneralSubtab(subtab) {
   const user = window.K9Auth.getCurrentUser();
 
   if (subtab === 'anuncios') {
-    if (!user) {
+    if (!user || !user.isVerified) {
       contentEl.innerHTML = `
         <div class="empty-state-box" style="margin:3rem auto; max-width:550px;">
           <div class="empty-icon">🔒</div>
           <h3 class="font-tactical" style="color:#fff; margin-bottom:0.75rem;">ACCESO RESTRINGIDO A ANUNCIOS</h3>
-          <p style="margin-bottom:1.5rem; color:var(--text-muted);">Los comunicados, directrices operativas y órdenes de servicio de la Jefatura K9 son confidenciales. Debes iniciar sesión con tu cuenta de Discord para visualizarlos.</p>
-          <button class="btn-tactical btn-tactical-primary" onclick="window.K9Auth.initiateDiscordOAuth()">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle; margin-right:4px;"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.893.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
-            Iniciar Sesión con Discord
-          </button>
+          <p style="margin-bottom:1.5rem; color:var(--text-muted);">${user ? 'Tu cuenta está pendiente de asignación de rango por Jefatura. Los comunicados internos son de acceso restringido a agentes acreditados.' : 'Los comunicados, directrices operativas y órdenes de servicio de la Jefatura K9 son confidenciales. Debes iniciar sesión con tu cuenta de Discord para visualizarlos.'}</p>
+          ${!user ? `
+            <button class="btn-tactical btn-tactical-primary" onclick="window.K9Auth.initiateDiscordOAuth()">
+              ✦ Iniciar Sesión con Discord
+            </button>
+          ` : `
+            <button class="btn-tactical btn-tactical-primary btn-tactical-sm" onclick="switchGeneralSubtab('normativas')">
+              ⚖️ Ver Normativas Oficiales
+            </button>
+          `}
         </div>
       `;
       return;
@@ -561,6 +582,44 @@ function renderMemberProfile() {
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle; margin-right:4px;"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.893.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
           Iniciar Sesión con Discord
         </button>
+      </div>
+    `;
+    return;
+  }
+
+  // Si el usuario no tiene rango asignado por Jefatura, bloquear Mi Perfil
+  if (!user.isVerified || user.rank === 'Sin Rango Asignado' || (typeof user.rank === 'string' && user.rank.includes('Pendiente'))) {
+    container.innerHTML = `
+      <div class="empty-state-box" style="margin:3rem auto; max-width:620px; border:1px solid rgba(255,183,3,0.35); background:rgba(18,24,38,0.95); padding:2.5rem 2rem; box-shadow:0 10px 40px rgba(0,0,0,0.5);">
+        <div class="empty-icon" style="font-size:3rem; margin-bottom:0.75rem;">🔒</div>
+        <h3 class="font-tactical" style="color:var(--tactical-gold); margin-bottom:0.5rem; font-size:1.35rem;">EXPEDIENTE EN ESPERA DE ASIGNACIÓN</h3>
+        <p style="color:#fff; font-size:0.95rem; margin-bottom:0.5rem;">
+          Bienvenido, <strong>${user.name}</strong> (@${user.discordUsername}).
+        </p>
+        <p style="color:var(--text-muted); font-size:0.86rem; line-height:1.6; margin-bottom:1.5rem;">
+          Has verificado tu cuenta con Discord correctamente, pero tu ficha policial <strong>aún no tiene un rango oficial ni placa asignada por la Jefatura K9</strong>.<br>
+          Hasta que un mando registre tu alta en el cuerpo, tu perfil operativo permanecerá bloqueado.
+        </p>
+        <div style="background:rgba(0,0,0,0.4); border:1px dashed var(--border-tactical); border-radius:8px; padding:1.2rem; margin-bottom:1.5rem; text-align:center;">
+          <div style="font-size:0.72rem; color:var(--text-subtle); letter-spacing:0.08em; margin-bottom:0.4rem;">TU DISCORD ID OFICIAL (ENTREGA ESTE CÓDIGO A JEFATURA):</div>
+          <div style="display:flex; align-items:center; justify-content:center; gap:0.6rem; flex-wrap:wrap; margin-bottom:0.4rem;">
+            <code style="font-family:var(--font-mono); font-size:1.25rem; color:var(--police-cyan); font-weight:700; background:rgba(0,229,255,0.1); padding:0.3rem 0.8rem; border-radius:6px; letter-spacing:0.05em;">${user.discordId}</code>
+            <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="navigator.clipboard.writeText('${user.discordId}'); showToast('Discord ID copiado al portapapeles', 'success');">
+              📋 Copiar ID
+            </button>
+          </div>
+          <span style="font-size:0.75rem; color:var(--text-muted);">
+            Jefatura entrará en "Apartado Agentes" y asignará este ID con tu rango oficial y placa.
+          </span>
+        </div>
+        <div style="display:flex; justify-content:center; gap:0.75rem; flex-wrap:wrap;">
+          <button class="btn-tactical btn-tactical-primary btn-tactical-sm" onclick="switchGeneralSubtab('normativas')">
+            ⚖️ Ver Normativas Oficiales
+          </button>
+          <button class="btn-tactical btn-tactical-gold btn-tactical-sm" onclick="switchGeneralSubtab('galeria')">
+            🐕 Plantilla de Canes K9
+          </button>
+        </div>
       </div>
     `;
     return;
@@ -809,6 +868,9 @@ function checkJefaturaAccessAndRender() {
             <button class="btn-tactical btn-tactical-outline" onclick="switchMainView('perfil')">
               ← Volver a Mi Perfil
             </button>
+            <button class="btn-tactical btn-tactical-gold" onclick="window.promptClaimJefatura()">
+              🔑 Reclamar Jefatura (Mando Fundador)
+            </button>
           `}
           <button class="btn-tactical btn-tactical-outline" onclick="switchGeneralSubtab('normativas')">
             ← Ver Normativas Oficiales
@@ -818,6 +880,22 @@ function checkJefaturaAccessAndRender() {
     `;
     return;
   }
+
+  // Función para reclamar Jefatura con clave maestra
+  window.promptClaimJefatura = function () {
+    const code = prompt('Introduce la Clave Maestra de Mando para acreditar esta cuenta como Jefe de División K9:\n\n(Clave oficial: K9-MANDO-2026)');
+    if (!code) return;
+    const res = window.K9Auth.claimMasterJefatura(code);
+    if (res.ok) {
+      if (window.K9Audio) window.K9Audio.playRadioChirp();
+      showToast(res.msg, 'success');
+      setupAuthUI();
+      checkJefaturaAccessAndRender();
+    } else {
+      if (window.K9Audio) window.K9Audio.playAlert();
+      showToast(res.msg, 'warning');
+    }
+  };
 
   // Tiene acceso concedido a Jefatura
   container.innerHTML = `
@@ -1311,10 +1389,9 @@ function renderAgentsSection(container) {
         existingUser.rank = rankVal;
         existingUser.placa = placaVal;
         existingUser.isJefatura = isJefaturaVal;
-        if (isJefaturaVal) {
-          existingUser.permissions = ['*'];
-          existingUser.serviceStatus = 'En Activo / Mando';
-        }
+        existingUser.isVerified = true;
+        existingUser.permissions = isJefaturaVal ? ['*'] : [];
+        existingUser.serviceStatus = isJefaturaVal ? 'En Activo / Mando' : 'En Activo';
         window.K9Store.save(STORAGE_KEYS.USERS, currentUsers);
       }
 
@@ -1395,9 +1472,12 @@ function renderAgentsTableRows(users, dogs) {
           </span>
         </td>
         <td>
-          <span style="font-size:0.8rem; color:#a5b4fc; background:rgba(88,101,242,0.15); padding:0.2rem 0.5rem; border-radius:4px;">
-            ${u.discordUsername}
-          </span>
+          <div style="display:flex; flex-direction:column; gap:0.25rem;">
+            <span style="font-size:0.78rem; color:#a5b4fc; background:rgba(88,101,242,0.15); padding:0.15rem 0.4rem; border-radius:4px; font-family:var(--font-mono);">
+              ${u.discordId || '—'}
+            </span>
+            <small style="color:var(--text-muted); font-size:0.7rem;">@${u.discordUsername || '—'}</small>
+          </div>
         </td>
         <td>
           ${dog ? `
@@ -1414,9 +1494,12 @@ function renderAgentsTableRows(users, dogs) {
           </span>
         </td>
         <td>
-          <div style="display:flex; gap:0.4rem;">
+          <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+            <button class="btn-tactical btn-tactical-gold btn-tactical-sm" onclick="editAgentRank('${u.id}')" title="Modificar rango y permisos">
+              🎖️ Rango
+            </button>
             <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="editAgentDogAssignment('${u.id}')" title="Asignar o cambiar can">
-              🐕 Asignar Can
+              🐕 Can
             </button>
           </div>
         </td>
@@ -1424,6 +1507,49 @@ function renderAgentsTableRows(users, dogs) {
     `;
   }).join('');
 }
+
+window.editAgentRank = function (userId) {
+  const users = window.K9Store.getUsers();
+  const user = users.find(u => u.id === userId);
+  if (!user) return;
+
+  const ranks = ['Aspirante K9', 'Oficial Guía K9', 'Oficial Mayor K9', 'Instructor Guía K9', 'Subinspector K9', 'Inspector K9', 'Jefe de División K9'];
+  const newRank = prompt(`Modificar rango oficial de ${user.name} (@${user.discordUsername}):\n\nOpciones:\n${ranks.join('\n')}\n\nEscribe el nuevo rango:`, user.rank || 'Oficial Guía K9');
+  if (!newRank) return;
+
+  const newPlaca = prompt(`Asignar Placa Policial oficial para ${user.name}:`, user.placa || 'K-10');
+  if (!newPlaca) return;
+
+  const isJef = confirm(`¿Conceder permisos de Mando / Jefatura a ${user.name}?`);
+  user.rank = newRank.trim();
+  user.placa = newPlaca.trim();
+  user.isJefatura = isJef;
+  user.isVerified = true;
+  user.permissions = isJef ? ['*'] : [];
+  user.serviceStatus = isJef ? 'En Activo / Mando' : 'En Activo';
+
+  window.K9Store.save(STORAGE_KEYS.USERS, users);
+
+  // Guardar preset permanente para futuros logins
+  if (user.discordId) {
+    const presets = window.K9Store.getAgentPresets ? window.K9Store.getAgentPresets() : [];
+    const cleanPresets = presets.filter(p => p.discordId !== user.discordId);
+    cleanPresets.push({
+      discordId: user.discordId,
+      discordUsername: user.discordUsername,
+      placa: user.placa,
+      rank: user.rank,
+      isJefatura: user.isJefatura,
+      permissions: user.permissions,
+      serviceStatus: user.serviceStatus,
+      createdAt: new Date().toLocaleDateString('es-ES')
+    });
+    window.K9Store.save(STORAGE_KEYS.AGENT_PRESETS, cleanPresets);
+  }
+
+  showToast(`✅ Rango actualizado para ${user.name}: ${user.rank} [${user.placa}]`, 'success');
+  renderJefaturaSubtab('agentes');
+};
 
 window.editAgentDogAssignment = function (userId) {
   const users = window.K9Store.getUsers();
