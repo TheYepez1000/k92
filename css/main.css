@@ -1,0 +1,671 @@
+/* ==========================================================================
+   UNIDAD CANINA K9 - SISTEMA TÁCTICO DE GESTIÓN & JEFATURA
+   DESIGN SYSTEM & CORE STYLES
+   Fuentes principales: GoBold & Conthrax
+   ========================================================================== */
+
+/* Fuentes CDN y Fallbacks */
+@import url('https://fonts.cdnfonts.com/css/conthrax');
+@import url('https://fonts.cdnfonts.com/css/gobold');
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* Tipografía Oficial Solicitada */
+  --font-tactical: 'Conthrax', 'Chakra Petch', monospace, sans-serif;
+  --font-headline: 'Gobold', 'Barlow Condensed', sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* Paleta Táctica Policial de Alta Gama */
+  --bg-deep: #050811;
+  --bg-primary: #0a0f1d;
+  --bg-surface: #10182b;
+  --bg-surface-elevated: #16223b;
+  --bg-card: rgba(16, 24, 43, 0.75);
+  --bg-card-hover: rgba(22, 34, 59, 0.9);
+
+  /* Acentos Tácticos */
+  --police-blue: #0066ff;
+  --police-blue-glow: rgba(0, 102, 255, 0.45);
+  --police-cyan: #00e5ff;
+  --police-cyan-glow: rgba(0, 229, 255, 0.35);
+  --tactical-gold: #ffb703;
+  --tactical-gold-glow: rgba(255, 183, 3, 0.4);
+  --tactical-amber: #fb8500;
+  --tactical-red: #ff2a5f;
+  --tactical-red-glow: rgba(255, 42, 95, 0.4);
+  --tactical-green: #00e676;
+  --tactical-green-glow: rgba(0, 230, 118, 0.35);
+  --discord-blurple: #5865F2;
+  --discord-blurple-hover: #4752c4;
+
+  /* Bordes y Líneas Tácticas */
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-tactical: rgba(0, 229, 255, 0.22);
+  --border-gold: rgba(255, 183, 3, 0.35);
+  --border-danger: rgba(255, 42, 95, 0.35);
+
+  /* Texto */
+  --text-main: #f0f4fc;
+  --text-muted: #8899b5;
+  --text-subtle: #52637e;
+  --text-highlight: #ffffff;
+
+  /* Efectos y Sombras */
+  --glass-blur: blur(14px);
+  --shadow-elevation: 0 10px 30px -5px rgba(0, 0, 0, 0.8), 0 0 1px 1px rgba(255, 255, 255, 0.05);
+  --shadow-glow-cyan: 0 0 20px rgba(0, 229, 255, 0.25);
+  --shadow-glow-gold: 0 0 20px rgba(255, 183, 3, 0.25);
+  --shadow-glow-red: 0 0 20px rgba(255, 42, 95, 0.3);
+
+  /* Transiciones */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-slow: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Reset y Base */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  background-color: var(--bg-deep);
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--text-main);
+  background-color: var(--bg-deep);
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(0, 102, 255, 0.12) 0%, transparent 65%),
+    radial-gradient(circle at 100% 50%, rgba(0, 229, 255, 0.05) 0%, transparent 50%),
+    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+  background-attachment: fixed;
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scanline HUD sutil táctico */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15),
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  opacity: 0.35;
+  z-index: 9999;
+}
+
+/* Utilidades Tipográficas */
+.font-tactical {
+  font-family: var(--font-tactical);
+  letter-spacing: 0.06em;
+}
+
+.font-gobold {
+  font-family: var(--font-headline);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+h1, h2, h3, h4, .section-title {
+  font-family: var(--font-tactical);
+  color: #fff;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Header & Barra Superior */
+.top-hud-bar {
+  background: rgba(8, 12, 23, 0.85);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--border-tactical);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.6);
+}
+
+.top-hud-container {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.brand-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.brand-emblem-wrap {
+  width: 52px;
+  height: 52px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 0 10px rgba(0, 102, 255, 0.5));
+  transition: transform var(--transition-normal);
+}
+
+.brand-wrapper:hover .brand-emblem-wrap {
+  transform: scale(1.05);
+}
+
+.brand-emblem-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.brand-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-title {
+  font-family: var(--font-tactical);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  line-height: 1.1;
+  text-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
+}
+
+.brand-badge-tag {
+  font-family: var(--font-headline);
+  font-size: 0.75rem;
+  background: linear-gradient(135deg, var(--police-blue), var(--police-cyan));
+  color: #000;
+  font-weight: 800;
+  padding: 0.1rem 0.45rem;
+  border-radius: 4px;
+  letter-spacing: 0.08em;
+}
+
+.brand-subtitle {
+  font-family: var(--font-headline);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  letter-spacing: 0.12em;
+}
+
+/* Status Operativo Indicator */
+.tactical-live-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(0, 230, 118, 0.08);
+  border: 1px solid rgba(0, 230, 118, 0.3);
+  padding: 0.35rem 0.85rem;
+  border-radius: 20px;
+  font-family: var(--font-tactical);
+  font-size: 0.75rem;
+  color: var(--tactical-green);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  background-color: var(--tactical-green);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--tactical-green);
+  animation: pulseGreen 2s infinite ease-in-out;
+}
+
+@keyframes pulseGreen {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+/* Navegación Principal */
+.nav-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(16, 24, 43, 0.6);
+  padding: 0.3rem;
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+}
+
+.nav-tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: var(--font-tactical);
+  font-size: 0.85rem;
+  padding: 0.55rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all var(--transition-fast);
+  text-transform: uppercase;
+}
+
+.nav-tab-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-tab-btn.active {
+  color: #fff;
+  background: linear-gradient(135deg, rgba(0, 102, 255, 0.4), rgba(0, 229, 255, 0.2));
+  border: 1px solid var(--border-tactical);
+  box-shadow: 0 0 15px rgba(0, 102, 255, 0.3);
+}
+
+.nav-tab-btn.jefatura-tab {
+  position: relative;
+  border: 1px solid transparent;
+}
+
+.nav-tab-btn.jefatura-tab.active {
+  background: linear-gradient(135deg, rgba(255, 183, 3, 0.25), rgba(251, 133, 0, 0.15));
+  border-color: var(--border-gold);
+  color: var(--tactical-gold);
+  box-shadow: 0 0 15px rgba(255, 183, 3, 0.2);
+}
+
+.jefatura-lock-badge {
+  font-size: 0.65rem;
+  background: rgba(255, 183, 3, 0.2);
+  color: var(--tactical-gold);
+  border: 1px solid var(--border-gold);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
+
+/* User Profile & Auth Controls */
+.auth-controls-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.discord-login-btn {
+  background: linear-gradient(135deg, var(--discord-blurple), #404eed);
+  color: #fff;
+  border: none;
+  font-family: var(--font-tactical);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.6rem 1.1rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(88, 101, 242, 0.35);
+  transition: all var(--transition-fast);
+  text-transform: uppercase;
+}
+
+.discord-login-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(88, 101, 242, 0.5);
+  background: linear-gradient(135deg, #6774f4, #404eed);
+}
+
+.auth-user-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(16, 24, 43, 0.85);
+  border: 1px solid var(--border-tactical);
+  padding: 0.35rem 0.65rem 0.35rem 0.4rem;
+  border-radius: 40px;
+  cursor: pointer;
+  position: relative;
+  transition: border-color var(--transition-fast);
+}
+
+.auth-user-badge:hover {
+  border-color: var(--police-cyan);
+}
+
+.auth-avatar-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--police-cyan);
+  position: relative;
+}
+
+.auth-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.auth-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.auth-username {
+  font-family: var(--font-tactical);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.1;
+}
+
+.auth-badge-num {
+  font-family: var(--font-headline);
+  font-size: 0.75rem;
+  background: rgba(0, 229, 255, 0.15);
+  color: var(--police-cyan);
+  padding: 0 0.3rem;
+  border-radius: 3px;
+  font-weight: 700;
+}
+
+.auth-role-tag {
+  font-family: var(--font-headline);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+}
+
+.auth-role-tag.role-jefatura {
+  color: var(--tactical-gold);
+}
+
+/* Botón Audio SFX */
+.audio-toggle-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.audio-toggle-btn:hover {
+  color: var(--police-cyan);
+  border-color: var(--police-cyan);
+}
+
+.audio-toggle-btn.sound-on {
+  color: var(--police-cyan);
+  border-color: var(--border-tactical);
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+}
+
+/* User Account Quick Switcher Dropdown */
+.account-menu-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-tactical);
+  border-radius: 12px;
+  min-width: 290px;
+  padding: 0.75rem;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8);
+  display: none;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 1010;
+  backdrop-filter: var(--glass-blur);
+  animation: fadeInDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.account-menu-dropdown.show {
+  display: flex;
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown-section-title {
+  font-family: var(--font-headline);
+  font-size: 0.7rem;
+  color: var(--text-subtle);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.account-switch-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-main);
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: all var(--transition-fast);
+}
+
+.account-switch-item:hover {
+  background: rgba(0, 102, 255, 0.15);
+  border-color: var(--border-tactical);
+}
+
+.account-switch-item.current {
+  background: rgba(0, 229, 255, 0.1);
+  border-color: var(--border-tactical);
+}
+
+.account-switch-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--border-subtle);
+}
+
+.account-switch-details {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.account-switch-name {
+  font-family: var(--font-tactical);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.account-switch-role {
+  font-family: var(--font-headline);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.dropdown-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 6px;
+  font-family: var(--font-tactical);
+  font-size: 0.78rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-transform: uppercase;
+}
+
+.dropdown-action-btn:hover {
+  color: #fff;
+  border-color: var(--border-tactical);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.dropdown-action-btn.danger-action:hover {
+  color: var(--tactical-red);
+  border-color: var(--border-danger);
+  background: rgba(255, 42, 95, 0.1);
+}
+
+/* Contenedor Principal de la App */
+.main-wrapper {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 5rem;
+  min-height: calc(100vh - 80px);
+}
+
+/* Vistas Principales (Router) */
+.view-container {
+  display: none;
+  animation: viewFadeIn 0.3s ease-out forwards;
+}
+
+.view-container.active {
+  display: block;
+}
+
+@keyframes viewFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Footer Táctico */
+.k9-tactical-footer {
+  border-top: 1px solid var(--border-subtle);
+  background: rgba(5, 8, 17, 0.95);
+  padding: 2.5rem 1.5rem 2rem;
+  margin-top: 4rem;
+  color: var(--text-subtle);
+  font-size: 0.85rem;
+}
+
+.footer-content {
+  max-width: 1440px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.footer-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  object-fit: contain;
+}
+
+.footer-text h4 {
+  font-family: var(--font-tactical);
+  font-size: 1rem;
+  color: #fff;
+  margin-bottom: 0.2rem;
+}
+
+.footer-text p {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.footer-meta {
+  font-family: var(--font-tactical);
+  font-size: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  text-align: right;
+}
+
+.footer-meta span {
+  color: var(--text-muted);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .top-hud-container {
+    flex-wrap: wrap;
+  }
+  .nav-tabs {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .brand-title {
+    font-size: 1.1rem;
+  }
+  .brand-subtitle, .tactical-live-status {
+    display: none;
+  }
+  .nav-tab-btn {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.7rem;
+  }
+  .main-wrapper {
+    padding: 1rem 0.75rem 3rem;
+  }
+  .footer-content {
+    flex-direction: column;
+    text-align: center;
+  }
+  .footer-meta {
+    text-align: center;
+  }
+}
