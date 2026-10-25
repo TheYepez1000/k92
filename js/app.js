@@ -2569,7 +2569,7 @@ window.editAgentDogAssignment = function (userId) {
       matchedDog.handlerName = user.name;
       window.K9Store.save(STORAGE_KEYS.DOGS, dogs);
     } else {
-      alert('Can no encontrado. Asegúrate de escribir el nombre exacto.');
+      showToast('Can no encontrado. Asegúrate de escribir el nombre exacto.', 'warning');
       return;
     }
   }
@@ -2759,7 +2759,7 @@ window.editDogTraining = function (dogId) {
       showToast(`Adiestramiento de ${dog.name} actualizado a ${parsed}%`, 'success');
       renderJefaturaSubtab('canes');
     } else {
-      alert('Por favor introduce un número válido entre 0 y 100.');
+      showToast('Por favor introduce un número válido entre 0 y 100.', 'warning');
     }
   }
 };
@@ -3800,6 +3800,292 @@ function setupModals() {
       if (window._confirmDeleteDisc) window._confirmDeleteDisc();
     });
   }
+
+  // -------------------------------------------------------------
+  // FORMULARIOS DE NUEVOS MODALES TÁCTICOS
+  // -------------------------------------------------------------
+
+  // Formulario: Editar Comunicado de Jefatura
+  const formEditAnn = document.getElementById('formEditAnnouncement');
+  if (formEditAnn) {
+    formEditAnn.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const id = document.getElementById('editAnnId').value;
+      const announcements = window.K9Store.getAnnouncements();
+      const ann = announcements.find(a => a.id === id);
+      if (ann) {
+        ann.title = (document.getElementById('editAnnTitle').value || '').toUpperCase();
+        ann.priority = document.getElementById('editAnnPriority').value;
+        ann.type = ann.priority;
+        ann.imageUrl = (document.getElementById('editAnnImage').value || '').trim() || null;
+        ann.pinned = !!document.getElementById('editAnnPinned').checked;
+        ann.content = document.getElementById('editAnnContent').value;
+        window.K9Store.save(STORAGE_KEYS.ANNOUNCEMENTS, announcements);
+        if (window.K9CloudSync) window.K9CloudSync.push();
+        closeModal('modalEditAnnouncement');
+        showToast('Comunicado de jefatura actualizado correctamente', 'success');
+        renderGeneralSubtab('anuncios');
+      }
+    });
+  }
+
+  // Formulario: Editar / Crear Capítulo de Normativa
+  const formEditNorm = document.getElementById('formEditNormative');
+  if (formEditNorm) {
+    formEditNorm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const normId = document.getElementById('normId').value;
+      const chapter = (document.getElementById('normChapter').value || '').trim();
+      const rawText = document.getElementById('normArticlesRaw').value || '';
+      const lines = rawText.split('\n').filter(l => l.trim().length > 0);
+      const articles = lines.map((l, idx) => {
+        const parts = l.split('|').map(p => p.trim());
+        if (parts.length >= 3) {
+          return { num: parts[0], title: parts[1], text: parts.slice(2).join(' | ') };
+        } else if (parts.length === 2) {
+          return { num: parts[0], title: 'Disposición', text: parts[1] };
+        } else {
+          return { num: `Art. ${idx + 1}`, title: 'Disposición', text: l.trim() };
+        }
+      });
+
+      const normatives = window.K9Store.getNormatives();
+      const existing = normatives.find(n => n.id === normId);
+      if (existing) {
+        existing.chapter = chapter;
+        existing.articles = articles;
+        showToast('Capítulo de normativa actualizado', 'success');
+      } else {
+        normatives.push({
+          id: 'norm_' + Date.now(),
+          chapter: chapter,
+          articles: articles
+        });
+        showToast('Nuevo capítulo normativo añadido', 'success');
+      }
+      window.K9Store.save(STORAGE_KEYS.NORMATIVES, normatives);
+      if (window.K9CloudSync) window.K9CloudSync.push();
+      closeModal('modalEditNormative');
+      renderGeneralSubtab('normativas');
+    });
+  }
+
+  // Formulario: Editar / Crear Manual de Adiestramiento
+  const formEditMan = document.getElementById('formEditManual');
+  if (formEditMan) {
+    formEditMan.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const manId = document.getElementById('manId').value;
+      const title = (document.getElementById('manTitle').value || '').trim();
+      const category = (document.getElementById('manCategory').value || '').trim();
+      const rawText = document.getElementById('manItemsRaw').value || '';
+      const lines = rawText.split('\n').filter(l => l.trim().length > 0);
+      const items = lines.map((l, idx) => {
+        const parts = l.split('|').map(p => p.trim());
+        if (parts.length >= 3) {
+          return { command: parts[0], trans: parts[1], desc: parts.slice(2).join(' | ') };
+        } else if (parts.length === 2) {
+          return { command: parts[0], trans: 'Procedimiento', desc: parts[1] };
+        } else {
+          return { command: `MÓDULO ${idx + 1}`, trans: 'Instrucción', desc: l.trim() };
+        }
+      });
+
+      const manuals = window.K9Store.getManuals();
+      const existing = manuals.find(m => m.id === manId);
+      if (existing) {
+        existing.title = title;
+        existing.category = category;
+        existing.items = items;
+        showToast('Manual de adiestramiento actualizado', 'success');
+      } else {
+        manuals.push({
+          id: 'man_' + Date.now(),
+          title: title,
+          category: category,
+          items: items
+        });
+        showToast('Nuevo manual de adiestramiento añadido', 'success');
+      }
+      window.K9Store.save(STORAGE_KEYS.MANUALS, manuals);
+      if (window.K9CloudSync) window.K9CloudSync.push();
+      closeModal('modalEditManual');
+      renderGeneralSubtab('manuales');
+    });
+  }
+
+  // Formulario: Editar Ficha de Miembro K9
+  const formEditMem = document.getElementById('formEditMember');
+  if (formEditMem) {
+    formEditMem.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const id = document.getElementById('editMemberId').value;
+      const users = window.K9Store.getUsers();
+      const member = users.find(u => u.id === id);
+      if (member) {
+        member.name = (document.getElementById('editMemberName').value || '').trim();
+        member.placa = (document.getElementById('editMemberPlaca').value || '').trim();
+        member.rank = document.getElementById('editMemberRank').value;
+        const newDogId = document.getElementById('editMemberDogSelect').value || null;
+        member.assignedDogId = newDogId;
+        const newAvatar = (document.getElementById('editMemberAvatar').value || '').trim();
+        if (newAvatar) member.avatar = newAvatar;
+        const discordIdVal = (document.getElementById('editMemberDiscordId').value || '').trim();
+        if (discordIdVal) member.discordId = discordIdVal;
+        member.isJefatura = !!document.getElementById('editMemberIsJefatura').checked;
+
+        // Actualizar vínculo inverso en dogs si se asignó un can
+        const dogs = window.K9Store.getDogs();
+        dogs.forEach(d => {
+          if (d.handlerId === member.id && d.id !== newDogId) {
+            d.handlerId = null;
+            d.handlerName = 'Sin asignar';
+          }
+          if (newDogId && d.id === newDogId) {
+            d.handlerId = member.id;
+            d.handlerName = `${member.name} (${member.placa})`;
+          }
+        });
+        window.K9Store.save(STORAGE_KEYS.DOGS, dogs);
+        window.K9Store.save(STORAGE_KEYS.USERS, users);
+        if (window.K9CloudSync) window.K9CloudSync.push();
+        closeModal('modalEditMember');
+        showToast(`Ficha del agente ${member.name} actualizada con éxito`, 'success');
+        if (currentView === 'general') renderGeneralSubtab('miembros');
+        if (currentView === 'jefatura') renderJefaturaSubtab('agentes');
+      }
+    });
+  }
+
+  // Formulario: Publicar Orden de Ascenso Oficial
+  const formPromo = document.getElementById('formNewPromotion');
+  if (formPromo) {
+    const promoAgentSel = document.getElementById('promoAgentSelect');
+    if (promoAgentSel) {
+      promoAgentSel.addEventListener('change', () => {
+        const users = window.K9Store.getUsers();
+        const selUser = users.find(u => u.id === promoAgentSel.value);
+        const oldRankInput = document.getElementById('promoOldRank');
+        if (oldRankInput && selUser) {
+          oldRankInput.value = selUser.rank;
+        }
+      });
+    }
+
+    formPromo.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const users = window.K9Store.getUsers();
+      const agentId = document.getElementById('promoAgentSelect').value;
+      const user = users.find(u => u.id === agentId);
+      if (!user) return;
+
+      const oldRank = document.getElementById('promoOldRank').value;
+      const newRank = document.getElementById('promoNewRank').value;
+      const citation = (document.getElementById('promoCitation').value || '').trim();
+      const currentUser = window.K9Auth.getCurrentUser();
+
+      // 1. Actualizar rango en users
+      user.rank = newRank;
+      if (newRank.includes('Jefe') || newRank.includes('Subjefe') || newRank.includes('Coordinador')) {
+        user.isJefatura = true;
+      }
+      window.K9Store.save(STORAGE_KEYS.USERS, users);
+
+      // 2. Si el usuario tiene discordId, actualizar o insertar en AGENT_PRESETS
+      if (user.discordId) {
+        const presets = window.K9Store.getAgentPresets();
+        let preset = presets.find(p => p.discordId === user.discordId);
+        if (preset) {
+          preset.rank = newRank;
+          preset.isJefatura = user.isJefatura;
+        } else {
+          presets.push({
+            discordId: user.discordId,
+            discordUsername: user.discordUsername || user.name,
+            placa: user.placa,
+            rank: newRank,
+            isJefatura: user.isJefatura,
+            permissions: user.permissions || [],
+            serviceStatus: 'En Activo',
+            createdAt: new Date().toLocaleDateString('es-ES')
+          });
+        }
+        window.K9Store.save(STORAGE_KEYS.AGENT_PRESETS, presets);
+      }
+
+      // 3. Crear registro público de ascenso
+      const promotions = window.K9Store.getPromotions();
+      const newPromo = {
+        id: 'promo_' + Date.now(),
+        agentId: user.id,
+        agentName: user.name,
+        placa: user.placa,
+        avatar: user.avatar || 'assets/images/emblem.jpg',
+        previousRank: oldRank,
+        newRank: newRank,
+        date: new Date().toLocaleDateString('es-ES'),
+        promotedBy: currentUser ? `${currentUser.name} (${currentUser.placa})` : 'Jefatura de División K9',
+        citation: citation
+      };
+      promotions.unshift(newPromo);
+      window.K9Store.save(STORAGE_KEYS.PROMOTIONS, promotions);
+
+      // 4. Registrar en logs y webhook
+      window.K9Store.addLog({
+        type: 'promotion',
+        emoji: '🎖️',
+        title: `Ascenso Oficial: ${user.name} a ${newRank}`,
+        description: `Resolución de mando dictada por ${newPromo.promotedBy}. Rango anterior: ${oldRank}`,
+        author: newPromo.promotedBy,
+        fields: [
+          { name: 'Agente', value: `${user.name} (${user.placa})` },
+          { name: 'Nuevo Rango', value: newRank },
+          { name: 'Citación', value: citation.substring(0, 100) + (citation.length > 100 ? '…' : '') }
+        ]
+      });
+
+      if (window.K9Webhook) {
+        window.K9Webhook.log({
+          title: `🎖️ DECRETO OFICIAL DE ASCENSO K9: ${user.name}`,
+          color: 0xf59e0b,
+          fields: [
+            { name: 'Agente Condecorado', value: `${user.name} (Placa ${user.placa})`, inline: true },
+            { name: 'Rango Anterior', value: oldRank, inline: true },
+            { name: 'Nuevo Rango', value: `**${newRank}**`, inline: true },
+            { name: 'Citación de Mando', value: citation, inline: false },
+            { name: 'Firmado por', value: newPromo.promotedBy, inline: true }
+          ]
+        });
+      }
+
+      if (window.K9CloudSync) window.K9CloudSync.push();
+      closeModal('modalNewPromotion');
+      formPromo.reset();
+      if (window.K9Audio) window.K9Audio.playTacticalBeep(1400, 0.2);
+      showToast(`🎖️ Orden de ascenso publicada: ${user.name} asciende a ${newRank}`, 'success');
+      if (currentView === 'general') renderGeneralSubtab('ascensos');
+      if (currentView === 'jefatura') renderJefaturaSubtab('agentes');
+    });
+  }
+
+  // Botones de Confirmación Tácticos en Modales de Borrado
+  const btnConfRep = document.getElementById('btnConfirmDeleteReportAction');
+  if (btnConfRep) btnConfRep.addEventListener('click', () => { if (window._confirmDeleteReport) window._confirmDeleteReport(); });
+
+  const btnConfAnn = document.getElementById('btnConfirmDeleteAnnAction');
+  if (btnConfAnn) btnConfAnn.addEventListener('click', () => { if (window._confirmDeleteAnnouncement) window._confirmDeleteAnnouncement(); });
+
+  const btnConfNorm = document.getElementById('btnConfirmDeleteNormAction');
+  if (btnConfNorm) btnConfNorm.addEventListener('click', () => { if (window._confirmDeleteNormative) window._confirmDeleteNormative(); });
+
+  const btnConfMan = document.getElementById('btnConfirmDeleteManAction');
+  if (btnConfMan) btnConfMan.addEventListener('click', () => { if (window._confirmDeleteManual) window._confirmDeleteManual(); });
+
+  const btnConfMem = document.getElementById('btnConfirmDeleteMemberAction');
+  if (btnConfMem) btnConfMem.addEventListener('click', () => { if (window._confirmDeleteMember) window._confirmDeleteMember(); });
+
+  const btnConfPromo = document.getElementById('btnConfirmDeletePromoAction');
+  if (btnConfPromo) btnConfPromo.addEventListener('click', () => { if (window._confirmDeletePromotion) window._confirmDeletePromotion(); });
 }
 
 // ==========================================
