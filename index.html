@@ -458,6 +458,14 @@
               placeholder="Describe los despliegues de la semana, comportamiento y obediencia del can..."
               required></textarea>
           </div>
+
+          <label class="perm-toggle-card">
+            <input type="checkbox" id="repConfidentialInput" class="perm-checkbox">
+            <div class="perm-details">
+              <span class="perm-title">🔒 Marcar como Confidencial (Solo Jefatura)</span>
+              <span class="perm-desc">Este informe solo será visible para mandos y coordinadores de Jefatura</span>
+            </div>
+          </label>
         </div>
         <div class="modal-footer-tactical">
           <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
@@ -769,9 +777,15 @@
               <select id="annPrioritySelect" class="form-select-tactical">
                 <option value="OFICIAL">OFICIAL</option>
                 <option value="URGENTE">URGENTE</option>
+                <option value="IMPORTANTE">IMPORTANTE</option>
                 <option value="INFORMATIVO">INFORMATIVO</option>
               </select>
             </div>
+          </div>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="annImageInput">FOTOGRAFÍA / IMAGEN TÁCTICA (OPCIONAL)</label>
+            <input type="url" id="annImageInput" class="form-input-tactical" placeholder="https://ejemplo.com/foto-comunicado.jpg">
           </div>
 
           <label class="perm-toggle-card">

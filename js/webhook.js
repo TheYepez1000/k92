@@ -110,6 +110,20 @@ class K9WebhookLogger {
     };
 
     this._queue.push({ webhookUrl, embed });
+
+    // También guardar en el registro interno de logs de la web para visualización de Jefatura
+    if (window.K9Store && typeof window.K9Store.addLog === 'function') {
+      const user = window.K9Auth ? window.K9Auth.getCurrentUser() : null;
+      window.K9Store.addLog({
+        type: type,
+        emoji: emoji,
+        title: title,
+        description: description,
+        fields: safeFields,
+        author: user ? `${user.name} (${user.placa})` : 'Sistema K9'
+      });
+    }
+
     this._processQueue();
   }
 

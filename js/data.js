@@ -16,7 +16,9 @@ const STORAGE_KEYS = {
   DISCORD_CONFIG: 'k9_discord_config',
   DOG_REQUESTS: 'k9_dog_requests',
   AGENT_PRESETS: 'k9_agent_presets',
-  CHAT_MESSAGES: 'k9_chat_messages'
+  CHAT_MESSAGES: 'k9_chat_messages',
+  PROMOTIONS: 'k9_data_promotions',
+  LOGS: 'k9_data_logs'
 };
 
 // Mensajes por defecto del chat de despacho con Jefatura
@@ -224,6 +226,35 @@ const DEFAULT_ANNOUNCEMENTS = [
     author: 'Coordinación de Formación e Instrucción',
     pinned: false,
     content: 'Se abre el plazo de inscripción para oficiales del cuerpo que deseen optar a la plaza de Guía Canino en la especialidad de Detección de Acelerantes y Rastreo. Pruebas físicas y de afinidad canina darán comienzo el próximo mes.'
+  }
+];
+
+// Ascensos Oficiales publicados por Jefatura
+const DEFAULT_PROMOTIONS = [
+  {
+    id: 'promo_01',
+    agentId: 'ag_carlos',
+    agentName: 'Carlos Santana',
+    placa: 'K-12',
+    oldRank: 'Oficial Guía Canino',
+    newRank: 'Instructor & Guía Canino',
+    date: '22/10/2026',
+    publishedBy: 'Jefatura de División K9',
+    citation: 'Por su dedicación excepcional en el adiestramiento y certificación operativa del can Thor (K9-T02), demostrando maestría en técnicas de rastreo y obediencia táctica.'
+  }
+];
+
+// Registro de Logs tácticos internos (solo visible para Jefatura)
+const DEFAULT_LOGS = [
+  {
+    id: 'log_init_01',
+    type: 'config',
+    emoji: '⚙️',
+    title: 'Portal K9 Inicializado',
+    description: 'Sistema táctico de Jefatura K9 operativo y conectado a la red departamental.',
+    author: 'Jefatura K9',
+    timestamp: new Date().toISOString(),
+    displayTime: '24/10/2026 10:00:00'
   }
 ];
 
@@ -479,9 +510,18 @@ class K9DataStore {
     if (!localStorage.getItem(STORAGE_KEYS.ANNOUNCEMENTS)) {
       this.save(STORAGE_KEYS.ANNOUNCEMENTS, DEFAULT_ANNOUNCEMENTS);
     }
-    // Forzar actualización de normativas y manuales con el reglamento oficial completo
-    this.save(STORAGE_KEYS.NORMATIVES, DEFAULT_NORMATIVES);
-    this.save(STORAGE_KEYS.MANUALS, DEFAULT_MANUALS);
+    if (!localStorage.getItem(STORAGE_KEYS.NORMATIVES)) {
+      this.save(STORAGE_KEYS.NORMATIVES, DEFAULT_NORMATIVES);
+    }
+    if (!localStorage.getItem(STORAGE_KEYS.MANUALS)) {
+      this.save(STORAGE_KEYS.MANUALS, DEFAULT_MANUALS);
+    }
+    if (!localStorage.getItem(STORAGE_KEYS.PROMOTIONS)) {
+      this.save(STORAGE_KEYS.PROMOTIONS, DEFAULT_PROMOTIONS);
+    }
+    if (!localStorage.getItem(STORAGE_KEYS.LOGS)) {
+      this.save(STORAGE_KEYS.LOGS, DEFAULT_LOGS);
+    }
 
     // Asegurar que el preset de Jefatura oficial siempre esté presente
     const existingPresets = this.get(STORAGE_KEYS.AGENT_PRESETS) || [];
@@ -526,6 +566,30 @@ class K9DataStore {
   getDogRequests() { return this.get(STORAGE_KEYS.DOG_REQUESTS) || []; }
   getAgentPresets() { return this.get(STORAGE_KEYS.AGENT_PRESETS) || DEFAULT_AGENT_PRESETS; }
   getChatMessages() { return this.get(STORAGE_KEYS.CHAT_MESSAGES) || DEFAULT_CHAT_MESSAGES; }
+  getPromotions() { return this.get(STORAGE_KEYS.PROMOTIONS) || DEFAULT_PROMOTIONS; }
+  getLogs() { return this.get(STORAGE_KEYS.LOGS) || DEFAULT_LOGS; }
+
+  addLog(entry) {
+    try {
+      const logs = this.getLogs();
+      const now = new Date();
+      const newEntry = Object.assign({
+        id: 'log_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+        type: 'info',
+        emoji: 'ℹ️',
+        title: 'Registro de Actividad',
+        description: '',
+        author: 'Sistema K9',
+        timestamp: now.toISOString(),
+        displayTime: now.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + now.toLocaleTimeString('es-ES')
+      }, entry);
+      const updated = [newEntry, ...logs].slice(0, 150);
+      this.save(STORAGE_KEYS.LOGS, updated);
+      return newEntry;
+    } catch (e) {
+      console.warn('Error recording log:', e);
+    }
+  }
 
   getCurrentUserId() {
     return this.get(STORAGE_KEYS.CURRENT_USER) || null;

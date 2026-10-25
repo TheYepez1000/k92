@@ -79,12 +79,9 @@ function mergeDatasets(existing, incoming) {
     result.disciplinary = incoming.disciplinary;
   }
 
-  // 6. Fusión de Informes por id
+  // 6. Informes Semanales (Jefatura autoritativa: respeta eliminaciones y bajas)
   if (Array.isArray(incoming.reports)) {
-    const repMap = new Map();
-    (existing.reports || []).forEach(r => { if (r.id) repMap.set(r.id, r); });
-    incoming.reports.forEach(r => { if (r.id) repMap.set(r.id, r); });
-    result.reports = Array.from(repMap.values());
+    result.reports = incoming.reports;
   }
 
   // 7. Comunicados oficiales
@@ -106,6 +103,31 @@ function mergeDatasets(existing, incoming) {
   }
   if (incoming.webhookUrl) {
     result.webhookUrl = incoming.webhookUrl;
+  }
+
+  // 10. Normativas Oficiales
+  if (Array.isArray(incoming.normatives)) {
+    result.normatives = incoming.normatives;
+  }
+
+  // 11. Manuales y Guías
+  if (Array.isArray(incoming.manuals)) {
+    result.manuals = incoming.manuals;
+  }
+
+  // 12. Ascensos Oficiales
+  if (Array.isArray(incoming.promotions)) {
+    result.promotions = incoming.promotions;
+  }
+
+  // 13. Logs tácticos internos
+  if (Array.isArray(incoming.logs)) {
+    const logMap = new Map();
+    (existing.logs || []).forEach(l => { if (l.id) logMap.set(l.id, l); });
+    incoming.logs.forEach(l => { if (l.id) logMap.set(l.id, l); });
+    result.logs = Array.from(logMap.values())
+      .sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0))
+      .slice(0, 150);
   }
 
   result.updatedAt = Date.now();

@@ -78,6 +78,10 @@ class K9CloudSyncManager {
       reports: window.K9Store.get(STORAGE_KEYS.REPORTS) || [],
       badges: window.K9Store.get(STORAGE_KEYS.BADGES) || [],
       chatMessages: window.K9Store.get(STORAGE_KEYS.CHAT_MESSAGES) || [],
+      normatives: window.K9Store.get(STORAGE_KEYS.NORMATIVES) || [],
+      manuals: window.K9Store.get(STORAGE_KEYS.MANUALS) || [],
+      promotions: window.K9Store.get(STORAGE_KEYS.PROMOTIONS) || [],
+      logs: window.K9Store.get(STORAGE_KEYS.LOGS) || [],
       webhookUrl: localStorage.getItem('k9_webhook_url') || null
     };
   }
@@ -247,17 +251,44 @@ class K9CloudSyncManager {
       window.dispatchEvent(new CustomEvent('k9_chat_updated', { detail: mergedChat }));
     }
 
-    // 8. Informes de patrulla
+    // 8. Informes de patrulla (Autoritativo para respetar bajas y eliminaciones)
     if (Array.isArray(remote.reports)) {
-      const localRep = window.K9Store.getReports();
-      const repMap = new Map();
-      localRep.forEach(r => { if (r.id) repMap.set(r.id, r); });
-      remote.reports.forEach(r => { if (r.id) repMap.set(r.id, r); });
-      localStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify(Array.from(repMap.values())));
+      localStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify(remote.reports));
       hasChanges = true;
     }
 
-    // 8. Webhook URL si está configurada en la nube
+    // 9. Normativas Oficiales
+    if (Array.isArray(remote.normatives)) {
+      localStorage.setItem(STORAGE_KEYS.NORMATIVES, JSON.stringify(remote.normatives));
+      hasChanges = true;
+    }
+
+    // 10. Manuales de Instrucción
+    if (Array.isArray(remote.manuals)) {
+      localStorage.setItem(STORAGE_KEYS.MANUALS, JSON.stringify(remote.manuals));
+      hasChanges = true;
+    }
+
+    // 11. Ascensos Oficiales
+    if (Array.isArray(remote.promotions)) {
+      localStorage.setItem(STORAGE_KEYS.PROMOTIONS, JSON.stringify(remote.promotions));
+      hasChanges = true;
+    }
+
+    // 12. Logs tácticos internos
+    if (Array.isArray(remote.logs)) {
+      const localLogs = window.K9Store.getLogs();
+      const logMap = new Map();
+      localLogs.forEach(l => { if (l.id) logMap.set(l.id, l); });
+      remote.logs.forEach(l => { if (l.id) logMap.set(l.id, l); });
+      const mergedLogs = Array.from(logMap.values())
+        .sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0))
+        .slice(0, 150);
+      localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(mergedLogs));
+      hasChanges = true;
+    }
+
+    // 13. Webhook URL si está configurada en la nube
     if (remote.webhookUrl && remote.webhookUrl.startsWith('https://discord.com/api/webhooks/')) {
       localStorage.setItem('k9_webhook_url', remote.webhookUrl);
     }
