@@ -64,28 +64,19 @@ function mergeDatasets(existing, incoming) {
     result.presets = Array.from(presetMap.values());
   }
 
-  // 3. Fusión de Canes K9 por id
+  // 3. Canes K9 (Jefatura autoritativa: si viene en incoming, actualiza la lista respetando bajas y eliminaciones)
   if (Array.isArray(incoming.dogs)) {
-    const dogMap = new Map();
-    (existing.dogs || []).forEach(d => { if (d.id) dogMap.set(d.id, d); });
-    incoming.dogs.forEach(d => { if (d.id) dogMap.set(d.id, d); });
-    result.dogs = Array.from(dogMap.values());
+    result.dogs = incoming.dogs;
   }
 
   // 4. Fusión de Solicitudes de Canes por id
   if (Array.isArray(incoming.dogRequests)) {
-    const reqMap = new Map();
-    (existing.dogRequests || []).forEach(r => { if (r.id) reqMap.set(r.id, r); });
-    incoming.dogRequests.forEach(r => { if (r.id) reqMap.set(r.id, r); });
-    result.dogRequests = Array.from(reqMap.values());
+    result.dogRequests = incoming.dogRequests;
   }
 
-  // 5. Fusión de Expedientes Disciplinarios por id
+  // 5. Expedientes Disciplinarios (Jefatura autoritativa: respeta eliminaciones)
   if (Array.isArray(incoming.disciplinary)) {
-    const discMap = new Map();
-    (existing.disciplinary || []).forEach(d => { if (d.id) discMap.set(d.id, d); });
-    incoming.disciplinary.forEach(d => { if (d.id) discMap.set(d.id, d); });
-    result.disciplinary = Array.from(discMap.values());
+    result.disciplinary = incoming.disciplinary;
   }
 
   // 6. Fusión de Informes por id
@@ -96,15 +87,20 @@ function mergeDatasets(existing, incoming) {
     result.reports = Array.from(repMap.values());
   }
 
-  // 7. Fusión de Anuncios por id
+  // 7. Comunicados oficiales
   if (Array.isArray(incoming.announcements)) {
-    const annMap = new Map();
-    (existing.announcements || []).forEach(a => { if (a.id) annMap.set(a.id, a); });
-    incoming.announcements.forEach(a => { if (a.id) annMap.set(a.id, a); });
-    result.announcements = Array.from(annMap.values());
+    result.announcements = incoming.announcements;
   }
 
-  // 8. Badges y Webhook
+  // 8. Mensajes de Chat de Despacho con Jefatura
+  if (Array.isArray(incoming.chatMessages)) {
+    const msgMap = new Map();
+    (existing.chatMessages || []).forEach(m => { if (m.id) msgMap.set(m.id, m); });
+    incoming.chatMessages.forEach(m => { if (m.id) msgMap.set(m.id, m); });
+    result.chatMessages = Array.from(msgMap.values()).slice(-60);
+  }
+
+  // 9. Badges y Webhook
   if (Array.isArray(incoming.badges) && incoming.badges.length > 0) {
     result.badges = incoming.badges;
   }

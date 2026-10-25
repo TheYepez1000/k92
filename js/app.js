@@ -32,10 +32,13 @@ function renderGeneralSubnavTabs() {
   const user = window.K9Auth.getCurrentUser();
 
   if (user) {
-    // Usuario autenticado con Discord: ve anuncios de jefatura y todo el portal
+    // Usuario autenticado con Discord: ve anuncios de jefatura, chat con mandos y todo el portal
     container.innerHTML = `
       <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'anuncios' ? 'active' : ''}" data-subtab="anuncios">
         📢 Anuncios de Jefatura
+      </button>
+      <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'chat' ? 'active' : ''}" data-subtab="chat">
+        💬 Despacho con Jefatura
       </button>
       <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'normativas' ? 'active' : ''}" data-subtab="normativas">
         ⚖️ Normativas Oficiales
@@ -48,13 +51,16 @@ function renderGeneralSubnavTabs() {
       </button>
     `;
   } else {
-    // Usuario no autenticado: SOLO ve normativas, manuales y plantilla de canes
+    // Usuario no autenticado: ve normativas, manuales, canes y canal de contacto
     if (currentGeneralSubtab === 'anuncios') {
       currentGeneralSubtab = 'normativas';
     }
     container.innerHTML = `
       <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'normativas' ? 'active' : ''}" data-subtab="normativas">
         ⚖️ Normativas Oficiales
+      </button>
+      <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'chat' ? 'active' : ''}" data-subtab="chat">
+        💬 Despacho con Jefatura
       </button>
       <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'manuales' ? 'active' : ''}" data-subtab="manuales">
         📖 Manuales & Adiestramiento
@@ -386,6 +392,8 @@ function renderGeneralSubtab(subtab) {
     renderManuals(contentEl);
   } else if (subtab === 'galeria') {
     renderCanineGallery(contentEl);
+  } else if (subtab === 'chat') {
+    renderChatSection(contentEl);
   }
 }
 
@@ -1999,9 +2007,28 @@ window.deleteDog = function (dogId) {
   const dog = dogs.find(d => d.id === dogId);
   if (!dog) return;
 
-  if (!confirm(`¿Estás seguro de que deseas dar de baja y eliminar al can ${dog.name} [${dog.tag}] del registro K9?`)) {
-    return;
-  }
+  // Abrir modal táctico de confirmación de baja de can
+  window._pendingDeleteDogId = dogId;
+  const delName = document.getElementById('delDogName');
+  const delTag  = document.getElementById('delDogTag');
+  const delBreed = document.getElementById('delDogBreed');
+  const delPhoto = document.getElementById('delDogPhoto');
+  if (delName) delName.textContent = dog.name;
+  if (delTag) delTag.textContent = dog.tag;
+  if (delBreed) delBreed.textContent = dog.breed + ' · ' + dog.specialty;
+  if (delPhoto) delPhoto.src = dog.photo || 'assets/images/k9_thor.jpg';
+  openModal('modalDeleteDog');
+  return;
+}
+
+// Función interna ejecutada tras confirmación
+window._confirmDeleteDog = function () {
+  const dogId = window._pendingDeleteDogId;
+  if (!dogId) return;
+  const dogs = window.K9Store.getDogs();
+  const dog = dogs.find(d => d.id === dogId);
+  if (!dog) return;
+  closeModal('modalDeleteDog');
 
   // Desasignar de cualquier guía
   const users = window.K9Store.getUsers();
@@ -2153,7 +2180,28 @@ function renderDisciplinarySection(container) {
 }
 
 window.deleteDisciplinaryRecord = function (id) {
-  if (!confirm('¿Deseas eliminar este registro disciplinario?')) return;
+  const records = window.K9Store.getDisciplinary();
+  const rec = records.find(r => r.id === id);
+  if (!rec) return;
+
+  // Abrir modal táctico de confirmación de baja de disciplinario
+  window._pendingDeleteDiscId = id;
+  const delAgent    = document.getElementById('delDiscAgent');
+  const delSeverity = document.getElementById('delDiscSeverity');
+  const delReason   = document.getElementById('delDiscReason');
+  const delSanction = document.getElementById('delDiscSanction');
+  if (delAgent)    delAgent.textContent    = rec.agentName || 'Agente';
+  if (delSeverity) delSeverity.textContent = rec.type || 'Falta';
+  if (delReason)   delReason.textContent   = rec.reason || '—';
+  if (delSanction) delSanction.textContent = rec.sanction || '—';
+  openModal('modalDeleteDisciplinary');
+};
+
+// Función interna ejecutada tras confirmación
+window._confirmDeleteDisc = function () {
+  const id = window._pendingDeleteDiscId;
+  if (!id) return;
+  closeModal('modalDeleteDisciplinary');
   const records = window.K9Store.getDisciplinary().filter(r => r.id !== id);
   window.K9Store.save(STORAGE_KEYS.DISCIPLINARY, records);
   if (window.K9CloudSync) window.K9CloudSync.push();

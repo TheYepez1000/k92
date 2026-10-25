@@ -15,8 +15,24 @@ const STORAGE_KEYS = {
   MANUALS: 'k9_data_manuals',
   DISCORD_CONFIG: 'k9_discord_config',
   DOG_REQUESTS: 'k9_dog_requests',
-  AGENT_PRESETS: 'k9_agent_presets'
+  AGENT_PRESETS: 'k9_agent_presets',
+  CHAT_MESSAGES: 'k9_chat_messages'
 };
+
+// Mensajes por defecto del chat de despacho con Jefatura
+const DEFAULT_CHAT_MESSAGES = [
+  {
+    id: 'msg_welcome',
+    authorId: 'jefatura_k01',
+    authorName: 'Coordinador K9',
+    authorPlaca: 'K-01',
+    authorRank: 'Jefe de División K9',
+    authorAvatar: 'assets/images/emblem.jpg',
+    isJefatura: true,
+    text: 'Canal oficial de despacho de la Jefatura K9 abierto. Los miembros de la división pueden utilizar este espacio para comunicarse directamente con los mandos, realizar consultas operativas o coordinar patrullajes.',
+    timestamp: 'Oficial · Despacho K9'
+  }
+];
 
 // Lista Maestra de Permisos de Jefatura
 const SYSTEM_PERMISSIONS = [
@@ -509,6 +525,7 @@ class K9DataStore {
   getManuals() { return this.get(STORAGE_KEYS.MANUALS) || DEFAULT_MANUALS; }
   getDogRequests() { return this.get(STORAGE_KEYS.DOG_REQUESTS) || []; }
   getAgentPresets() { return this.get(STORAGE_KEYS.AGENT_PRESETS) || DEFAULT_AGENT_PRESETS; }
+  getChatMessages() { return this.get(STORAGE_KEYS.CHAT_MESSAGES) || DEFAULT_CHAT_MESSAGES; }
 
   getCurrentUserId() {
     return this.get(STORAGE_KEYS.CURRENT_USER) || null;

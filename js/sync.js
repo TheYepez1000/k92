@@ -77,6 +77,7 @@ class K9CloudSyncManager {
       disciplinary: window.K9Store.get(STORAGE_KEYS.DISCIPLINARY) || [],
       reports: window.K9Store.get(STORAGE_KEYS.REPORTS) || [],
       badges: window.K9Store.get(STORAGE_KEYS.BADGES) || [],
+      chatMessages: window.K9Store.get(STORAGE_KEYS.CHAT_MESSAGES) || [],
       webhookUrl: localStorage.getItem('k9_webhook_url') || null
     };
   }
@@ -216,37 +217,37 @@ class K9CloudSyncManager {
       hasChanges = true;
     }
 
-    // 4. Canes K9 (Fusión por id)
-    if (Array.isArray(remote.dogs) && remote.dogs.length > 0) {
-      const localDogs = window.K9Store.getDogs();
-      const dogMap = new Map();
-      localDogs.forEach(d => { if (d.id) dogMap.set(d.id, d); });
-      remote.dogs.forEach(d => { if (d.id) dogMap.set(d.id, d); });
-      localStorage.setItem(STORAGE_KEYS.DOGS, JSON.stringify(Array.from(dogMap.values())));
+    // 4. Canes K9 (Autoritativo desde la nube para no revivir bajas ni eliminaciones)
+    if (Array.isArray(remote.dogs)) {
+      localStorage.setItem(STORAGE_KEYS.DOGS, JSON.stringify(remote.dogs));
       hasChanges = true;
     }
 
     // 5. Comunicados oficiales
-    if (Array.isArray(remote.announcements) && remote.announcements.length > 0) {
-      const localAnn = window.K9Store.getAnnouncements();
-      const annMap = new Map();
-      localAnn.forEach(a => { if (a.id) annMap.set(a.id, a); });
-      remote.announcements.forEach(a => { if (a.id) annMap.set(a.id, a); });
-      localStorage.setItem(STORAGE_KEYS.ANNOUNCEMENTS, JSON.stringify(Array.from(annMap.values())));
+    if (Array.isArray(remote.announcements)) {
+      localStorage.setItem(STORAGE_KEYS.ANNOUNCEMENTS, JSON.stringify(remote.announcements));
       hasChanges = true;
     }
 
-    // 6. Expedientes disciplinarios
+    // 6. Expedientes disciplinarios (Autoritativo para respetar bajas y eliminaciones)
     if (Array.isArray(remote.disciplinary)) {
-      const localDisc = window.K9Store.getDisciplinary();
-      const discMap = new Map();
-      localDisc.forEach(d => { if (d.id) discMap.set(d.id, d); });
-      remote.disciplinary.forEach(d => { if (d.id) discMap.set(d.id, d); });
-      localStorage.setItem(STORAGE_KEYS.DISCIPLINARY, JSON.stringify(Array.from(discMap.values())));
+      localStorage.setItem(STORAGE_KEYS.DISCIPLINARY, JSON.stringify(remote.disciplinary));
       hasChanges = true;
     }
 
-    // 7. Informes de patrulla
+    // 7. Chat de Despacho con Jefatura
+    if (Array.isArray(remote.chatMessages)) {
+      const localChat = window.K9Store.getChatMessages();
+      const chatMap = new Map();
+      localChat.forEach(m => { if (m.id) chatMap.set(m.id, m); });
+      remote.chatMessages.forEach(m => { if (m.id) chatMap.set(m.id, m); });
+      const mergedChat = Array.from(chatMap.values()).slice(-60);
+      localStorage.setItem(STORAGE_KEYS.CHAT_MESSAGES, JSON.stringify(mergedChat));
+      hasChanges = true;
+      window.dispatchEvent(new CustomEvent('k9_chat_updated', { detail: mergedChat }));
+    }
+
+    // 8. Informes de patrulla
     if (Array.isArray(remote.reports)) {
       const localRep = window.K9Store.getReports();
       const repMap = new Map();

@@ -98,7 +98,7 @@
             <div class="hero-pill-tag">
               <span>★</span> SECCIÓN ESPECIAL DE GUÍAS CANINOS Y ADIESTRAMIENTO
             </div>
-            <h1 class="hero-title font-conthrax">
+            <h1 class="hero-title font-gobold">
               UNIDAD CANINA DE INTERVENCIÓN TÁCTICA
             </h1>
             <p class="hero-description">
@@ -138,6 +138,21 @@
               <div class="hero-stat-label">Horas Patrulladas K9</div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- ================================================================
+           LOGO CENTRAL DE LA DIVISIÓN K9 (CENTERPIECE SHOWCASE)
+           ================================================================ -->
+      <div class="k9-centerpiece-showcase">
+        <div class="k9-centerpiece-ring">
+          <div class="k9-centerpiece-glow"></div>
+          <img src="assets/images/emblem.jpg" alt="Emblema Oficial K9" class="k9-centerpiece-img">
+        </div>
+        <div class="k9-centerpiece-meta">
+          <span class="k9-centerpiece-badge">LOS SANTOS POLICE DEPARTMENT · K9 DIVISION</span>
+          <h2 class="k9-centerpiece-title font-gobold">UNIDAD K9 DE INTERVENCIÓN POLICIAL</h2>
+          <p class="k9-centerpiece-motto font-gobold">FIDELIDAD · VALOR · DISCIPLINA TÁCTICA</p>
         </div>
       </div>
 
@@ -779,6 +794,96 @@
           <button type="submit" class="btn-tactical btn-tactical-gold btn-tactical-sm">Publicar en Tablón</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: MENÚ TÁCTICO DE BAJA Y ELIMINACIÓN DE CAN K9
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalDeleteDog">
+    <div class="tactical-modal-card" style="max-width: 520px;">
+      <div class="modal-header-tactical" style="border-bottom-color: var(--tactical-red);">
+        <div class="modal-title-tactical" style="color: var(--tactical-red);">
+          <span>🚨</span> DAR DE BAJA Y ELIMINAR CAN K9
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalDeleteDog')">✕</button>
+      </div>
+      <div class="modal-body-tactical" style="padding: 1.5rem;">
+        <div style="display: flex; gap: 1rem; align-items: center; background: rgba(255, 42, 95, 0.08); border: 1px solid var(--border-danger); border-radius: 12px; padding: 1rem; margin-bottom: 1.25rem;">
+          <img id="delDogPhoto" src="assets/images/k9_thor.jpg" alt="Can K9" style="width: 70px; height: 70px; border-radius: 10px; object-fit: cover; border: 2px solid var(--tactical-red);">
+          <div>
+            <h3 id="delDogName" class="font-gobold" style="color: #fff; font-size: 1.25rem; margin-bottom: 0.2rem;">THOR</h3>
+            <div id="delDogTag" style="font-family: var(--font-headline); color: var(--police-cyan); font-size: 0.85rem; font-weight: 700; margin-bottom: 0.2rem;">K9-T02</div>
+            <div id="delDogBreed" style="font-size: 0.8rem; color: var(--text-muted);">Pastor Belga Malinois</div>
+          </div>
+        </div>
+
+        <div style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 0.85rem 1rem; margin-bottom: 1.25rem; font-size: 0.84rem; line-height: 1.5; color: var(--text-main);">
+          <div style="margin-bottom: 0.4rem; color: var(--tactical-gold); font-weight: 700;">⚠️ Advertencia de Procedimiento:</div>
+          Esta acción dará de baja definitiva al can del registro policial. Si el can tenía un guía asignado, quedará automáticamente liberado y disponible para una nueva asignación.
+        </div>
+
+        <div class="form-group-tactical">
+          <label class="form-label-tactical" for="delDogReason">MOTIVO DE LA BAJA / RESOLUCIÓN</label>
+          <select id="delDogReason" class="form-select-tactical">
+            <option value="Jubilación del servicio canino">Jubilación del servicio canino por edad/mérito</option>
+            <option value="Baja médica no recuperable">Baja médica / Lesión no apto para servicio</option>
+            <option value="Fallecimiento en acto de servicio">Fallecimiento con honores en acto de servicio</option>
+            <option value="Reasignación externa a otra unidad">Reasignación externa a otra unidad de policía</option>
+            <option value="Error en ficha o duplicado">Error de registro / Ficha duplicada</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer-tactical">
+        <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="closeModal('modalDeleteDog')">
+          Cancelar
+        </button>
+        <button type="button" class="btn-tactical btn-tactical-danger btn-tactical-sm" id="btnConfirmDeleteDogAction">
+          🚨 Confirmar Baja y Eliminación
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: MENÚ TÁCTICO DE ELIMINACIÓN DE FALTA DISCIPLINARIA
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalDeleteDisciplinary">
+    <div class="tactical-modal-card" style="max-width: 520px;">
+      <div class="modal-header-tactical" style="border-bottom-color: var(--tactical-red);">
+        <div class="modal-title-tactical" style="color: var(--tactical-red);">
+          <span>⚖️</span> RETIRAR / ELIMINAR EXPEDIENTE DISCIPLINARIO
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalDeleteDisciplinary')">✕</button>
+      </div>
+      <div class="modal-body-tactical" style="padding: 1.5rem;">
+        <div style="background: rgba(255, 42, 95, 0.08); border: 1px solid var(--border-danger); border-radius: 12px; padding: 1rem; margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <strong id="delDiscAgent" style="color: #fff; font-size: 1rem;">Agente Implicado</strong>
+            <span id="delDiscSeverity" style="font-family: var(--font-headline); font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; background: rgba(255, 42, 95, 0.2); color: var(--tactical-red); border: 1px solid var(--tactical-red);">
+              Falta Grave
+            </span>
+          </div>
+          <div id="delDiscReason" style="font-size: 0.85rem; color: var(--text-main); line-height: 1.5; margin-bottom: 0.5rem;">
+            Motivo de los hechos
+          </div>
+          <div style="font-size: 0.8rem; color: var(--tactical-gold);">
+            Sanción: <strong id="delDiscSanction">Suspensión de servicio</strong>
+          </div>
+        </div>
+
+        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+          ¿Estás seguro de que deseas retirar y sobreseer este expediente? Esta sanción desaparecerá definitivamente del historial del agente y de los registros de Jefatura.
+        </p>
+      </div>
+      <div class="modal-footer-tactical">
+        <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="closeModal('modalDeleteDisciplinary')">
+          Cancelar
+        </button>
+        <button type="button" class="btn-tactical btn-tactical-danger btn-tactical-sm" id="btnConfirmDeleteDiscAction">
+          🗑️ Confirmar Retirada de Expediente
+        </button>
+      </div>
     </div>
   </div>
 

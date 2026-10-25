@@ -110,23 +110,27 @@ body::before {
   z-index: 9999;
 }
 
-/* Utilidades Tipográficas */
-.font-tactical {
-  font-family: var(--font-tactical);
-  letter-spacing: 0.06em;
-}
-
-.font-gobold {
-  font-family: var(--font-headline);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-h1, h2, h3, h4, .section-title {
-  font-family: var(--font-tactical);
+/* Utilidades Tipográficas Oficiales: GOBOLD para todos los títulos */
+h1, h2, h3, h4, h5, h6,
+.hero-title,
+.section-title,
+.section-main-title,
+.modal-title-tactical,
+.brand-title,
+.brand-subtitle,
+.k9-centerpiece-title,
+.k9-centerpiece-motto,
+.font-gobold,
+.font-headline {
+  font-family: 'Gobold', 'GoBold', 'Barlow Condensed', sans-serif !important;
   color: #fff;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
+}
+
+.font-tactical {
+  font-family: 'Gobold', 'GoBold', 'Conthrax', 'Chakra Petch', sans-serif !important;
+  letter-spacing: 0.06em;
 }
 
 /* Header & Barra Superior */
@@ -669,3 +673,286 @@ h1, h2, h3, h4, .section-title {
     text-align: center;
   }
 }
+
+/* ==========================================================================
+   LOGO EN MEDIO DE LA WEB (CENTERPIECE EMBLEM SHOWCASE)
+   ========================================================================== */
+.k9-centerpiece-showcase {
+  margin: 1.5rem auto 2.5rem;
+  padding: 2.5rem 1.5rem;
+  background: radial-gradient(circle at 50% 50%, rgba(16, 24, 43, 0.85) 0%, rgba(8, 12, 23, 0.95) 70%);
+  border: 1px solid var(--border-tactical);
+  border-radius: 20px;
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.7), 0 0 25px rgba(0, 229, 255, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.k9-centerpiece-showcase::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(0, 229, 255, 0.08) 0%, transparent 60%);
+  pointer-events: none;
+  animation: pulseGlow 4s ease-in-out infinite alternate;
+}
+
+@keyframes pulseGlow {
+  0% { opacity: 0.4; transform: scale(0.96); }
+  100% { opacity: 1; transform: scale(1.04); }
+}
+
+.k9-centerpiece-ring {
+  width: 140px;
+  height: 140px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
+.k9-centerpiece-ring::after {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 2px dashed rgba(0, 229, 255, 0.4);
+  animation: rotateEmblemRing 25s linear infinite;
+}
+
+@keyframes rotateEmblemRing {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.k9-centerpiece-glow {
+  position: absolute;
+  inset: -12px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 229, 255, 0.35) 0%, rgba(255, 183, 3, 0.2) 60%, transparent 80%);
+  filter: blur(12px);
+  z-index: 1;
+}
+
+.k9-centerpiece-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  position: relative;
+  z-index: 2;
+  border: 3px solid var(--border-gold);
+  box-shadow: 0 0 25px rgba(255, 183, 3, 0.4), inset 0 0 15px rgba(0, 0, 0, 0.6);
+  transition: transform var(--transition-normal);
+}
+
+.k9-centerpiece-ring:hover .k9-centerpiece-img {
+  transform: scale(1.06);
+}
+
+.k9-centerpiece-meta {
+  position: relative;
+  z-index: 2;
+  max-width: 600px;
+}
+
+.k9-centerpiece-badge {
+  display: inline-block;
+  font-family: 'Gobold', 'GoBold', 'Barlow Condensed', sans-serif !important;
+  font-size: 0.85rem;
+  letter-spacing: 0.18em;
+  color: var(--police-cyan);
+  background: rgba(0, 229, 255, 0.12);
+  border: 1px solid var(--border-tactical);
+  padding: 0.35rem 1rem;
+  border-radius: 20px;
+  margin-bottom: 0.75rem;
+}
+
+.k9-centerpiece-title {
+  font-size: 2.2rem;
+  color: #fff;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.4rem;
+  text-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
+}
+
+.k9-centerpiece-motto {
+  font-size: 0.95rem;
+  letter-spacing: 0.2em;
+  color: var(--tactical-gold);
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   DESPACHO CON JEFATURA (CHAT TÁCTICO)
+   ========================================================================== */
+.chat-dispatch-container {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-tactical);
+  border-radius: 16px;
+  box-shadow: var(--shadow-elevation);
+  display: flex;
+  flex-direction: column;
+  height: 640px;
+  overflow: hidden;
+  position: relative;
+}
+
+.chat-dispatch-header {
+  padding: 1.25rem 1.75rem;
+  background: rgba(10, 15, 29, 0.95);
+  border-bottom: 1px solid var(--border-tactical);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.chat-dispatch-feed {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: radial-gradient(circle at 50% 50%, rgba(16, 24, 43, 0.5) 0%, rgba(5, 8, 17, 0.8) 100%);
+}
+
+.chat-msg-row {
+  display: flex;
+  gap: 0.85rem;
+  max-width: 85%;
+  align-items: flex-start;
+  animation: fadeIn 0.2s ease;
+}
+
+.chat-msg-row.mine {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.chat-avatar-wrap {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--border-tactical);
+  flex-shrink: 0;
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+}
+
+.chat-avatar-wrap.jefatura {
+  border-color: var(--tactical-gold);
+  box-shadow: 0 0 12px rgba(255, 183, 3, 0.35);
+}
+
+.chat-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.chat-bubble {
+  background: rgba(22, 34, 59, 0.85);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 0.85rem 1.15rem;
+  color: var(--text-main);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.chat-msg-row.mine .chat-bubble {
+  background: rgba(0, 102, 255, 0.18);
+  border-color: rgba(0, 229, 255, 0.35);
+}
+
+.chat-bubble.jefatura {
+  background: rgba(255, 183, 3, 0.08);
+  border-color: var(--border-gold);
+}
+
+.chat-meta-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.chat-author-name {
+  font-family: 'Gobold', 'GoBold', 'Barlow Condensed', sans-serif !important;
+  font-size: 0.92rem;
+  color: #fff;
+  letter-spacing: 0.04em;
+}
+
+.chat-author-badge {
+  font-family: 'Gobold', 'GoBold', 'Barlow Condensed', sans-serif !important;
+  font-size: 0.68rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+.chat-badge-jefatura {
+  background: rgba(255, 183, 3, 0.2);
+  border: 1px solid var(--tactical-gold);
+  color: var(--tactical-gold);
+}
+
+.chat-badge-member {
+  background: rgba(0, 229, 255, 0.15);
+  border: 1px solid var(--border-tactical);
+  color: var(--police-cyan);
+}
+
+.chat-time-tag {
+  font-size: 0.7rem;
+  color: var(--text-subtle);
+  margin-left: auto;
+}
+
+.chat-body-text {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--text-main);
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.chat-input-bar {
+  padding: 1rem 1.5rem;
+  background: rgba(10, 15, 29, 0.98);
+  border-top: 1px solid var(--border-tactical);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.chat-input-field {
+  flex: 1;
+  background: rgba(16, 24, 43, 0.8);
+  border: 1px solid var(--border-tactical);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  color: #fff;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.chat-input-field:focus {
+  border-color: var(--police-cyan);
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
+}
+
