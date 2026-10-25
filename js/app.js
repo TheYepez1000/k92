@@ -1181,7 +1181,7 @@ function renderAgentsSection(container) {
       <form id="formAgentPreset" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:0.75rem; align-items:end; background:rgba(0,0,0,0.25); padding:1rem; border-radius:6px; border:1px solid rgba(255,255,255,0.05); margin-top:0.75rem;">
         <div>
           <label style="display:block; font-family:var(--font-headline); font-size:0.7rem; color:var(--police-cyan); letter-spacing:0.05em; margin-bottom:0.3rem;">DISCORD ID / USERNAME *</label>
-          <input type="text" id="presetDiscordId" required placeholder="Ej: 1271954022139691038  o usuario" style="width:100%; padding:0.5rem 0.75rem; background:rgba(10,14,23,0.8); border:1px solid var(--border-tactical); border-radius:4px; color:#fff; font-family:var(--font-mono); font-size:0.85rem;">
+          <input type="text" id="presetDiscordId" required placeholder="Ej: 1406448851153326131  o usuario" style="width:100%; padding:0.5rem 0.75rem; background:rgba(10,14,23,0.8); border:1px solid var(--border-tactical); border-radius:4px; color:#fff; font-family:var(--font-mono); font-size:0.85rem;">
         </div>
 
         <div>
@@ -2125,7 +2125,7 @@ function setupModals() {
     formDiscordCfg.addEventListener('submit', (e) => {
       e.preventDefault();
       const updated = {
-        clientId: '1271954022139691038 ',
+        clientId: '1406448851153326131 ',
         redirectUri: document.getElementById('cfgRedirectUri').value.trim(),
         scope: 'identify'
       };
