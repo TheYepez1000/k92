@@ -956,3 +956,276 @@ h1, h2, h3, h4, h5, h6,
   box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
 }
 
+/* ==========================================================================
+   BADGES DE PRIORIDAD DE ANUNCIOS DE JEFATURA
+   ========================================================================== */
+.ann-priority-badge {
+  font-family: var(--font-tactical);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.ann-priority-urgente {
+  background: rgba(255, 42, 95, 0.2);
+  color: var(--tactical-red);
+  border: 1px solid var(--tactical-red);
+  box-shadow: 0 0 12px rgba(255, 42, 95, 0.35);
+  animation: pulseTacticalRed 2s infinite;
+}
+
+.ann-priority-importante {
+  background: rgba(255, 183, 3, 0.2);
+  color: var(--tactical-gold);
+  border: 1px solid var(--tactical-gold);
+  box-shadow: 0 0 12px rgba(255, 183, 3, 0.25);
+}
+
+.ann-priority-oficial {
+  background: rgba(0, 229, 255, 0.15);
+  color: var(--police-cyan);
+  border: 1px solid var(--border-tactical);
+}
+
+.ann-priority-informativo {
+  background: rgba(140, 160, 195, 0.15);
+  color: #a5b4fc;
+  border: 1px solid rgba(140, 160, 195, 0.3);
+}
+
+@keyframes pulseTacticalRed {
+  0% { box-shadow: 0 0 8px rgba(255, 42, 95, 0.3); }
+  50% { box-shadow: 0 0 18px rgba(255, 42, 95, 0.6); }
+  100% { box-shadow: 0 0 8px rgba(255, 42, 95, 0.3); }
+}
+
+.announcement-photo-wrap {
+  margin: 1rem 0;
+  border-radius: 10px;
+  overflow: hidden;
+  max-height: 380px;
+  border: 1px solid var(--border-tactical);
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.announcement-photo-img {
+  width: 100%;
+  height: 100%;
+  max-height: 380px;
+  object-fit: cover;
+  display: block;
+}
+
+/* ==========================================================================
+   DIRECTORIO DE MIEMBROS K9 (TARJETAS OFICIALES)
+   ========================================================================== */
+.members-directory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.member-tactical-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-tactical);
+  border-radius: 14px;
+  padding: 1.5rem;
+  position: relative;
+  box-shadow: var(--shadow-elevation);
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--transition-fast), border-color var(--transition-fast);
+}
+
+.member-tactical-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--police-cyan);
+  box-shadow: var(--shadow-glow-cyan);
+}
+
+.member-card-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.member-card-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 2px solid var(--police-cyan);
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.25);
+  background: #000;
+}
+
+.member-card-info h4 {
+  font-family: var(--font-headline);
+  font-size: 1.15rem;
+  color: #fff;
+  margin-bottom: 0.2rem;
+  line-height: 1.2;
+}
+
+.member-card-placa {
+  font-family: var(--font-tactical);
+  font-size: 0.8rem;
+  color: var(--police-cyan);
+}
+
+.member-card-rank-badge {
+  display: inline-block;
+  font-family: var(--font-headline);
+  font-size: 0.72rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  background: rgba(0, 229, 255, 0.12);
+  color: var(--police-cyan);
+  border: 1px solid var(--border-tactical);
+  margin-top: 0.35rem;
+}
+
+.member-dog-assignment {
+  background: rgba(10, 15, 29, 0.7);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.member-dog-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--border-tactical);
+}
+
+.member-badges-row {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.member-badge-chip {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  object-fit: contain;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid var(--tactical-gold);
+  padding: 2px;
+  cursor: pointer;
+  transition: transform var(--transition-fast);
+}
+
+.member-badge-chip:hover {
+  transform: scale(1.15);
+}
+
+/* ==========================================================================
+   ÓRDENES DE ASCENSO OFICIALES (DECRETO TÁCTICO)
+   ========================================================================== */
+.promotion-decree-card {
+  background: linear-gradient(135deg, rgba(16, 24, 43, 0.95), rgba(10, 15, 29, 0.98));
+  border: 1px solid var(--border-gold);
+  border-radius: 14px;
+  padding: 1.75rem;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(255, 183, 3, 0.15);
+  margin-bottom: 1.5rem;
+}
+
+.promotion-seal {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  opacity: 0.15;
+  width: 90px;
+  pointer-events: none;
+}
+
+.promotion-ranks-flow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.75rem 0 1rem;
+  flex-wrap: wrap;
+}
+
+.rank-flow-pill {
+  font-family: var(--font-headline);
+  font-size: 0.85rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: 6px;
+}
+
+.rank-flow-old {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+}
+
+.rank-flow-arrow {
+  color: var(--tactical-gold);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.rank-flow-new {
+  background: rgba(255, 183, 3, 0.15);
+  color: var(--tactical-gold);
+  border: 1px solid var(--tactical-gold);
+  box-shadow: 0 0 12px rgba(255, 183, 3, 0.25);
+  font-weight: 700;
+}
+
+.promotion-citation-box {
+  background: rgba(0, 0, 0, 0.4);
+  border-left: 3px solid var(--tactical-gold);
+  padding: 0.85rem 1.15rem;
+  border-radius: 0 8px 8px 0;
+  font-style: italic;
+  color: var(--text-main);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+/* ==========================================================================
+   REGISTRO DE LOGS DE JEFATURA
+   ========================================================================== */
+.log-table-wrap {
+  overflow-x: auto;
+}
+
+.log-entry-row {
+  transition: background var(--transition-fast);
+}
+
+.log-entry-row:hover {
+  background: rgba(0, 229, 255, 0.04);
+}
+
+.log-badge-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-family: var(--font-tactical);
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
+

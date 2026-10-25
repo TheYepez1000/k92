@@ -40,6 +40,15 @@ function renderGeneralSubnavTabs() {
       <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'chat' ? 'active' : ''}" data-subtab="chat">
         💬 Despacho con Jefatura
       </button>
+      <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'miembros' ? 'active' : ''}" data-subtab="miembros">
+        👥 Miembros K9
+      </button>
+      <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'ascensos' ? 'active' : ''}" data-subtab="ascensos">
+        🎖️ Ascensos Oficiales
+      </button>
+      <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'condecoraciones' ? 'active' : ''}" data-subtab="condecoraciones">
+        🏅 Condecoraciones
+      </button>
       <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'normativas' ? 'active' : ''}" data-subtab="normativas">
         ⚖️ Normativas Oficiales
       </button>
@@ -51,7 +60,7 @@ function renderGeneralSubnavTabs() {
       </button>
     `;
   } else {
-    // Usuario no autenticado: ve normativas, manuales, canes y canal de contacto
+    // Usuario no autenticado: ve normativas, manuales, miembros, condecoraciones y canes
     if (currentGeneralSubtab === 'anuncios') {
       currentGeneralSubtab = 'normativas';
     }
@@ -61,6 +70,15 @@ function renderGeneralSubnavTabs() {
       </button>
       <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'chat' ? 'active' : ''}" data-subtab="chat">
         💬 Despacho con Jefatura
+      </button>
+      <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'miembros' ? 'active' : ''}" data-subtab="miembros">
+        👥 Miembros K9
+      </button>
+      <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'ascensos' ? 'active' : ''}" data-subtab="ascensos">
+        🎖️ Ascensos Oficiales
+      </button>
+      <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'condecoraciones' ? 'active' : ''}" data-subtab="condecoraciones">
+        🏅 Condecoraciones
       </button>
       <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'manuales' ? 'active' : ''}" data-subtab="manuales">
         📖 Manuales & Adiestramiento
@@ -394,6 +412,25 @@ function renderGeneralSubtab(subtab) {
     renderCanineGallery(contentEl);
   } else if (subtab === 'chat') {
     renderChatSection(contentEl);
+  } else if (subtab === 'miembros') {
+    renderMembersDirectory(contentEl);
+  } else if (subtab === 'ascensos') {
+    renderPromotionsSection(contentEl);
+  } else if (subtab === 'condecoraciones') {
+    renderDecorationsSection(contentEl);
+  }
+}
+
+function getPriorityBadgeHtml(priority) {
+  const p = (priority || 'OFICIAL').toUpperCase();
+  if (p === 'URGENTE') {
+    return `<span class="ann-priority-badge ann-priority-urgente">🚨 URGENTE</span>`;
+  } else if (p === 'IMPORTANTE') {
+    return `<span class="ann-priority-badge ann-priority-importante">⚠️ IMPORTANTE</span>`;
+  } else if (p === 'INFORMATIVO') {
+    return `<span class="ann-priority-badge ann-priority-informativo">ℹ️ INFORMATIVO</span>`;
+  } else {
+    return `<span class="ann-priority-badge ann-priority-oficial">🛡️ COMUNICADO OFICIAL</span>`;
   }
 }
 
@@ -416,20 +453,37 @@ function renderAnnouncements(container) {
 
     <div style="display:flex; flex-direction:column; gap:1.25rem;">
       ${announcements.map(a => `
-        <div style="background:var(--bg-surface); border:1px solid ${a.priority === 'URGENTE' ? 'var(--tactical-red)' : a.pinned ? 'var(--border-gold)' : 'var(--border-subtle)'}; border-radius:14px; padding:1.5rem; position:relative; box-shadow:var(--shadow-elevation);">
+        <div style="background:var(--bg-surface); border:1px solid ${a.priority === 'URGENTE' ? 'var(--tactical-red)' : a.priority === 'IMPORTANTE' ? 'var(--border-gold)' : a.pinned ? 'var(--police-cyan)' : 'var(--border-subtle)'}; border-radius:14px; padding:1.5rem; position:relative; box-shadow:var(--shadow-elevation);">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; flex-wrap:wrap; gap:0.5rem;">
-            <div style="display:flex; align-items:center; gap:0.6rem;">
-              <span style="font-family:var(--font-tactical); font-size:0.72rem; padding:0.2rem 0.6rem; border-radius:4px; font-weight:700; background:${a.priority === 'URGENTE' ? 'rgba(255,42,95,0.2)' : 'rgba(0,229,255,0.15)'}; color:${a.priority === 'URGENTE' ? 'var(--tactical-red)' : 'var(--police-cyan)'}; border:1px solid ${a.priority === 'URGENTE' ? 'var(--tactical-red)' : 'var(--border-tactical)'};">
-                ${a.priority}
-              </span>
+            <div style="display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap;">
+              ${getPriorityBadgeHtml(a.priority)}
               ${a.pinned ? '<span style="font-family:var(--font-headline); font-size:0.75rem; color:var(--tactical-gold); letter-spacing:0.06em;">📌 FIJADO POR JEFATURA</span>' : ''}
+              <span style="font-family:var(--font-tactical); font-size:0.78rem; color:var(--text-muted);">${a.date}</span>
             </div>
-            <span style="font-family:var(--font-tactical); font-size:0.78rem; color:var(--text-muted);">${a.date}</span>
+            ${canPublish ? `
+              <div style="display:flex; gap:0.4rem; align-items:center;">
+                <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="window.togglePinAnnouncement('${a.id}')" title="${a.pinned ? 'Desfijar del inicio' : 'Fijar al inicio'}" style="font-size:0.75rem; padding:0.2rem 0.5rem;">
+                  ${a.pinned ? '📌 Desfijar' : '📌 Fijar'}
+                </button>
+                <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="window.editAnnouncement('${a.id}')" title="Editar comunicado" style="font-size:0.75rem; padding:0.2rem 0.5rem;">
+                  ✏️ Editar
+                </button>
+                <button class="btn-tactical btn-tactical-sm" onclick="window.deleteAnnouncement('${a.id}')" style="background:rgba(255,59,48,0.12); border:1px solid rgba(255,59,48,0.4); color:#ff5252; font-size:0.75rem; padding:0.2rem 0.5rem;" title="Eliminar comunicado">
+                  🗑️
+                </button>
+              </div>
+            ` : ''}
           </div>
 
           <h4 style="font-family:var(--font-tactical); font-size:1.15rem; color:#fff; margin-bottom:0.75rem; line-height:1.3;">
             ${a.title}
           </h4>
+
+          ${a.imageUrl ? `
+            <div class="announcement-photo-wrap">
+              <img src="${a.imageUrl}" class="announcement-photo-img" alt="${a.title}" onerror="this.parentElement.style.display='none'">
+            </div>
+          ` : ''}
 
           <p style="font-size:0.92rem; color:var(--text-main); line-height:1.6; margin-bottom:1rem; white-space:pre-line;">
             ${a.content}
@@ -452,23 +506,94 @@ function renderAnnouncements(container) {
   }
 }
 
+window.editAnnouncement = function (id) {
+  const anns = window.K9Store.getAnnouncements();
+  const a = anns.find(x => x.id === id);
+  if (!a) return;
+  document.getElementById('editAnnId').value = a.id;
+  document.getElementById('editAnnTitle').value = a.title;
+  document.getElementById('editAnnPriority').value = a.priority || 'OFICIAL';
+  document.getElementById('editAnnImage').value = a.imageUrl || '';
+  document.getElementById('editAnnPinned').checked = !!a.pinned;
+  document.getElementById('editAnnContent').value = a.content;
+  openModal('modalEditAnnouncement');
+};
+
+window.deleteAnnouncement = function (id) {
+  const anns = window.K9Store.getAnnouncements();
+  const a = anns.find(x => x.id === id);
+  if (!a) return;
+  window._pendingDeleteAnnId = id;
+  const titleEl = document.getElementById('delAnnTitle');
+  const authorEl = document.getElementById('delAnnAuthor');
+  if (titleEl) titleEl.textContent = a.title;
+  if (authorEl) authorEl.textContent = 'Emitido por: ' + a.author + ' (' + a.date + ')';
+  openModal('modalDeleteAnnouncement');
+};
+
+window._confirmDeleteAnnouncement = function () {
+  const id = window._pendingDeleteAnnId;
+  if (!id) return;
+  closeModal('modalDeleteAnnouncement');
+  const anns = window.K9Store.getAnnouncements().filter(x => x.id !== id);
+  window.K9Store.save(STORAGE_KEYS.ANNOUNCEMENTS, anns);
+  if (window.K9CloudSync) window.K9CloudSync.push();
+  if (window.K9Webhook) {
+    window.K9Webhook.log('announcement', 'Comunicado Eliminado', `Se ha eliminado un comunicado del tablón.`);
+  }
+  showToast('Comunicado retirado y eliminado del tablón', 'info');
+  renderAnnouncements(document.getElementById('generalSubtabContent'));
+};
+
+window.togglePinAnnouncement = function (id) {
+  const anns = window.K9Store.getAnnouncements();
+  const a = anns.find(x => x.id === id);
+  if (!a) return;
+  a.pinned = !a.pinned;
+  anns.sort((x, y) => (y.pinned ? 1 : 0) - (x.pinned ? 1 : 0));
+  window.K9Store.save(STORAGE_KEYS.ANNOUNCEMENTS, anns);
+  if (window.K9CloudSync) window.K9CloudSync.push();
+  showToast(a.pinned ? 'Comunicado fijado al inicio' : 'Comunicado desfijado', 'info');
+  renderAnnouncements(document.getElementById('generalSubtabContent'));
+};
+
 function renderNormatives(container) {
   const normatives = window.K9Store.getNormatives();
+  const isJef = window.K9Auth.isJefaturaMember();
 
   container.innerHTML = `
-    <div style="margin-bottom:1.5rem;">
-      <h3 class="font-tactical" style="font-size:1.35rem; color:#fff;">REGLAMENTO Y MARCO NORMATIVO K9</h3>
-      <p style="font-size:0.85rem; color:var(--text-muted);">Protocolos obligatorios de actuación, ética y uso proporcional de la fuerza canina</p>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
+      <div>
+        <h3 class="font-tactical" style="font-size:1.35rem; color:#fff;">REGLAMENTO Y MARCO NORMATIVO K9</h3>
+        <p style="font-size:0.85rem; color:var(--text-muted);">Protocolos obligatorios de actuación, ética y uso proporcional de la fuerza canina</p>
+      </div>
+      ${isJef ? `
+        <button class="btn-tactical btn-tactical-gold btn-tactical-sm" onclick="window.openNewNormativeModal()">
+          <span>+</span> Añadir Capítulo Normativo
+        </button>
+      ` : ''}
     </div>
 
     <div style="display:flex; flex-direction:column; gap:1.5rem;">
       ${normatives.map(norm => `
         <div style="background:var(--bg-surface); border:1px solid var(--border-tactical); border-radius:14px; padding:1.5rem; box-shadow:var(--shadow-elevation);">
-          <h4 style="font-family:var(--font-headline); font-size:1rem; color:var(--tactical-gold); letter-spacing:0.08em; margin-bottom:1.25rem; border-bottom:1px solid var(--border-subtle); padding-bottom:0.5rem;">
-            ${norm.chapter}
-          </h4>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem; border-bottom:1px solid var(--border-subtle); padding-bottom:0.5rem; flex-wrap:wrap; gap:0.5rem;">
+            <h4 style="font-family:var(--font-headline); font-size:1.05rem; color:var(--tactical-gold); letter-spacing:0.08em; margin:0;">
+              ${norm.chapter}
+            </h4>
+            ${isJef ? `
+              <div style="display:flex; gap:0.4rem;">
+                <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="window.editNormative('${norm.id}')" title="Editar capítulo">
+                  ✏️ Editar
+                </button>
+                <button class="btn-tactical btn-tactical-sm" onclick="window.deleteNormative('${norm.id}')" style="background:rgba(255,59,48,0.12); border:1px solid rgba(255,59,48,0.4); color:#ff5252;" title="Eliminar capítulo">
+                  🗑️
+                </button>
+              </div>
+            ` : ''}
+          </div>
           <div style="display:flex; flex-direction:column; gap:1.15rem;">
-            ${norm.articles.map(art => `
+            ${(norm.articles || []).map(art => `
               <div style="background:rgba(0,0,0,0.3); border-left:3px solid var(--police-cyan); padding:0.85rem 1.15rem; border-radius:0 8px 8px 0;">
                 <div style="font-family:var(--font-tactical); font-size:0.88rem; font-weight:700; color:#fff; margin-bottom:0.35rem;">
                   <span style="color:var(--police-cyan); margin-right:0.3rem;">${art.num}</span> - ${art.title}
@@ -485,26 +610,479 @@ function renderNormatives(container) {
   `;
 }
 
+window.openNewNormativeModal = function () {
+  document.getElementById('normId').value = '';
+  document.getElementById('modalNormativeTitle').innerHTML = '<span>⚖️</span> AÑADIR NUEVO CAPÍTULO NORMATIVO';
+  document.getElementById('normChapter').value = '';
+  document.getElementById('normArticlesRaw').value = 'Art. 1 | Objeto | El presente reglamento establece las bases operativas de la unidad...';
+  openModal('modalEditNormative');
+};
+
+window.editNormative = function (id) {
+  const norms = window.K9Store.getNormatives();
+  const n = norms.find(x => x.id === id);
+  if (!n) return;
+  document.getElementById('normId').value = n.id;
+  document.getElementById('modalNormativeTitle').innerHTML = '<span>✏️</span> EDITAR NORMATIVA OFICIAL';
+  document.getElementById('normChapter').value = n.chapter;
+  document.getElementById('normArticlesRaw').value = (n.articles || []).map(a => `${a.num} | ${a.title} | ${a.text}`).join('\n');
+  openModal('modalEditNormative');
+};
+
+window.deleteNormative = function (id) {
+  const norms = window.K9Store.getNormatives();
+  const n = norms.find(x => x.id === id);
+  if (!n) return;
+  window._pendingDeleteNormId = id;
+  const chEl = document.getElementById('delNormChapter');
+  if (chEl) chEl.textContent = n.chapter;
+  openModal('modalDeleteNormative');
+};
+
+window._confirmDeleteNormative = function () {
+  const id = window._pendingDeleteNormId;
+  if (!id) return;
+  closeModal('modalDeleteNormative');
+  const norms = window.K9Store.getNormatives().filter(x => x.id !== id);
+  window.K9Store.save(STORAGE_KEYS.NORMATIVES, norms);
+  if (window.K9CloudSync) window.K9CloudSync.push();
+  showToast('Capítulo normativo eliminado', 'info');
+  renderNormatives(document.getElementById('generalSubtabContent'));
+};
+
 function renderManuals(container) {
   const manuals = window.K9Store.getManuals();
+  const isJef = window.K9Auth.isJefaturaMember();
 
   container.innerHTML = `
-    <div style="margin-bottom:1.5rem;">
-      <h3 class="font-tactical" style="font-size:1.35rem; color:#fff;">MANUALES Y GUÍAS DE ADIESTRAMIENTO K9</h3>
-      <p style="font-size:0.85rem; color:var(--text-muted);">Vocabulario de comandos caninos, táctica de combate y soporte veterinario de emergencia</p>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
+      <div>
+        <h3 class="font-tactical" style="font-size:1.35rem; color:#fff;">MANUALES Y GUÍAS DE ADIESTRAMIENTO K9</h3>
+        <p style="font-size:0.85rem; color:var(--text-muted);">Vocabulario de comandos caninos, táctica de combate y soporte veterinario de emergencia</p>
+      </div>
+      ${isJef ? `
+        <button class="btn-tactical btn-tactical-gold btn-tactical-sm" onclick="window.openNewManualModal()">
+          <span>+</span> Añadir Manual de Instrucción
+        </button>
+      ` : ''}
     </div>
 
     <div style="display:flex; flex-direction:column; gap:2rem;">
       ${manuals.map(man => `
         <div style="background:var(--bg-surface); border:1px solid var(--border-tactical); border-radius:14px; padding:1.5rem; box-shadow:var(--shadow-elevation);">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem; border-bottom:1px solid var(--border-subtle); padding-bottom:0.6rem; flex-wrap:wrap; gap:0.5rem;">
-            <h4 style="font-family:var(--font-tactical); font-size:1.1rem; color:#fff;">
-              ${man.title}
-            </h4>
-            <span style="font-family:var(--font-headline); font-size:0.75rem; color:var(--police-cyan); background:rgba(0,229,255,0.1); border:1px solid var(--border-tactical); padding:0.2rem 0.6rem; border-radius:20px; text-transform:uppercase;">
-              ${man.category}
-            </span>
+            <div style="display:flex; align-items:center; gap:0.6rem;">
+              <h4 style="font-family:var(--font-tactical); font-size:1.1rem; color:#fff;">
+                ${man.title}
+              </h4>
+              <span style="font-family:var(--font-headline); font-size:0.75rem; color:var(--police-cyan); background:rgba(0,229,255,0.1); border:1px solid var(--border-tactical); padding:0.2rem 0.6rem; border-radius:20px; text-transform:uppercase;">
+                ${man.category}
+              </span>
+            </div>
+            ${isJef ? `
+              <div style="display:flex; gap:0.4rem;">
+                <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="window.editManual('${man.id}')" title="Editar manual">
+                  ✏️ Editar
+                </button>
+                <button class="btn-tactical btn-tactical-sm" onclick="window.deleteManual('${man.id}')" style="background:rgba(255,59,48,0.12); border:1px solid rgba(255,59,48,0.4); color:#ff5252;" title="Eliminar manual">
+                  🗑️
+                </button>
+              </div>
+            ` : ''}
           </div>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:1rem;">
+            ${(man.items || []).map(item => `
+              <div style="background:rgba(10,15,29,0.8); border:1px solid var(--border-subtle); border-radius:10px; padding:1rem; transition:border-color 0.2s;" onmouseenter="this.style.borderColor='var(--police-cyan)'" onmouseleave="this.style.borderColor='var(--border-subtle)'">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+                  <span style="font-family:var(--font-tactical); font-size:1.1rem; font-weight:700; color:var(--tactical-gold);">${item.command}</span>
+                  <span style="font-family:var(--font-headline); font-size:0.78rem; color:var(--text-muted); text-transform:uppercase;">[${item.trans}]</span>
+                </div>
+                <p style="font-size:0.82rem; color:var(--text-muted); line-height:1.4;">${item.desc}</p>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+window.openNewManualModal = function () {
+  document.getElementById('manId').value = '';
+  document.getElementById('modalManualTitle').innerHTML = '<span>📖</span> AÑADIR MANUAL DE ADIESTRAMIENTO';
+  document.getElementById('manTitle').value = '';
+  document.getElementById('manCategory').value = 'COMANDOS / TÁCTICA';
+  document.getElementById('manItemsRaw').value = 'Fass | Ataque | Neutralización directa del sospechoso';
+  openModal('modalEditManual');
+};
+
+window.editManual = function (id) {
+  const mans = window.K9Store.getManuals();
+  const m = mans.find(x => x.id === id);
+  if (!m) return;
+  document.getElementById('manId').value = m.id;
+  document.getElementById('modalManualTitle').innerHTML = '<span>✏️</span> EDITAR MANUAL DE INSTRUCCIÓN';
+  document.getElementById('manTitle').value = m.title;
+  document.getElementById('manCategory').value = m.category;
+  document.getElementById('manItemsRaw').value = (m.items || []).map(item => `${item.command} | ${item.trans} | ${item.desc}`).join('\n');
+  openModal('modalEditManual');
+};
+
+window.deleteManual = function (id) {
+  const mans = window.K9Store.getManuals();
+  const m = mans.find(x => x.id === id);
+  if (!m) return;
+  window._pendingDeleteManId = id;
+  const titEl = document.getElementById('delManTitle');
+  if (titEl) titEl.textContent = m.title;
+  openModal('modalDeleteManual');
+};
+
+window._confirmDeleteManual = function () {
+  const id = window._pendingDeleteManId;
+  if (!id) return;
+  closeModal('modalDeleteManual');
+  const mans = window.K9Store.getManuals().filter(x => x.id !== id);
+  window.K9Store.save(STORAGE_KEYS.MANUALS, mans);
+  if (window.K9CloudSync) window.K9CloudSync.push();
+  showToast('Manual de adiestramiento eliminado', 'info');
+  renderManuals(document.getElementById('generalSubtabContent'));
+};
+
+function renderMembersDirectory(container) {
+  const users = window.K9Store.getUsers();
+  const dogs = window.K9Store.getDogs();
+  const badges = window.K9Store.getBadges();
+  const isJef = window.K9Auth.isJefaturaMember();
+
+  container.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
+      <div>
+        <h3 class="font-tactical" style="font-size:1.35rem; color:#fff;">DIRECTORIO DE PERSONAL · UNIDAD CANINA K9</h3>
+        <p style="font-size:0.85rem; color:var(--text-muted);">Listado oficial de mandos, instructores y guías caninos en activo</p>
+      </div>
+      <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
+        <div class="table-search-box" style="margin:0;">
+          <span>🔍</span>
+          <input type="text" id="searchMembersInput" placeholder="Buscar por agente, rango, placa...">
+        </div>
+        ${isJef ? `
+          <button class="btn-tactical btn-tactical-gold btn-tactical-sm" onclick="openModal('modalNewAgent')">
+            <span>+</span> Registrar Nuevo Miembro
+          </button>
+        ` : ''}
+      </div>
+    </div>
+
+    <div class="members-directory-grid" id="membersGridBody">
+      ${renderMemberCardsHtml(users, dogs, badges, isJef)}
+    </div>
+  `;
+
+  const searchInput = document.getElementById('searchMembersInput');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase();
+      const filtered = users.filter(u =>
+        (u.name || '').toLowerCase().includes(q) ||
+        (u.placa || '').toLowerCase().includes(q) ||
+        (u.rank || '').toLowerCase().includes(q)
+      );
+      document.getElementById('membersGridBody').innerHTML = renderMemberCardsHtml(filtered, dogs, badges, isJef);
+    });
+  }
+}
+
+function renderMemberCardsHtml(users, dogs, allBadges, isJef) {
+  if (!users || users.length === 0) {
+    return `<div class="empty-state-box" style="grid-column: 1 / -1;"><p style="color:var(--text-muted);">No hay miembros registrados en la unidad todavía.</p></div>`;
+  }
+  return users.map(u => {
+    const assignedDog = u.assignedDogId ? dogs.find(d => d.id === u.assignedDogId) : null;
+    const userBadges = (u.badges || []).map(bId => allBadges.find(b => b.id === bId)).filter(Boolean);
+
+    return `
+      <div class="member-tactical-card">
+        <div class="member-card-header">
+          <img src="${u.avatar || 'assets/images/emblem.jpg'}" class="member-card-avatar" alt="${u.name}" onerror="this.src='assets/images/emblem.jpg'">
+          <div class="member-card-info">
+            <span class="member-card-placa">PLACA #${u.placa || 'PENDIENTE'}</span>
+            <h4 class="font-gobold">${u.name}</h4>
+            <span class="member-card-rank-badge ${u.isJefatura ? 'chat-badge-jefatura' : ''}">${u.rank || 'Aspirante K9'}</span>
+          </div>
+        </div>
+
+        <div class="member-dog-assignment">
+          ${assignedDog ? `
+            <img src="${assignedDog.photo || 'assets/images/k9_rex.jpg'}" class="member-dog-thumb" alt="${assignedDog.name}" onerror="this.src='assets/images/emblem.jpg'">
+            <div>
+              <div style="font-size:0.72rem; color:var(--text-muted);">BINOMIO CANINO ASIGNADO</div>
+              <strong style="color:#fff; font-size:0.95rem; font-family:var(--font-tactical);">${assignedDog.name}</strong>
+              <span style="font-size:0.75rem; color:var(--police-cyan);"> [${assignedDog.tag || 'K9'}]</span>
+              <div style="font-size:0.72rem; color:var(--text-subtle);">${assignedDog.breed || 'Pastor Belga'}</div>
+            </div>
+          ` : `
+            <span style="font-size:1.5rem; opacity:0.5;">🐕</span>
+            <div>
+              <div style="font-size:0.72rem; color:var(--text-muted);">ESTADO CANINO</div>
+              <span style="font-size:0.82rem; color:var(--text-subtle); font-style:italic;">Sin can K9 asignado</span>
+            </div>
+          `}
+        </div>
+
+        <div>
+          <div style="font-size:0.72rem; color:var(--tactical-gold); letter-spacing:0.06em; margin-bottom:0.4rem; font-weight:700;">CONDECORACIONES (${userBadges.length}):</div>
+          <div class="member-badges-row">
+            ${userBadges.length > 0 ? userBadges.map(b => `
+              <img src="${b.image || 'assets/images/medal_valor.jpg'}" class="member-badge-chip" title="${b.name} (${b.category})" alt="${b.name}" onclick="window.inspectBadgeModal('${b.id}', '${u.name}')">
+            `).join('') : '<span style="font-size:0.78rem; color:var(--text-subtle);">Sin condecoraciones otorgadas</span>'}
+          </div>
+        </div>
+
+        ${isJef ? `
+          <div style="margin-top:auto; padding-top:1rem; border-top:1px solid var(--border-subtle); display:flex; gap:0.5rem;">
+            <button class="btn-tactical btn-tactical-outline btn-tactical-sm" style="flex:1;" onclick="window.editMember('${u.id}')" title="Editar expediente completo">
+              ✏️ Editar Todo
+            </button>
+            <button class="btn-tactical btn-tactical-sm" style="background:rgba(255,59,48,0.12); border:1px solid rgba(255,59,48,0.4); color:#ff5252;" onclick="window.deleteMember('${u.id}')" title="Dar de baja de la unidad">
+              🗑️
+            </button>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+window.editMember = function (id) {
+  const users = window.K9Store.getUsers();
+  const u = users.find(x => x.id === id);
+  if (!u) return;
+  document.getElementById('editMemberId').value = u.id;
+  document.getElementById('editMemberName').value = u.name;
+  document.getElementById('editMemberPlaca').value = u.placa;
+  document.getElementById('editMemberRank').value = u.rank || 'Oficial Guía Canino';
+  document.getElementById('editMemberAvatar').value = u.avatar || '';
+  document.getElementById('editMemberDiscordId').value = u.discordId || '';
+  document.getElementById('editMemberIsJefatura').checked = !!u.isJefatura;
+
+  const dogSelect = document.getElementById('editMemberDogSelect');
+  if (dogSelect) {
+    const dogs = window.K9Store.getDogs();
+    dogSelect.innerHTML = `<option value="">Sin can asignado</option>` + dogs.map(d => `
+      <option value="${d.id}" ${u.assignedDogId === d.id ? 'selected' : ''}>${d.name} (${d.tag} - ${d.breed})</option>
+    `).join('');
+  }
+
+  openModal('modalEditMember');
+};
+
+window.deleteMember = function (id) {
+  const users = window.K9Store.getUsers();
+  const u = users.find(x => x.id === id);
+  if (!u) return;
+  window._pendingDeleteMemberId = id;
+  const nameEl = document.getElementById('delMemberName');
+  const rankEl = document.getElementById('delMemberRank');
+  const placaEl = document.getElementById('delMemberPlaca');
+  if (nameEl) nameEl.textContent = u.name;
+  if (rankEl) rankEl.textContent = u.rank || 'Agente';
+  if (placaEl) placaEl.textContent = 'Placa: #' + (u.placa || '—');
+  openModal('modalDeleteMember');
+};
+
+window._confirmDeleteMember = function () {
+  const id = window._pendingDeleteMemberId;
+  if (!id) return;
+  closeModal('modalDeleteMember');
+  const users = window.K9Store.getUsers();
+  const target = users.find(u => u.id === id);
+  const remaining = users.filter(u => u.id !== id);
+
+  if (target && target.assignedDogId) {
+    const dogs = window.K9Store.getDogs();
+    const dog = dogs.find(d => d.id === target.assignedDogId);
+    if (dog) {
+      dog.handlerId = null;
+      dog.handlerName = 'Pendiente de Asignación';
+      window.K9Store.save(STORAGE_KEYS.DOGS, dogs);
+    }
+  }
+
+  if (target && target.discordId) {
+    const presets = (window.K9Store.get(STORAGE_KEYS.AGENT_PRESETS) || []).filter(p => p.discordId !== target.discordId);
+    window.K9Store.save(STORAGE_KEYS.AGENT_PRESETS, presets);
+  }
+
+  window.K9Store.save(STORAGE_KEYS.USERS, remaining);
+  if (window.K9CloudSync) window.K9CloudSync.push();
+  if (window.K9Webhook) {
+    window.K9Webhook.log('logout', 'Miembro Dado de Baja', `Se ha retirado de la plantilla al agente ${target ? target.name : id}.`);
+  }
+  showToast('Miembro retirado de la unidad K9', 'info');
+  if (currentGeneralSubtab === 'miembros') {
+    renderMembersDirectory(document.getElementById('generalSubtabContent'));
+  }
+  if (currentJefaturaSubtab === 'agentes') {
+    renderAgentsSection(document.getElementById('jefaturaSubtabContent'));
+  }
+};
+
+function renderPromotionsSection(container) {
+  const promotions = window.K9Store.getPromotions();
+  const isJef = window.K9Auth.isJefaturaMember();
+
+  container.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
+      <div>
+        <h3 class="font-tactical" style="font-size:1.35rem; color:#fff;">ÓRDENES OFICIALES DE ASCENSO · JEFATURA K9</h3>
+        <p style="font-size:0.85rem; color:var(--text-muted);">Decretos de mérito, promociones de rango y escalafón operativo canino</p>
+      </div>
+      ${isJef ? `
+        <button class="btn-tactical btn-tactical-gold btn-tactical-sm" onclick="window.openNewPromotionModal()">
+          <span>+</span> Publicar Orden de Ascenso
+        </button>
+      ` : ''}
+    </div>
+
+    <div>
+      ${promotions.length > 0 ? promotions.map(p => `
+        <div class="promotion-decree-card">
+          <img src="assets/images/emblem.jpg" class="promotion-seal" alt="Sello K9">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; flex-wrap:wrap; gap:0.5rem;">
+            <div style="display:flex; align-items:center; gap:0.6rem;">
+              <span style="font-family:var(--font-tactical); font-size:0.75rem; padding:0.2rem 0.6rem; border-radius:4px; background:rgba(255,183,3,0.2); color:var(--tactical-gold); border:1px solid var(--tactical-gold); font-weight:700;">
+                🎖️ ORDEN DE ASCENSO OFICIAL
+              </span>
+              <span style="font-size:0.8rem; color:var(--text-muted);">${p.date}</span>
+            </div>
+            ${isJef ? `
+              <button class="btn-tactical btn-tactical-sm" onclick="window.deletePromotion('${p.id}')" style="background:rgba(255,59,48,0.12); border:1px solid rgba(255,59,48,0.4); color:#ff5252; font-size:0.75rem; padding:0.2rem 0.5rem;" title="Retirar orden de ascenso">
+                🗑️ Retirar
+              </button>
+            ` : ''}
+          </div>
+
+          <h3 class="font-gobold" style="font-size:1.4rem; color:#fff; margin-bottom:0.25rem;">
+            ${p.agentName} <span style="font-size:0.85rem; color:var(--police-cyan); font-family:var(--font-tactical);">[PLACA #${p.placa || 'K9'}]</span>
+          </h3>
+
+          <div class="promotion-ranks-flow">
+            <span class="rank-flow-pill rank-flow-old">${p.oldRank}</span>
+            <span class="rank-flow-arrow">➔</span>
+            <span class="rank-flow-pill rank-flow-new">★ ${p.newRank}</span>
+          </div>
+
+          <div class="promotion-citation-box">
+            "${p.citation}"
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-subtle); padding-top:0.75rem; font-size:0.8rem; color:var(--text-subtle);">
+            <span>Promovido por: <strong style="color:var(--tactical-gold);">${p.publishedBy || 'Jefatura de División K9'}</strong></span>
+            <span style="font-family:var(--font-headline); letter-spacing:0.05em; color:var(--police-cyan);">CERTIFICADO DE MANDO & ESCALAFÓN</span>
+          </div>
+        </div>
+      `).join('') : `
+        <div class="empty-state-box">
+          <div class="empty-icon">🎖️</div>
+          <h3 class="font-tactical" style="color:#fff; margin-bottom:0.5rem;">SIN ASCENSOS RECIENTES</h3>
+          <p style="color:var(--text-muted);">No se han emitido órdenes de ascenso en este período.</p>
+        </div>
+      `}
+    </div>
+  `;
+}
+
+window.openNewPromotionModal = function () {
+  const users = window.K9Store.getUsers();
+  const select = document.getElementById('promoAgentSelect');
+  if (select) {
+    select.innerHTML = '<option value="">Selecciona un agente...</option>' + users.map(u => `
+      <option value="${u.id}" data-rank="${u.rank || 'Aspirante K9'}">${u.name} (${u.rank || 'Aspirante'} - #${u.placa || 'K'})</option>
+    `).join('');
+
+    select.onchange = function () {
+      const opt = select.options[select.selectedIndex];
+      const r = opt ? opt.getAttribute('data-rank') || '' : '';
+      document.getElementById('promoOldRank').value = r;
+    };
+  }
+  document.getElementById('promoCitation').value = '';
+  openModal('modalNewPromotion');
+};
+
+window.deletePromotion = function (id) {
+  const promos = window.K9Store.getPromotions();
+  const p = promos.find(x => x.id === id);
+  if (!p) return;
+  window._pendingDeletePromoId = id;
+  const agEl = document.getElementById('delPromoAgent');
+  const rkEl = document.getElementById('delPromoRanks');
+  if (agEl) agEl.textContent = p.agentName;
+  if (rkEl) rkEl.textContent = p.oldRank + ' ➔ ' + p.newRank;
+  openModal('modalDeletePromotion');
+};
+
+window._confirmDeletePromotion = function () {
+  const id = window._pendingDeletePromoId;
+  if (!id) return;
+  closeModal('modalDeletePromotion');
+  const promos = window.K9Store.getPromotions().filter(x => x.id !== id);
+  window.K9Store.save(STORAGE_KEYS.PROMOTIONS, promos);
+  if (window.K9CloudSync) window.K9CloudSync.push();
+  showToast('Publicación de ascenso retirada', 'info');
+  renderPromotionsSection(document.getElementById('generalSubtabContent'));
+};
+
+function renderDecorationsSection(container) {
+  const badges = window.K9Store.getBadges();
+  const users = window.K9Store.getUsers();
+
+  container.innerHTML = `
+    <div style="margin-bottom:1.5rem;">
+      <h3 class="font-tactical" style="font-size:1.35rem; color:#fff;">MEDALLERO DE HONOR & CONDECORACIONES K9</h3>
+      <p style="font-size:0.85rem; color:var(--text-muted);">Registro de condecoraciones, cruces al mérito y distintivos concedidos a los agentes de la unidad</p>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:1.75rem;">
+      ${badges.map(b => {
+        const recipients = users.filter(u => (u.badges || []).includes(b.id));
+        return `
+          <div style="background:var(--bg-surface); border:1px solid var(--border-gold); border-radius:14px; padding:1.5rem; box-shadow:var(--shadow-elevation);">
+            <div style="display:flex; gap:1.25rem; align-items:flex-start; flex-wrap:wrap; margin-bottom:1.25rem;">
+              <img src="${b.image || 'assets/images/medal_valor.jpg'}" style="width:75px; height:75px; object-fit:contain; filter:drop-shadow(0 4px 12px rgba(255,183,3,0.3)); cursor:pointer;" alt="${b.name}" onclick="window.inspectBadgeModal('${b.id}', 'Honores K9')">
+              <div style="flex:1; min-width:260px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.3rem;">
+                  <h4 class="font-gobold" style="font-size:1.25rem; color:#fff;">${b.name}</h4>
+                  <span style="font-family:var(--font-headline); font-size:0.75rem; color:var(--tactical-gold); background:rgba(255,183,3,0.15); border:1px solid var(--tactical-gold); padding:0.2rem 0.6rem; border-radius:20px; text-transform:uppercase;">${b.category}</span>
+                </div>
+                <p style="font-size:0.88rem; color:var(--text-muted); line-height:1.5;">${b.desc}</p>
+              </div>
+            </div>
+
+            <div style="background:rgba(0,0,0,0.35); border-radius:10px; padding:1rem;">
+              <div style="font-size:0.78rem; font-family:var(--font-tactical); color:var(--police-cyan); letter-spacing:0.06em; margin-bottom:0.75rem;">
+                AGENTES QUE PORTAN ESTA CONDECORACIÓN (${recipients.length}):
+              </div>
+              <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:0.75rem;">
+                ${recipients.length > 0 ? recipients.map(r => `
+                  <div style="display:flex; align-items:center; gap:0.75rem; background:rgba(16,24,43,0.8); border:1px solid var(--border-subtle); border-radius:8px; padding:0.6rem 0.85rem;">
+                    <img src="${r.avatar || 'assets/images/emblem.jpg'}" style="width:36px; height:36px; border-radius:8px; object-fit:cover; border:1px solid var(--police-cyan);" alt="${r.name}" onerror="this.src='assets/images/emblem.jpg'">
+                    <div>
+                      <strong style="color:#fff; font-size:0.88rem; display:block;">${r.name}</strong>
+                      <span style="font-size:0.75rem; color:var(--police-cyan); font-family:var(--font-tactical);">${r.rank} [#${r.placa}]</span>
+                    </div>
+                  </div>
+                `).join('') : '<span style="font-size:0.82rem; color:var(--text-subtle); font-style:italic;">Ningún agente ha recibido esta distinción todavía.</span>'}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
 
           <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:1rem;">
             ${man.items.map(item => `
@@ -1089,11 +1667,13 @@ function renderReportsTableRows(reports) {
   if (!reports || reports.length === 0) {
     return `<tr><td colspan="8" style="text-align:center; padding:2rem; color:var(--text-muted);">No hay informes semanales registrados.</td></tr>`;
   }
+  const isJef = window.K9Auth.isJefaturaMember();
   return reports.map(r => `
-    <tr>
+    <tr style="${r.isConfidential ? 'background:rgba(255,42,95,0.03);' : ''}">
       <td>
         <strong style="color:#fff;">${r.week}</strong>
         <div style="font-size:0.75rem; color:var(--text-muted);">${r.date}</div>
+        ${r.isConfidential ? '<div style="margin-top:0.25rem;"><span style="font-family:var(--font-tactical); font-size:0.68rem; padding:0.15rem 0.4rem; border-radius:4px; background:rgba(255,42,95,0.18); color:var(--tactical-red); border:1px solid rgba(255,42,95,0.4); font-weight:700;">🔒 CONFIDENCIAL</span></div>' : ''}
       </td>
       <td>
         <span style="font-family:var(--font-tactical); font-weight:600; color:var(--police-cyan);">${r.agentName}</span>
@@ -1102,7 +1682,7 @@ function renderReportsTableRows(reports) {
       <td><span style="font-family:var(--font-tactical); font-weight:700;">${r.patrolHours} hrs</span></td>
       <td>
         <div><strong>${r.canineInterventions}</strong> intervenciones (${r.canineAlerts} alertas)</div>
-        <div style="font-size:0.75rem; color:var(--text-muted);">${r.seizures}</div>
+        <div style="font-size:0.75rem; color:var(--text-muted);">${r.seizures || '—'}</div>
       </td>
       <td>
         <span style="font-family:var(--font-tactical); color:var(--tactical-gold);">${r.rating}</span>
@@ -1113,13 +1693,23 @@ function renderReportsTableRows(reports) {
         </span>
       </td>
       <td>
-        <div style="display:flex; gap:0.4rem;">
-          <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="approveReport('${r.id}')" title="Aprobar Informe">
-            ✓ Aprobar
-          </button>
-          <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="viewReportDetails('${r.id}')" title="Ver detalles">
+        <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+          ${!r.status.includes('Aprobado') ? `
+            <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="approveReport('${r.id}')" title="Aprobar Informe">
+              ✓ Aprobar
+            </button>
+          ` : ''}
+          <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="viewReportDetails('${r.id}')" title="Ver detalles tácticos">
             👁️
           </button>
+          ${isJef ? `
+            <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="toggleReportConfidential('${r.id}')" title="${r.isConfidential ? 'Desmarcar confidencial' : 'Marcar confidencial para jefatura'}" style="font-size:0.75rem;">
+              ${r.isConfidential ? '🔓 Público' : '🔒 Confidencial'}
+            </button>
+            <button class="btn-tactical btn-tactical-sm" onclick="deleteReport('${r.id}')" style="background:rgba(255,59,48,0.12); border:1px solid rgba(255,59,48,0.4); color:#ff5252;" title="Eliminar informe semanal">
+              🗑️
+            </button>
+          ` : ''}
         </div>
       </td>
     </tr>
@@ -1143,9 +1733,92 @@ window.approveReport = function (reportId) {
 window.viewReportDetails = function (reportId) {
   const reports = window.K9Store.getReports();
   const rep = reports.find(r => r.id === reportId);
-  if (rep) {
-    alert(`INFORME SEMANAL DETALLADO\n\nPeríodo: ${rep.week}\nAgente: ${rep.agentName}\nCan: ${rep.dogName}\nHoras: ${rep.patrolHours} hrs\nIntervenciones: ${rep.canineInterventions}\nIncautaciones: ${rep.seizures}\n\nObservaciones:\n${rep.notes}\n\nFirma Jefatura: ${rep.signedBy}`);
+  if (!rep) return;
+  const body = document.getElementById('modalViewReportBody');
+  if (body) {
+    body.innerHTML = `
+      <div style="background:rgba(16,24,43,0.85); border:1px solid var(--border-tactical); border-radius:12px; padding:1.25rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem; border-bottom:1px solid var(--border-subtle); padding-bottom:0.75rem;">
+          <div>
+            <h3 style="font-family:var(--font-headline); font-size:1.2rem; color:#fff; margin-bottom:0.2rem;">${rep.agentName}</h3>
+            <span style="font-family:var(--font-tactical); font-size:0.8rem; color:var(--police-cyan);">${rep.week} · Fecha: ${rep.date}</span>
+          </div>
+          <div style="display:flex; gap:0.5rem; align-items:center;">
+            ${rep.isConfidential ? '<span style="font-family:var(--font-tactical); font-size:0.72rem; padding:0.2rem 0.5rem; border-radius:4px; background:rgba(255,42,95,0.2); color:var(--tactical-red); border:1px solid var(--tactical-red); font-weight:700;">🔒 CONFIDENCIAL JEFATURA</span>' : '<span style="font-family:var(--font-tactical); font-size:0.72rem; padding:0.2rem 0.5rem; border-radius:4px; background:rgba(0,230,118,0.15); color:var(--tactical-green); border:1px solid rgba(0,230,118,0.3);">🌐 PÚBLICO</span>'}
+            <span style="font-family:var(--font-tactical); font-size:0.72rem; padding:0.2rem 0.5rem; border-radius:4px; background:rgba(255,183,3,0.15); color:var(--tactical-gold); border:1px solid rgba(255,183,3,0.3); font-weight:700;">${rep.status}</span>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:0.75rem; background:rgba(0,0,0,0.35); padding:0.85rem; border-radius:8px; margin-bottom:1.25rem;">
+          <div><span style="font-size:0.72rem; color:var(--text-muted); display:block;">CAN OPERATIVO</span><strong style="color:#fff; font-size:0.9rem;">${rep.dogName || '—'}</strong></div>
+          <div><span style="font-size:0.72rem; color:var(--text-muted); display:block;">HORAS PATRULLA</span><strong style="color:var(--police-cyan); font-size:0.9rem;">${rep.patrolHours} hrs</strong></div>
+          <div><span style="font-size:0.72rem; color:var(--text-muted); display:block;">ALERTAS CANINAS</span><strong style="color:#fff; font-size:0.9rem;">${rep.canineAlerts || 0}</strong></div>
+          <div><span style="font-size:0.72rem; color:var(--text-muted); display:block;">INTERVENCIONES</span><strong style="color:#fff; font-size:0.9rem;">${rep.canineInterventions || 0}</strong></div>
+          <div><span style="font-size:0.72rem; color:var(--text-muted); display:block;">EVALUACIÓN</span><strong style="color:var(--tactical-gold); font-size:0.85rem;">${rep.rating || '—'}</strong></div>
+        </div>
+
+        <div style="margin-bottom:1rem;">
+          <div style="font-size:0.75rem; color:var(--tactical-gold); font-weight:700; letter-spacing:0.06em; margin-bottom:0.35rem;">INCAUTACIONES O SUSTANCIAS LOCALIZADAS</div>
+          <div style="font-size:0.88rem; color:var(--text-main); background:rgba(0,0,0,0.25); border:1px solid var(--border-subtle); padding:0.6rem 0.85rem; border-radius:6px;">${rep.seizures || 'Sin incautaciones registradas en este período.'}</div>
+        </div>
+
+        <div style="margin-bottom:1rem;">
+          <div style="font-size:0.75rem; color:var(--police-cyan); font-weight:700; letter-spacing:0.06em; margin-bottom:0.35rem;">DETALLE DE ACTUACIONES OPERATIVAS & CONDUCTA</div>
+          <div style="font-size:0.88rem; color:var(--text-main); line-height:1.5; background:rgba(0,0,0,0.25); border:1px solid var(--border-subtle); padding:0.75rem 0.85rem; border-radius:6px; white-space:pre-line;">${rep.notes || '—'}</div>
+        </div>
+
+        <div style="border-top:1px solid var(--border-subtle); padding-top:0.75rem; display:flex; justify-content:space-between; font-size:0.78rem; color:var(--text-subtle);">
+          <span>Firma de Validación: <strong style="color:var(--text-muted);">${rep.signedBy || 'Pendiente'}</strong></span>
+          <span>Unidad K9 LSPD</span>
+        </div>
+      </div>
+    `;
   }
+  openModal('modalViewReport');
+};
+
+window.deleteReport = function (reportId) {
+  const reports = window.K9Store.getReports();
+  const rep = reports.find(r => r.id === reportId);
+  if (!rep) return;
+  window._pendingDeleteReportId = reportId;
+  const agEl = document.getElementById('delReportAgent');
+  const wkEl = document.getElementById('delReportWeek');
+  const dgEl = document.getElementById('delReportDog');
+  const ptEl = document.getElementById('delReportPatrol');
+  if (agEl) agEl.textContent = rep.agentName;
+  if (wkEl) wkEl.textContent = rep.week;
+  if (dgEl) dgEl.textContent = 'Can K9: ' + rep.dogName;
+  if (ptEl) ptEl.textContent = 'Horas patrulladas: ' + rep.patrolHours + ' hrs';
+  openModal('modalDeleteReport');
+};
+
+window._confirmDeleteReport = function () {
+  const id = window._pendingDeleteReportId;
+  if (!id) return;
+  closeModal('modalDeleteReport');
+  const reports = window.K9Store.getReports().filter(r => r.id !== id);
+  window.K9Store.save(STORAGE_KEYS.REPORTS, reports);
+  if (window.K9CloudSync) window.K9CloudSync.push();
+  if (window.K9Webhook) {
+    const user = window.K9Auth.getCurrentUser();
+    window.K9Webhook.log('report', 'Informe Semanal Eliminado', `Jefatura retiró el informe ${id}.`, [
+      { name: 'Mando', value: user ? user.name : 'Jefatura K9', inline: true }
+    ]);
+  }
+  showToast('Informe semanal eliminado definitivamente', 'info');
+  renderJefaturaSubtab('informes');
+};
+
+window.toggleReportConfidential = function (reportId) {
+  const reports = window.K9Store.getReports();
+  const rep = reports.find(r => r.id === reportId);
+  if (!rep) return;
+  rep.isConfidential = !rep.isConfidential;
+  window.K9Store.save(STORAGE_KEYS.REPORTS, reports);
+  if (window.K9CloudSync) window.K9CloudSync.push();
+  showToast(rep.isConfidential ? 'Informe marcado como CONFIDENCIAL para Jefatura' : 'Informe marcado como PÚBLICO', 'info');
+  renderJefaturaSubtab('informes');
 };
 
 // ─────────────────────────────────────────────────────────────────
@@ -2351,9 +3024,6 @@ window.removeBadgeFromAgent = function (userId, badgeId) {
   if (!user) return;
 
   const bName = badge ? badge.name : 'Insignia';
-  if (!confirm(`¿Estás seguro de que deseas retirar la condecoración "${bName}" al agente ${user.name}?`)) {
-    return;
-  }
 
   user.badges = (user.badges || []).filter(id => id !== badgeId);
   window.K9Store.save(STORAGE_KEYS.USERS, users);

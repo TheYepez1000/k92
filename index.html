@@ -852,7 +852,7 @@
         <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="closeModal('modalDeleteDog')">
           Cancelar
         </button>
-        <button type="button" class="btn-tactical btn-tactical-danger btn-tactical-sm" id="btnConfirmDeleteDogAction">
+        <button type="button" class="btn-tactical btn-tactical-danger btn-tactical-sm" id="btnConfirmDeleteDogAction" onclick="window._confirmDeleteDog()">
           🚨 Confirmar Baja y Eliminación
         </button>
       </div>
@@ -894,8 +894,488 @@
         <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="closeModal('modalDeleteDisciplinary')">
           Cancelar
         </button>
-        <button type="button" class="btn-tactical btn-tactical-danger btn-tactical-sm" id="btnConfirmDeleteDiscAction">
+        <button type="button" class="btn-tactical btn-tactical-danger btn-tactical-sm" id="btnConfirmDeleteDiscAction" onclick="window._confirmDeleteDisc()">
           🗑️ Confirmar Retirada de Expediente
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: MENÚ TÁCTICO DE ELIMINACIÓN DE INFORME SEMANAL
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalDeleteReport">
+    <div class="tactical-modal-card" style="max-width: 520px;">
+      <div class="modal-header-tactical" style="border-bottom-color: var(--tactical-red);">
+        <div class="modal-title-tactical" style="color: var(--tactical-red);">
+          <span>🗑️</span> ELIMINAR INFORME SEMANAL
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalDeleteReport')">✕</button>
+      </div>
+      <div class="modal-body-tactical" style="padding: 1.5rem;">
+        <div style="background: rgba(255, 42, 95, 0.08); border: 1px solid var(--border-danger); border-radius: 12px; padding: 1rem; margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <strong id="delReportAgent" style="color: #fff; font-size: 1rem;">Agente</strong>
+            <span id="delReportWeek" style="font-family: var(--font-headline); font-size: 0.8rem; color: var(--police-cyan);">Semana</span>
+          </div>
+          <div id="delReportDog" style="font-size: 0.85rem; color: var(--text-muted);">Can K9: —</div>
+          <div id="delReportPatrol" style="font-size: 0.85rem; color: var(--tactical-gold); margin-top: 0.3rem;">Horas patrulladas: —</div>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+          ¿Estás seguro de que deseas eliminar este informe semanal? Se borrará de las estadísticas de patrulla de forma definitiva.
+        </p>
+      </div>
+      <div class="modal-footer-tactical">
+        <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="closeModal('modalDeleteReport')">
+          Cancelar
+        </button>
+        <button type="button" class="btn-tactical btn-tactical-danger btn-tactical-sm" id="btnConfirmDeleteReportAction" onclick="window._confirmDeleteReport()">
+          🗑️ Eliminar Informe Definitivamente
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: VISUALIZADOR DETALLADO DE INFORME SEMANAL (SIN ALERT DE GOOGLE)
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalViewReport">
+    <div class="tactical-modal-card" style="max-width: 600px;">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical">
+          <span>📋</span> EXPEDIENTE DE INFORME SEMANAL K9
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalViewReport')">✕</button>
+      </div>
+      <div class="modal-body-tactical" style="padding: 1.5rem;" id="modalViewReportBody">
+        <!-- Renderizado dinámicamente por app.js -->
+      </div>
+      <div class="modal-footer-tactical">
+        <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="closeModal('modalViewReport')">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: EDITAR COMUNICADO DE JEFATURA
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalEditAnnouncement">
+    <div class="tactical-modal-card">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical">
+          <span>✏️</span> EDITAR COMUNICADO OFICIAL DE JEFATURA
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalEditAnnouncement')">✕</button>
+      </div>
+      <form id="formEditAnnouncement">
+        <input type="hidden" id="editAnnId">
+        <div class="modal-body-tactical">
+          <div class="form-grid-2">
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="editAnnTitle">TÍTULO DEL COMUNICADO</label>
+              <input type="text" id="editAnnTitle" class="form-input-tactical" required>
+            </div>
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="editAnnPriority">PRIORIDAD / TIPO</label>
+              <select id="editAnnPriority" class="form-select-tactical">
+                <option value="OFICIAL">OFICIAL</option>
+                <option value="URGENTE">URGENTE</option>
+                <option value="IMPORTANTE">IMPORTANTE</option>
+                <option value="INFORMATIVO">INFORMATIVO</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="editAnnImage">FOTOGRAFÍA / IMAGEN TÁCTICA (OPCIONAL)</label>
+            <input type="url" id="editAnnImage" class="form-input-tactical" placeholder="https://ejemplo.com/foto-comunicado.jpg">
+          </div>
+
+          <label class="perm-toggle-card">
+            <input type="checkbox" id="editAnnPinned" class="perm-checkbox">
+            <div class="perm-details">
+              <span class="perm-title">Fijar en la parte superior del tablón</span>
+              <span class="perm-desc">Mantendrá el comunicado destacado con chincheta táctica</span>
+            </div>
+          </label>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="editAnnContent">CONTENIDO DEL COMUNICADO</label>
+            <textarea id="editAnnContent" class="form-textarea-tactical" style="min-height:140px;" required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer-tactical">
+          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="closeModal('modalEditAnnouncement')">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-tactical btn-tactical-gold btn-tactical-sm">
+            💾 Guardar Cambios
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: MENÚ TÁCTICO DE ELIMINACIÓN DE ANUNCIO DE JEFATURA
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalDeleteAnnouncement">
+    <div class="tactical-modal-card" style="max-width: 520px;">
+      <div class="modal-header-tactical" style="border-bottom-color: var(--tactical-red);">
+        <div class="modal-title-tactical" style="color: var(--tactical-red);">
+          <span>🗑️</span> ELIMINAR COMUNICADO DE JEFATURA
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalDeleteAnnouncement')">✕</button>
+      </div>
+      <div class="modal-body-tactical" style="padding: 1.5rem;">
+        <div style="background: rgba(255, 42, 95, 0.08); border: 1px solid var(--border-danger); border-radius: 12px; padding: 1rem; margin-bottom: 1.25rem;">
+          <h4 id="delAnnTitle" style="color: #fff; font-size: 1.05rem; margin-bottom: 0.4rem; font-family: var(--font-tactical);">Título Comunicado</h4>
+          <div id="delAnnAuthor" style="font-size: 0.8rem; color: var(--text-muted);">Emitido por: —</div>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+          ¿Estás seguro de que deseas retirar y borrar este comunicado del tablón oficial? Los agentes ya no podrán visualizarlo.
+        </p>
+      </div>
+      <div class="modal-footer-tactical">
+        <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="closeModal('modalDeleteAnnouncement')">
+          Cancelar
+        </button>
+        <button type="button" class="btn-tactical btn-tactical-danger btn-tactical-sm" id="btnConfirmDeleteAnnAction" onclick="window._confirmDeleteAnnouncement()">
+          🗑️ Eliminar Comunicado
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: EDITAR / CREAR NORMATIVA OFICIAL
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalEditNormative">
+    <div class="tactical-modal-card" style="max-width: 650px;">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical" id="modalNormativeTitle">
+          <span>⚖️</span> GESTIONAR NORMATIVA OFICIAL K9
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalEditNormative')">✕</button>
+      </div>
+      <form id="formEditNormative">
+        <input type="hidden" id="normId">
+        <div class="modal-body-tactical">
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="normChapter">TÍTULO DEL CAPÍTULO</label>
+            <input type="text" id="normChapter" class="form-input-tactical" placeholder="Ej: CAPÍTULO I — DISPOSICIONES GENERALES" required>
+          </div>
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="normArticlesRaw">ARTÍCULOS Y DISPOSICIONES (FORMATO LÍNEA POR ARTÍCULO: Art. X | Título | Texto)</label>
+            <textarea id="normArticlesRaw" class="form-textarea-tactical" style="min-height: 180px; font-family: monospace; font-size: 0.85rem;" placeholder="Art. 1 | Objeto | El presente reglamento establece...&#10;Art. 2 | Finalidad | La unidad tiene como finalidad..." required></textarea>
+            <small style="color:var(--text-subtle); font-size:0.75rem; margin-top:0.3rem; display:block;">
+              Escribe cada artículo en una línea separando número, título y texto con el símbolo <code>|</code>
+            </small>
+          </div>
+        </div>
+        <div class="modal-footer-tactical">
+          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="closeModal('modalEditNormative')">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-tactical btn-tactical-gold btn-tactical-sm">
+            💾 Guardar Normativa
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: MENÚ TÁCTICO DE ELIMINACIÓN DE NORMATIVA
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalDeleteNormative">
+    <div class="tactical-modal-card" style="max-width: 520px;">
+      <div class="modal-header-tactical" style="border-bottom-color: var(--tactical-red);">
+        <div class="modal-title-tactical" style="color: var(--tactical-red);">
+          <span>🗑️</span> ELIMINAR CAPÍTULO DE NORMATIVAS
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalDeleteNormative')">✕</button>
+      </div>
+      <div class="modal-body-tactical" style="padding: 1.5rem;">
+        <div style="background: rgba(255, 42, 95, 0.08); border: 1px solid var(--border-danger); border-radius: 12px; padding: 1rem; margin-bottom: 1.25rem;">
+          <h4 id="delNormChapter" style="color: #fff; font-size: 1.05rem; font-family: var(--font-tactical);">Capítulo</h4>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+          ¿Estás seguro de que deseas eliminar este capítulo y todos sus artículos? Se retirará del reglamento oficial.
+        </p>
+      </div>
+      <div class="modal-footer-tactical">
+        <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="closeModal('modalDeleteNormative')">
+          Cancelar
+        </button>
+        <button type="button" class="btn-tactical btn-tactical-danger btn-tactical-sm" id="btnConfirmDeleteNormAction" onclick="window._confirmDeleteNormative()">
+          🗑️ Eliminar Capítulo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: EDITAR / CREAR MANUAL DE ADIESTRAMIENTO
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalEditManual">
+    <div class="tactical-modal-card" style="max-width: 650px;">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical" id="modalManualTitle">
+          <span>📖</span> GESTIONAR MANUAL DE INSTRUCCIÓN K9
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalEditManual')">✕</button>
+      </div>
+      <form id="formEditManual">
+        <input type="hidden" id="manId">
+        <div class="modal-body-tactical">
+          <div class="form-grid-2">
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="manTitle">TÍTULO DEL MANUAL</label>
+              <input type="text" id="manTitle" class="form-input-tactical" placeholder="Ej: GUÍA OPERATIVA DE INTERVENCIÓN" required>
+            </div>
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="manCategory">CATEGORÍA</label>
+              <input type="text" id="manCategory" class="form-input-tactical" placeholder="Ej: COMANDOS / TÁCTICA / VETERINARIA" required>
+            </div>
+          </div>
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="manItemsRaw">ÓRDENES / COMANDOS (FORMATO: Comando | Traducción | Descripción)</label>
+            <textarea id="manItemsRaw" class="form-textarea-tactical" style="min-height: 180px; font-family: monospace; font-size: 0.85rem;" placeholder="Fass | Ataque / Morder | Neutraliza al objetivo&#10;Aus | Soltar | Libera mordida al instante" required></textarea>
+            <small style="color:var(--text-subtle); font-size:0.75rem; margin-top:0.3rem; display:block;">
+              Escribe cada comando en una línea con el separador <code>|</code>
+            </small>
+          </div>
+        </div>
+        <div class="modal-footer-tactical">
+          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="closeModal('modalEditManual')">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-tactical btn-tactical-gold btn-tactical-sm">
+            💾 Guardar Manual
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: MENÚ TÁCTICO DE ELIMINACIÓN DE MANUAL
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalDeleteManual">
+    <div class="tactical-modal-card" style="max-width: 520px;">
+      <div class="modal-header-tactical" style="border-bottom-color: var(--tactical-red);">
+        <div class="modal-title-tactical" style="color: var(--tactical-red);">
+          <span>🗑️</span> ELIMINAR MANUAL DE ADIESTRAMIENTO
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalDeleteManual')">✕</button>
+      </div>
+      <div class="modal-body-tactical" style="padding: 1.5rem;">
+        <div style="background: rgba(255, 42, 95, 0.08); border: 1px solid var(--border-danger); border-radius: 12px; padding: 1rem; margin-bottom: 1.25rem;">
+          <h4 id="delManTitle" style="color: #fff; font-size: 1.05rem; font-family: var(--font-tactical);">Manual</h4>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+          ¿Estás seguro de que deseas eliminar este manual de adiestramiento?
+        </p>
+      </div>
+      <div class="modal-footer-tactical">
+        <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="closeModal('modalDeleteManual')">
+          Cancelar
+        </button>
+        <button type="button" class="btn-tactical btn-tactical-danger btn-tactical-sm" id="btnConfirmDeleteManAction" onclick="window._confirmDeleteManual()">
+          🗑️ Eliminar Manual
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: EDITAR FICHA COMPLETA DE MIEMBRO (JEFATURA)
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalEditMember">
+    <div class="tactical-modal-card" style="max-width: 580px;">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical">
+          <span>👮</span> EDITAR EXPEDIENTE DEL MIEMBRO
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalEditMember')">✕</button>
+      </div>
+      <form id="formEditMember">
+        <input type="hidden" id="editMemberId">
+        <div class="modal-body-tactical">
+          <div class="form-grid-2">
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="editMemberName">NOMBRE COMPLETO</label>
+              <input type="text" id="editMemberName" class="form-input-tactical" required>
+            </div>
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="editMemberPlaca">NÚMERO DE PLACA</label>
+              <input type="text" id="editMemberPlaca" class="form-input-tactical" required>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="editMemberRank">RANGO OFICIAL</label>
+              <select id="editMemberRank" class="form-select-tactical" required>
+                <option value="Jefe de División K9">Jefe de División K9</option>
+                <option value="Subjefe de División K9">Subjefe de División K9</option>
+                <option value="Coordinador Operativo">Coordinador Operativo</option>
+                <option value="Instructor & Guía Canino">Instructor & Guía Canino</option>
+                <option value="Oficial Guía Canino">Oficial Guía Canino</option>
+                <option value="Aspirante K9">Aspirante K9</option>
+              </select>
+            </div>
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="editMemberDogSelect">CAN K9 ASIGNADO</label>
+              <select id="editMemberDogSelect" class="form-select-tactical">
+                <option value="">Sin can asignado</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="editMemberAvatar">URL DE FOTOGRAFÍA / AVATAR</label>
+            <input type="url" id="editMemberAvatar" class="form-input-tactical" placeholder="https://...">
+          </div>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="editMemberDiscordId">DISCORD ID (Para vinculación OAuth2)</label>
+            <input type="text" id="editMemberDiscordId" class="form-input-tactical" placeholder="Ej: 760159743616090164">
+          </div>
+
+          <label class="perm-toggle-card">
+            <input type="checkbox" id="editMemberIsJefatura" class="perm-checkbox">
+            <div class="perm-details">
+              <span class="perm-title">Acreditar con Privilegios de Jefatura</span>
+              <span class="perm-desc">Permite entrar al Centro de Mando y administrar el portal</span>
+            </div>
+          </label>
+        </div>
+        <div class="modal-footer-tactical">
+          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="closeModal('modalEditMember')">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-tactical btn-tactical-gold btn-tactical-sm">
+            💾 Guardar Ficha de Miembro
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: MENÚ TÁCTICO DE ELIMINACIÓN DE MIEMBRO
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalDeleteMember">
+    <div class="tactical-modal-card" style="max-width: 520px;">
+      <div class="modal-header-tactical" style="border-bottom-color: var(--tactical-red);">
+        <div class="modal-title-tactical" style="color: var(--tactical-red);">
+          <span>🚨</span> DAR DE BAJA MIEMBRO DE LA UNIDAD
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalDeleteMember')">✕</button>
+      </div>
+      <div class="modal-body-tactical" style="padding: 1.5rem;">
+        <div style="background: rgba(255, 42, 95, 0.08); border: 1px solid var(--border-danger); border-radius: 12px; padding: 1rem; margin-bottom: 1.25rem;">
+          <h4 id="delMemberName" style="color: #fff; font-size: 1.1rem; font-family: var(--font-tactical); margin-bottom: 0.2rem;">Nombre</h4>
+          <div id="delMemberRank" style="font-size: 0.85rem; color: var(--police-cyan);">Rango</div>
+          <div id="delMemberPlaca" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">Placa: #—</div>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+          ¿Estás seguro de que deseas expulsar o dar de baja a este miembro de la plantilla de la División K9? Se desvinculará su can y se archivará su expediente.
+        </p>
+      </div>
+      <div class="modal-footer-tactical">
+        <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="closeModal('modalDeleteMember')">
+          Cancelar
+        </button>
+        <button type="button" class="btn-tactical btn-tactical-danger btn-tactical-sm" id="btnConfirmDeleteMemberAction" onclick="window._confirmDeleteMember()">
+          🚨 Confirmar Baja de la Unidad
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: PUBLICAR ORDEN OFICIAL DE ASCENSO (JEFATURA)
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalNewPromotion">
+    <div class="tactical-modal-card" style="max-width: 580px;">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical">
+          <span>🎖️</span> PUBLICAR ORDEN OFICIAL DE ASCENSO
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalNewPromotion')">✕</button>
+      </div>
+      <form id="formNewPromotion">
+        <div class="modal-body-tactical">
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="promoAgentSelect">AGENTE PROMOVIDO</label>
+            <select id="promoAgentSelect" class="form-select-tactical" required></select>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="promoOldRank">RANGO ACTUAL / ANTERIOR</label>
+              <input type="text" id="promoOldRank" class="form-input-tactical" required readonly style="opacity: 0.8;">
+            </div>
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="promoNewRank">NUEVO RANGO ASIGNADO</label>
+              <select id="promoNewRank" class="form-select-tactical" required>
+                <option value="Oficial Guía Canino">Oficial Guía Canino</option>
+                <option value="Instructor & Guía Canino">Instructor & Guía Canino</option>
+                <option value="Coordinador Operativo">Coordinador Operativo</option>
+                <option value="Subjefe de División K9">Subjefe de División K9</option>
+                <option value="Jefe de División K9">Jefe de División K9</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="promoCitation">CITACIÓN OFICIAL DE MÉRITO / RESOLUCIÓN DE MANDO</label>
+            <textarea id="promoCitation" class="form-textarea-tactical" style="min-height: 110px;" placeholder="Por su intachable trayectoria operativa, horas de patrullaje canino acumuladas y liderazgo táctico..." required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer-tactical">
+          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="closeModal('modalNewPromotion')">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-tactical btn-tactical-gold btn-tactical-sm">
+            🎖️ Promover & Publicar Orden
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: MENÚ TÁCTICO DE ELIMINACIÓN DE ORDEN DE ASCENSO
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalDeletePromotion">
+    <div class="tactical-modal-card" style="max-width: 520px;">
+      <div class="modal-header-tactical" style="border-bottom-color: var(--tactical-red);">
+        <div class="modal-title-tactical" style="color: var(--tactical-red);">
+          <span>🗑️</span> RETIRAR PUBLICACIÓN DE ASCENSO
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalDeletePromotion')">✕</button>
+      </div>
+      <div class="modal-body-tactical" style="padding: 1.5rem;">
+        <div style="background: rgba(255, 42, 95, 0.08); border: 1px solid var(--border-danger); border-radius: 12px; padding: 1rem; margin-bottom: 1.25rem;">
+          <h4 id="delPromoAgent" style="color: #fff; font-size: 1.05rem; font-family: var(--font-tactical);">Agente</h4>
+          <div id="delPromoRanks" style="font-size: 0.85rem; color: var(--tactical-gold); margin-top: 0.2rem;">Ascenso</div>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+          ¿Estás seguro de que deseas retirar este registro público de ascenso?
+        </p>
+      </div>
+      <div class="modal-footer-tactical">
+        <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="closeModal('modalDeletePromotion')">
+          Cancelar
+        </button>
+        <button type="button" class="btn-tactical btn-tactical-danger btn-tactical-sm" id="btnConfirmDeletePromoAction" onclick="window._confirmDeletePromotion()">
+          🗑️ Retirar Publicación
         </button>
       </div>
     </div>
