@@ -3621,7 +3621,7 @@ function setupModals() {
           }
           renderJefaturaSubtab('insignias');
         } else {
-          alert('Este agente ya posee esta condecoración.');
+          showToast('Este agente ya posee esta condecoración.', 'warning');
         }
       }
     });
