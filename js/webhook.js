@@ -13,7 +13,6 @@ const WEBHOOK_STORAGE_KEY = 'k9_webhook_url';
 // CONSTANTES DE COLORES Y EMOJIS POR TIPO DE EVENTO
 // ─────────────────────────────────────────────────────────────────────────────
 const WEBHOOK_COLORS = {
-  dasdadsad
   login: 0x5865F2,
   logout: 0x747F8D,
   register: 0x00C851,
