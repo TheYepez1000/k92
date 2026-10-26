@@ -164,7 +164,7 @@ class K9AuthManager {
     const user = this.getCurrentUser();
     if (!user) {
       return { ok: false, msg: 'Debes iniciar sesión con Discord primero.' };
-    }
+    }/* Actualizacion K9 Supabase */
     const cleanPass = (passcode || '').trim();
     if (cleanPass !== 'K9MANDO' && cleanPass !== 'K9-MANDO-2026' && cleanPass !== '1406448851153326131') {
       return { ok: false, msg: 'Clave de mando no válida.' };

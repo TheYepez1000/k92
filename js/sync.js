@@ -328,3 +328,4 @@ class K9CloudSyncManager {
 
 // Instancia global
 window.K9CloudSync = new K9CloudSyncManager();
+/* Actualizacion K9 Supabase */

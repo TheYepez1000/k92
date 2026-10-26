@@ -15,7 +15,10 @@
 
 .hero-background-img {
   position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   object-position: center 30%;
   opacity: 0.28;
@@ -107,7 +110,10 @@
 .hero-stat-card::before {
   content: "";
   position: absolute;
-  top: 0; left: 0; width: 100%; height: 3px;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
   background: linear-gradient(90deg, transparent, var(--police-cyan), transparent);
   opacity: 0;
   transition: opacity var(--transition-fast);
@@ -179,6 +185,7 @@
   background: linear-gradient(135deg, #1a75ff, #00c6eb);
 }
 
+/* Actualizacion K9 Supabase */
 .btn-tactical-gold {
   background: linear-gradient(135deg, var(--tactical-gold), #e07a5f);
   color: #0b0f19;
@@ -849,7 +856,10 @@
 /* Modales Tácticos */
 .tactical-modal-overlay {
   position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   background: rgba(5, 8, 17, 0.85);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
@@ -943,7 +953,9 @@
   text-transform: uppercase;
 }
 
-.form-input-tactical, .form-select-tactical, .form-textarea-tactical {
+.form-input-tactical,
+.form-select-tactical,
+.form-textarea-tactical {
   background: rgba(0, 0, 0, 0.4);
   border: 1px solid var(--border-subtle);
   border-radius: 8px;
@@ -954,7 +966,9 @@
   transition: all var(--transition-fast);
 }
 
-.form-input-tactical:focus, .form-select-tactical:focus, .form-textarea-tactical:focus {
+.form-input-tactical:focus,
+.form-select-tactical:focus,
+.form-textarea-tactical:focus {
   border-color: var(--police-cyan);
   box-shadow: 0 0 12px rgba(0, 229, 255, 0.25);
   outline: none;
@@ -1033,20 +1047,30 @@
     background: #fff !important;
     color: #000 !important;
   }
-  .top-hud-bar, .subnav-tabs-row, .hero-actions-row, .btn-tactical, .table-toolbar-row, .k9-tactical-footer {
+
+  .top-hud-bar,
+  .subnav-tabs-row,
+  .hero-actions-row,
+  .btn-tactical,
+  .table-toolbar-row,
+  .k9-tactical-footer {
     display: none !important;
   }
+
   .main-wrapper {
     padding: 0 !important;
   }
+
   .tactical-table-wrapper {
     box-shadow: none !important;
     border: 1px solid #000 !important;
   }
+
   .tactical-table-element th {
     background: #f0f0f0 !important;
     color: #000 !important;
   }
+
   .tactical-table-element td {
     color: #000 !important;
     border-bottom: 1px solid #ccc !important;
@@ -1058,23 +1082,30 @@
   .member-profile-grid {
     grid-template-columns: 1fr;
   }
+
   .hero-content {
     flex-direction: column;
     text-align: center;
   }
-  .hero-pill-tag, .hero-actions-row {
+
+  .hero-pill-tag,
+  .hero-actions-row {
     justify-content: center;
   }
+
   .hero-stats-panel {
     width: 100%;
   }
+
   .assigned-k9-details-row {
     grid-template-columns: 1fr;
     text-align: center;
   }
+
   .assigned-k9-photo-wrap {
     margin: 0 auto;
   }
+
   .form-grid-2 {
     grid-template-columns: 1fr;
   }

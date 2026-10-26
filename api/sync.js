@@ -2,12 +2,11 @@
  * UNIDAD CANINA K9 - API SERVERLESS DE SINCRONIZACIÓN EN LA NUBE (VERCEL)
  * Permite almacenar y sincronizar el estado global de la unidad K9 entre
  * múltiples navegadores, ordenadores y dispositivos en tiempo real.
- *
+ *  <!-- Actualizacion K9 Supabase -->
  * Compatible con:
  * - Vercel KV / Upstash Redis (variables KV_REST_API_URL o UPSTASH_REDIS_REST_URL)
  * - Persistencia local /tmp y en memoria con soporte de expulsiones permanentes y purga de logs
  */
-
 const fs = require('fs');
 const path = require('path');
 

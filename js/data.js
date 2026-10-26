@@ -553,7 +553,7 @@ class K9DataStore {
         if (window.K9CloudSync) {
           window.K9CloudSync.schedulePush();
         }
-      }
+      }/* Actualizacion K9 Supabase */
     } catch (e) {
       console.error(`Error saving ${key} to storage:`, e);
     }

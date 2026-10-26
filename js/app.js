@@ -1036,8 +1036,8 @@ function renderDecorationsSection(container) {
 
     <div style="display:flex; flex-direction:column; gap:1.75rem;">
       ${badges.map(b => {
-        const recipients = users.filter(u => (u.badges || []).includes(b.id));
-        return `
+    const recipients = users.filter(u => (u.badges || []).includes(b.id));
+    return `
           <div style="background:var(--bg-surface); border:1px solid var(--border-gold); border-radius:14px; padding:1.5rem; box-shadow:var(--shadow-elevation);">
             <div style="display:flex; gap:1.25rem; align-items:flex-start; flex-wrap:wrap; margin-bottom:1.25rem;">
               <img src="${b.image || 'assets/images/medal_valor.jpg'}" style="width:75px; height:75px; object-fit:contain; filter:drop-shadow(0 4px 12px rgba(255,183,3,0.3)); cursor:pointer;" alt="${b.name}" onclick="window.inspectBadgeModal('${b.id}', 'Honores K9')">
@@ -1068,7 +1068,7 @@ function renderDecorationsSection(container) {
             </div>
           </div>
         `;
-      }).join('')}
+  }).join('')}
     </div>
   `;
 }
@@ -1098,7 +1098,7 @@ function renderCanineGallery(container) {
           <div style="padding:1.25rem;">
             <h4 style="font-family:var(--font-tactical); font-size:1.35rem; color:#fff; margin-bottom:0.25rem;">${dog.name}</h4>
             <div style="font-family:var(--font-headline); font-size:0.85rem; color:var(--tactical-gold); letter-spacing:0.06em; margin-bottom:0.75rem;">${dog.breed}</div>
-
+/* Actualizacion K9 Supabase */
             <div style="background:rgba(0,0,0,0.3); border:1px solid var(--border-subtle); border-radius:8px; padding:0.75rem; margin-bottom:1rem; font-size:0.82rem;">
               <div style="display:flex; justify-content:space-between; margin-bottom:0.35rem;">
                 <span style="color:var(--text-subtle); font-family:var(--font-headline);">ESPECIALIDAD:</span>
@@ -2266,7 +2266,7 @@ function renderAgentsSection(container) {
       const tbodyEl = document.getElementById('agentsTableBody');
       if (tbodyEl) {
         const freshUsers = window.K9Store.getUsers();
-        const freshDogs  = window.K9Store.getDogs();
+        const freshDogs = window.K9Store.getDogs();
         tbodyEl.innerHTML = renderAgentsTableRows(freshUsers, freshDogs);
       }
       // Re-renderizar solo si hay cambio visual importante (presets añadidos)
@@ -2390,13 +2390,13 @@ window.editAgentRank = function (userId) {
   if (!user) return;
 
   const RANKS = [
-    { value: 'Aspirante K9',        label: '🔰 Aspirante K9',         color: '#94a3b8' },
-    { value: 'Oficial Guía K9',     label: '🐾 Oficial Guía K9',      color: '#38bdf8' },
-    { value: 'Oficial Mayor K9',    label: '🐾 Oficial Mayor K9',     color: '#22d3ee' },
-    { value: 'Instructor Guía K9',  label: '🎓 Instructor Guía K9',   color: '#34d399' },
-    { value: 'Subinspector K9',     label: '⭐ Subinspector K9',      color: '#a78bfa' },
-    { value: 'Inspector K9',        label: '⭐⭐ Inspector K9',        color: '#f59e0b' },
-    { value: 'Jefe de División K9', label: '🦅 Jefe de División K9',  color: '#fbbf24' }
+    { value: 'Aspirante K9', label: '🔰 Aspirante K9', color: '#94a3b8' },
+    { value: 'Oficial Guía K9', label: '🐾 Oficial Guía K9', color: '#38bdf8' },
+    { value: 'Oficial Mayor K9', label: '🐾 Oficial Mayor K9', color: '#22d3ee' },
+    { value: 'Instructor Guía K9', label: '🎓 Instructor Guía K9', color: '#34d399' },
+    { value: 'Subinspector K9', label: '⭐ Subinspector K9', color: '#a78bfa' },
+    { value: 'Inspector K9', label: '⭐⭐ Inspector K9', color: '#f59e0b' },
+    { value: 'Jefe de División K9', label: '🦅 Jefe de División K9', color: '#fbbf24' }
   ];
 
   // Crear modal inline de cambio de rango
@@ -2481,15 +2481,15 @@ window.editAgentRank = function (userId) {
   // Confirmar cambio
   document.getElementById('confirmEditRank').addEventListener('click', () => {
     const newPlaca = document.getElementById('editRankPlaca').value.trim();
-    const isJef   = document.getElementById('editRankIsJef').checked;
+    const isJef = document.getElementById('editRankIsJef').checked;
 
     if (!newPlaca) { showToast('Introduce una placa válida.', 'warning'); return; }
 
-    user.rank          = selectedRank;
-    user.placa         = newPlaca;
-    user.isJefatura    = isJef;
-    user.isVerified    = true;
-    user.permissions   = isJef ? ['*'] : [];
+    user.rank = selectedRank;
+    user.placa = newPlaca;
+    user.isJefatura = isJef;
+    user.isVerified = true;
+    user.permissions = isJef ? ['*'] : [];
     user.serviceStatus = isJef ? 'En Activo / Mando' : 'En Activo';
     window.K9Store.save(STORAGE_KEYS.USERS, allUsers);
 
@@ -2537,7 +2537,7 @@ window.editAgentRank = function (userId) {
 // ─── Expulsar agente de la unidad (revocar rango y registrar expulsión) ───
 window.removeAgentFromRoster = function (userId) {
   const allUsers = window.K9Store.getAllUsers ? window.K9Store.getAllUsers() : window.K9Store.getUsers();
-  const user  = allUsers.find(u => u.id === userId);
+  const user = allUsers.find(u => u.id === userId);
   if (!user) return;
 
   // Confirmación rápida con modal inline
@@ -2592,9 +2592,9 @@ window.removeAgentFromRoster = function (userId) {
     // 3. Si tenía un can asignado, liberarlo
     if (user.assignedDogId) {
       const dogs = window.K9Store.getDogs();
-      const dog  = dogs.find(d => d.id === user.assignedDogId);
+      const dog = dogs.find(d => d.id === user.assignedDogId);
       if (dog) {
-        dog.handlerId   = null;
+        dog.handlerId = null;
         dog.handlerName = 'Pendiente de Asignación';
         window.K9Store.save(STORAGE_KEYS.DOGS, dogs);
       }
@@ -2864,7 +2864,7 @@ window.deleteDog = function (dogId) {
   // Abrir modal táctico de confirmación de baja de can
   window._pendingDeleteDogId = dogId;
   const delName = document.getElementById('delDogName');
-  const delTag  = document.getElementById('delDogTag');
+  const delTag = document.getElementById('delDogTag');
   const delBreed = document.getElementById('delDogBreed');
   const delPhoto = document.getElementById('delDogPhoto');
   if (delName) delName.textContent = dog.name;
@@ -2979,8 +2979,8 @@ function renderDisciplinarySection(container) {
           </thead>
           <tbody>
             ${records.map(rec => {
-              const isInternal = rec.category === 'expediente_interno' || rec.isInternal;
-              return `
+    const isInternal = rec.category === 'expediente_interno' || rec.isInternal;
+    return `
               <tr>
                 <td style="font-family:var(--font-tactical); font-size:0.8rem;">${rec.date}</td>
                 <td><strong style="color:#fff;">${rec.agentName}</strong></td>
@@ -3021,7 +3021,8 @@ function renderDisciplinarySection(container) {
                   </div>
                 </td>
               </tr>
-            `;}).join('')}
+            `;
+  }).join('')}
           </tbody>
         </table>
       </div>
@@ -3040,13 +3041,13 @@ window.deleteDisciplinaryRecord = function (id) {
 
   // Abrir modal táctico de confirmación de baja de disciplinario
   window._pendingDeleteDiscId = id;
-  const delAgent    = document.getElementById('delDiscAgent');
+  const delAgent = document.getElementById('delDiscAgent');
   const delSeverity = document.getElementById('delDiscSeverity');
-  const delReason   = document.getElementById('delDiscReason');
+  const delReason = document.getElementById('delDiscReason');
   const delSanction = document.getElementById('delDiscSanction');
-  if (delAgent)    delAgent.textContent    = rec.agentName || 'Agente';
+  if (delAgent) delAgent.textContent = rec.agentName || 'Agente';
   if (delSeverity) delSeverity.textContent = rec.type || 'Falta';
-  if (delReason)   delReason.textContent   = rec.reason || '—';
+  if (delReason) delReason.textContent = rec.reason || '—';
   if (delSanction) delSanction.textContent = rec.sanction || '—';
   openModal('modalDeleteDisciplinary');
 };
@@ -3111,8 +3112,8 @@ function renderBadgesSection(container) {
           </thead>
           <tbody>
             ${users.map(u => {
-              const uBadges = (u.badges || []).map(bid => badges.find(b => b.id === bid)).filter(Boolean);
-              return `
+    const uBadges = (u.badges || []).map(bid => badges.find(b => b.id === bid)).filter(Boolean);
+    return `
                 <tr>
                   <td>
                     <div style="display:flex; align-items:center; gap:0.6rem;">
@@ -3144,7 +3145,7 @@ function renderBadgesSection(container) {
                   </td>
                 </tr>
               `;
-            }).join('')}
+  }).join('')}
           </tbody>
         </table>
       </div>
@@ -3546,7 +3547,7 @@ function renderLogRowsHtml(logs) {
   }).join('');
 }
 
-window.clearLogsTactical = function() {
+window.clearLogsTactical = function () {
   window.K9Store.save(STORAGE_KEYS.LOGS, []);
   if (window.K9CloudSync) window.K9CloudSync.push();
   if (window.K9Audio) window.K9Audio.playTacticalBeep(350, 0.15);
@@ -3554,7 +3555,7 @@ window.clearLogsTactical = function() {
   renderJefaturaSubtab('logs');
 };
 
-window.exportLogsDossier = function() {
+window.exportLogsDossier = function () {
   const logs = window.K9Store.getLogs();
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(logs, null, 2));
   const dl = document.createElement('a');
@@ -4270,9 +4271,9 @@ function setupModals() {
 // CHAT — DESPACHO TÁCTICO CON JEFATURA
 // ==========================================
 function renderChatSection(container) {
-  const user      = window.K9Auth.getCurrentUser();
-  const msgs      = window.K9Store.getChatMessages();
-  const isJefU    = user && user.isJefatura;
+  const user = window.K9Auth.getCurrentUser();
+  const msgs = window.K9Store.getChatMessages();
+  const isJefU = user && user.isJefatura;
 
   container.innerHTML = `
     <div class="chat-dispatch-container">
@@ -4290,40 +4291,40 @@ function renderChatSection(container) {
       <div class="chat-dispatch-feed" id="chatFeedContainer">
         ${msgs.length === 0 ? '<div style="text-align:center;color:var(--text-subtle);font-size:0.85rem;margin:3rem auto;">Sin mensajes aún. Inicia la comunicación con Jefatura.</div>' : ''}
         ${msgs.map(m => {
-          const isMine = user && (m.authorId === user.id || m.authorId === user.discordId);
-          const isJef  = m.isJefatura;
-          const ts     = m.timestamp || '';
-          const rankBadge = isJef
-            ? '<span class="chat-author-badge chat-badge-jefatura">👑 JEFATURA</span>'
-            : '<span class="chat-author-badge chat-badge-member">🐾 ' + (m.authorRank || 'AGENTE') + '</span>';
-          const deleteBtn = isJefU && !isMine
-            ? '<button onclick="window._deleteChatMsg(\'' + m.id + '\')" style="background:none;border:none;color:var(--text-subtle);cursor:pointer;font-size:0.72rem;padding:0 0.3rem;margin-left:auto;" title="Retirar mensaje">🗑️</button>'
-            : '';
-          return '<div class="chat-msg-row ' + (isMine ? 'mine' : '') + '">' +
-            '<div class="chat-avatar-wrap ' + (isJef ? 'jefatura' : '') + '">' +
-              '<img src="' + (m.authorAvatar || 'assets/images/emblem.jpg') + '" class="chat-avatar-img" onerror="this.src=\'assets/images/emblem.jpg\'">' +
-            '</div>' +
-            '<div class="chat-bubble ' + (isJef ? 'jefatura' : '') + '">' +
-              '<div class="chat-meta-bar">' +
-                '<span class="chat-author-name">' + m.authorName + '</span>' +
-                rankBadge +
-                '<span class="chat-time-tag">' + ts + '</span>' +
-                deleteBtn +
-              '</div>' +
-              '<div class="chat-body-text">' + (m.text || '').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>' +
-            '</div>' +
-          '</div>';
-        }).join('')}
+    const isMine = user && (m.authorId === user.id || m.authorId === user.discordId);
+    const isJef = m.isJefatura;
+    const ts = m.timestamp || '';
+    const rankBadge = isJef
+      ? '<span class="chat-author-badge chat-badge-jefatura">👑 JEFATURA</span>'
+      : '<span class="chat-author-badge chat-badge-member">🐾 ' + (m.authorRank || 'AGENTE') + '</span>';
+    const deleteBtn = isJefU && !isMine
+      ? '<button onclick="window._deleteChatMsg(\'' + m.id + '\')" style="background:none;border:none;color:var(--text-subtle);cursor:pointer;font-size:0.72rem;padding:0 0.3rem;margin-left:auto;" title="Retirar mensaje">🗑️</button>'
+      : '';
+    return '<div class="chat-msg-row ' + (isMine ? 'mine' : '') + '">' +
+      '<div class="chat-avatar-wrap ' + (isJef ? 'jefatura' : '') + '">' +
+      '<img src="' + (m.authorAvatar || 'assets/images/emblem.jpg') + '" class="chat-avatar-img" onerror="this.src=\'assets/images/emblem.jpg\'">' +
+      '</div>' +
+      '<div class="chat-bubble ' + (isJef ? 'jefatura' : '') + '">' +
+      '<div class="chat-meta-bar">' +
+      '<span class="chat-author-name">' + m.authorName + '</span>' +
+      rankBadge +
+      '<span class="chat-time-tag">' + ts + '</span>' +
+      deleteBtn +
+      '</div>' +
+      '<div class="chat-body-text">' + (m.text || '').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div>' +
+      '</div>' +
+      '</div>';
+  }).join('')}
       </div>
 
       <div class="chat-input-bar">
         ${user ? (
-          '<img src="' + (user.avatar || 'assets/images/emblem.jpg') + '" onerror="this.src=\'assets/images/emblem.jpg\'" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--border-tactical);flex-shrink:0;">' +
-          '<input type="text" id="chatMsgInput" class="chat-input-field" placeholder="Escribe un mensaje a Jefatura… (Intro para enviar)" maxlength="500">' +
-          '<button class="btn-tactical btn-tactical-primary btn-tactical-sm" id="btnSendChatMsg" style="flex-shrink:0;">📡 Enviar</button>'
-        ) : (
-          '<div style="flex:1;text-align:center;font-size:0.85rem;color:var(--text-muted);"><a href="#" onclick="window.K9Auth.initiateDiscordOAuth();return false;" style="color:var(--police-cyan);">Inicia sesión con Discord</a> para escribir en el Despacho.</div>'
-        )}
+      '<img src="' + (user.avatar || 'assets/images/emblem.jpg') + '" onerror="this.src=\'assets/images/emblem.jpg\'" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--border-tactical);flex-shrink:0;">' +
+      '<input type="text" id="chatMsgInput" class="chat-input-field" placeholder="Escribe un mensaje a Jefatura… (Intro para enviar)" maxlength="500">' +
+      '<button class="btn-tactical btn-tactical-primary btn-tactical-sm" id="btnSendChatMsg" style="flex-shrink:0;">📡 Enviar</button>'
+    ) : (
+      '<div style="flex:1;text-align:center;font-size:0.85rem;color:var(--text-muted);"><a href="#" onclick="window.K9Auth.initiateDiscordOAuth();return false;" style="color:var(--police-cyan);">Inicia sesión con Discord</a> para escribir en el Despacho.</div>'
+    )}
       </div>
     </div>
   `;
@@ -4333,7 +4334,7 @@ function renderChatSection(container) {
   if (feed) setTimeout(() => { feed.scrollTop = feed.scrollHeight; }, 30);
 
   const msgInput = document.getElementById('chatMsgInput');
-  const sendBtn  = document.getElementById('btnSendChatMsg');
+  const sendBtn = document.getElementById('btnSendChatMsg');
 
   const doSend = () => {
     if (!user) return;
@@ -4343,15 +4344,15 @@ function renderChatSection(container) {
     const allMsgs = window.K9Store.getChatMessages();
     const newMsg = {
       id: 'msg_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-      authorId:     user.discordId || user.id,
-      authorName:   user.name,
-      authorPlaca:  user.placa,
-      authorRank:   user.rank,
+      authorId: user.discordId || user.id,
+      authorName: user.name,
+      authorPlaca: user.placa,
+      authorRank: user.rank,
       authorAvatar: user.avatar || 'assets/images/emblem.jpg',
-      isJefatura:   !!user.isJefatura,
-      text:         text,
+      isJefatura: !!user.isJefatura,
+      text: text,
       timestamp: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) +
-                 ' · ' + new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })
+        ' · ' + new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })
     };
 
     allMsgs.push(newMsg);
@@ -4375,7 +4376,7 @@ function renderChatSection(container) {
     renderChatSection(container);
   };
 
-  if (sendBtn)  sendBtn.addEventListener('click', doSend);
+  if (sendBtn) sendBtn.addEventListener('click', doSend);
   if (msgInput) msgInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSend(); }
   });
