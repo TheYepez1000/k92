@@ -35,10 +35,12 @@ class K9SupabaseManager {
   }
 
   getConfig() {
+    const local = (typeof window !== 'undefined' && window.K9_DB_CONFIG) || {};
     const storedUrl = localStorage.getItem(SUPABASE_STORAGE_KEYS.URL);
+    const storedKey = localStorage.getItem(SUPABASE_STORAGE_KEYS.ANON_KEY);
     return {
-      url: this.normalizeUrl(storedUrl || DEFAULT_SUPABASE_URL),
-      key: (localStorage.getItem(SUPABASE_STORAGE_KEYS.ANON_KEY) || '').trim()
+      url: this.normalizeUrl(storedUrl || local.url || DEFAULT_SUPABASE_URL),
+      key: (storedKey || local.key || '').trim()
     };
   }
 
@@ -68,6 +70,12 @@ class K9SupabaseManager {
   }
 
   init() {
+    const local = (typeof window !== 'undefined' && window.K9_DB_CONFIG) || {};
+    if (local.key && !localStorage.getItem(SUPABASE_STORAGE_KEYS.ANON_KEY)) {
+      localStorage.setItem(SUPABASE_STORAGE_KEYS.ANON_KEY, local.key);
+      localStorage.setItem(SUPABASE_STORAGE_KEYS.URL, local.url || DEFAULT_SUPABASE_URL);
+    }
+
     if (!this.isConfigured()) {
       this.isConnected = false;
       this.updateIndicatorUI();
@@ -274,7 +282,7 @@ class K9SupabaseManager {
       dot.className = 'pulse-dot dot-online';
       dot.style.background = '#00e5ff';
       dot.style.boxShadow = '0 0 10px #00e5ff';
-      label.textContent = isRealtimeActive ? 'SUPABASE LIVE' : 'SUPABASE CLOUD';
+      label.textContent = isRealtimeActive ? 'TERMINAL EN VIVO' : 'EN LÍNEA';
       label.style.color = '#00e5ff';
 
       if (supabaseBadge) {

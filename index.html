@@ -127,9 +127,8 @@
           </div>
         </div>
 
-        <div class="tactical-live-status" onclick="openModal('modalCloudSync')" style="cursor:pointer;"
-          title="Ver estado de sincronización en la nube">
-          <span class="pulse-dot" id="cloudSyncDot"></span>
+        <div class="tactical-live-status" title="Terminal Policial K9 En Línea">
+          <span class="pulse-dot dot-online" id="cloudSyncDot"></span>
           <span id="cloudSyncLabel">EN LÍNEA</span>
         </div>
         <button class="audio-toggle-btn sound-on" id="audioToggleBtn" title="Activar/Silenciar Radio Táctica">
@@ -444,107 +443,7 @@
     </div>
   </div>
 
-  <!-- MODAL: SINCRONIZACIÓN EN LA NUBE MULTI-USUARIO -->
-  <div class="tactical-modal-overlay" id="modalCloudSync">
-    <div class="tactical-modal-card" style="max-width: 650px;">
-      <div class="modal-header-tactical">
-        <div class="modal-title-tactical">
-          <span>☁️</span> BASE DE DATOS Y SINCRONIZACIÓN EN LA NUBE
-        </div>
-        <button type="button" class="modal-close-btn" onclick="closeModal('modalCloudSync')">✕</button>
-      </div>
-      <div class="modal-body-tactical">
-        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.9rem;">
-          Conecta una base de datos en la nube para que todos los miembros de la Unidad K9 vean en tiempo real altas, bajas, condecoraciones, sanciones, comunicados, canes y tareas en vivo.
-        </p>
 
-        <!-- TARJETA PRINCIPAL: BASE DE DATOS SUPABASE (POSTGRESQL) -->
-        <div style="background:linear-gradient(135deg, rgba(0, 229, 255, 0.05), rgba(0, 0, 0, 0.45)); border:1px solid rgba(0, 229, 255, 0.35); border-radius:10px; padding:1.1rem; margin-bottom:1.1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; flex-wrap:wrap; gap:0.5rem;">
-            <div style="display:flex; align-items:center; gap:0.5rem;">
-              <span style="font-size:1.1rem;">⚡</span>
-              <span style="font-family:var(--font-tactical); font-size:0.88rem; font-weight:700; color:var(--police-cyan); letter-spacing:0.05em;">BASE DE DATOS SUPABASE (POSTGRESQL)</span>
-            </div>
-            <span id="supabaseStatusBadge"
-              style="font-family:var(--font-tactical); font-size:0.72rem; color:var(--tactical-amber); background:rgba(255, 184, 0, 0.1); padding:0.25rem 0.65rem; border-radius:12px; border:1px solid var(--tactical-amber);">
-              ○ MODO LOCAL / PENDIENTE DE CONECTAR
-            </span>
-          </div>
-
-          <p style="font-size:0.78rem; color:var(--text-subtle); margin-bottom:0.9rem; line-height:1.4;">
-            Sincronización instantánea mediante WebSockets y persistencia SQL definitiva. Sin servidores intermedios y 100% gratuita.
-          </p>
-
-          <div class="form-group-tactical" style="margin-bottom:0.75rem;">
-            <label class="form-label-tactical" for="supabaseUrlInput" style="display:flex; justify-content:space-between;">
-              <span>PROJECT URL (SUPABASE)</span>
-              <span style="color:var(--text-subtle); font-size:0.7rem; font-family:var(--font-sans);">Ej: https://xyzcompany.supabase.co</span>
-            </label>
-            <input type="text" id="supabaseUrlInput" class="form-input-tactical"
-              placeholder="https://abcdefghijklm.supabase.co">
-          </div>
-
-          <div class="form-group-tactical" style="margin-bottom:0.9rem;">
-            <label class="form-label-tactical" for="supabaseKeyInput" style="display:flex; justify-content:space-between;">
-              <span>ANON PUBLIC KEY (API KEY)</span>
-              <span style="color:var(--text-subtle); font-size:0.7rem; font-family:var(--font-sans);">eyJhbGciOi... (Clave anónima pública)</span>
-            </label>
-            <input type="password" id="supabaseKeyInput" class="form-input-tactical"
-              placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
-          </div>
-
-          <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:0.75rem;">
-            <button type="button" class="btn-tactical btn-tactical-gold btn-tactical-sm" id="btnSaveSupabase">
-              💾 Guardar y Conectar
-            </button>
-            <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" id="btnTestSupabase" style="color:#00e5ff; border-color:rgba(0,229,255,0.4);">
-              ⚡ Probar Conexión
-            </button>
-            <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" id="btnMigrateSupabase">
-              📤 Subir Datos Locales a Supabase
-            </button>
-            <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" id="btnCopySupabaseSQL">
-              📋 Copiar Script SQL
-            </button>
-          </div>
-
-          <div id="supabaseTestResult" style="display:none; font-size:0.8rem; padding:0.5rem 0.75rem; border-radius:6px; margin-top:0.5rem;"></div>
-        </div>
-
-        <!-- TARJETA SECUNDARIA: SERVIDOR REST O FIREBASE -->
-        <details style="background:rgba(0,0,0,0.25); border:1px solid var(--border-tactical); border-radius:8px; padding:0.75rem 1rem; margin-bottom:0.75rem;">
-          <summary style="cursor:pointer; font-size:0.8rem; font-family:var(--font-tactical); color:var(--text-muted); display:flex; justify-content:space-between; align-items:center;">
-            <span>🌐 SERVIDOR REST ALTERNATIVO O FIREBASE (OPCIONAL)</span>
-            <span id="syncModalStatusBadge" style="font-size:0.72rem; color:var(--tactical-green); background:rgba(0,230,118,0.12); padding:0.15rem 0.5rem; border-radius:10px; border:1px solid var(--tactical-green);">
-              ● EN LÍNEA
-            </span>
-          </summary>
-          <div style="margin-top:0.75rem;">
-            <div class="form-group-tactical" style="margin-bottom:0.6rem;">
-              <label class="form-label-tactical" for="syncEndpointInput">ENDPOINT REST / FIREBASE</label>
-              <input type="text" id="syncEndpointInput" class="form-input-tactical"
-                placeholder="Predeterminado: /api/sync o URL de Firebase">
-            </div>
-            <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-              <button type="button" class="btn-tactical btn-tactical-gold btn-tactical-sm" id="btnForceSyncNow">
-                🔄 Sincronizar Ahora
-              </button>
-              <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" id="btnSaveSyncEndpoint">
-                💾 Guardar Servidor
-              </button>
-            </div>
-          </div>
-        </details>
-
-        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-subtle); padding-top:0.75rem; flex-wrap:wrap; gap:0.5rem;">
-          <span style="font-size:0.75rem; color:var(--text-subtle);">Sincronización continua de datos tácticos</span>
-          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" id="btnExportSyncData">
-            📋 Copiar Respaldo JSON Completo
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
 
 
   <!-- MODAL: NUEVO INFORME SEMANAL -->
@@ -1763,6 +1662,8 @@
     </div>
   </div>
 
+  <!-- Configuración de Base de Datos Privada (Protegida por .gitignore) -->
+  <script src="js/config.local.js"></script>
   <!-- Base de Datos Supabase (PostgreSQL en la Nube y WebSockets en Vivo) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase.js"></script>
