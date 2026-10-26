@@ -366,20 +366,17 @@ function mergeDatasets(existing, incoming) {
 
   const result = Object.assign({}, existing);
 
-  // 0. Lista de usuarios expulsados (Tombstones para que nunca resuciten)
-  const expelledSet = new Set([
-    ...(Array.isArray(existing.expelledUserIds) ? existing.expelledUserIds : []),
-    ...(Array.isArray(incoming.expelledUserIds) ? incoming.expelledUserIds : [])
-  ]);
-  result.expelledUserIds = Array.from(expelledSet);
+  // 0. Lista de usuarios expulsados (autoritativa si incoming la envía, permitiendo readmisiones)
+  if (Array.isArray(incoming.expelledUserIds)) {
+    result.expelledUserIds = incoming.expelledUserIds;
+  } else if (!Array.isArray(result.expelledUserIds)) {
+    result.expelledUserIds = [];
+  }
+  const expelledSet = new Set(result.expelledUserIds);
 
-  // 1. Usuarios: Si incoming viene enviado de forma autoritativa, actualiza la lista respetando expulsiones
+  // 1. Directorio de usuarios: autoritativo si incoming lo envía
   if (Array.isArray(incoming.users)) {
-    result.users = incoming.users.filter(u => {
-      const key1 = u.discordId;
-      const key2 = u.id;
-      return !expelledSet.has(key1) && !expelledSet.has(key2);
-    });
+    result.users = incoming.users;
   }
 
   // 2. Presets de Jefatura

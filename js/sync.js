@@ -69,7 +69,7 @@ class K9CloudSyncManager {
     return {
       version: 2,
       updatedAt: Date.now(),
-      users: window.K9Store.getUsers() || [],
+      users: (window.K9Store.getAllUsers ? window.K9Store.getAllUsers() : window.K9Store.getUsers()) || [],
       presets: window.K9Store.getAgentPresets() || [],
       dogs: window.K9Store.getDogs() || [],
       dogRequests: window.K9Store.getDogRequests() || [],
@@ -173,11 +173,9 @@ class K9CloudSyncManager {
     if (!window.K9Store) return;
     let hasChanges = false;
 
-    // 0. Sincronizar agentes expulsados (Tombstones permanentes)
-    if (Array.isArray(remote.expelledUserIds) && remote.expelledUserIds.length > 0) {
-      remote.expelledUserIds.forEach(id => {
-        window.K9Store.addExpelledUserId(id);
-      });
+    // 0. Sincronizar agentes expulsados (refleja expulsiones y readmisiones)
+    if (Array.isArray(remote.expelledUserIds)) {
+      window.K9Store.save(STORAGE_KEYS.EXPELLED_USERS, remote.expelledUserIds);
     }
     const expelled = window.K9Store.getExpelledUserIds();
 
@@ -188,10 +186,9 @@ class K9CloudSyncManager {
       hasChanges = true;
     }
 
-    // 2. Directorio de usuarios y rangos (Respetando expulsiones y evitando resucitar miembros)
+    // 2. Directorio completo de usuarios (preservando estados)
     if (Array.isArray(remote.users)) {
-      const validUsers = remote.users.filter(u => !expelled.includes(u.id) && !expelled.includes(u.discordId));
-      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(validUsers));
+      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(remote.users));
       hasChanges = true;
     }
 

@@ -564,7 +564,7 @@ class K9DataStore {
     return ts ? parseInt(ts, 10) : 0;
   }
 
-  // Gestión de agentes expulsados (Tombstones para evitar que reaparezcan)
+  // Gestión de agentes expulsados (Tombstones y readmisión)
   getExpelledUserIds() {
     const list = this.get(STORAGE_KEYS.EXPELLED_USERS);
     return Array.isArray(list) ? list : [];
@@ -580,17 +580,39 @@ class K9DataStore {
     }
   }
 
+  removeExpelledUserId(idOrDiscordId) {
+    if (!idOrDiscordId) return;
+    const list = this.getExpelledUserIds();
+    const updated = list.filter(item => item !== idOrDiscordId);
+    if (updated.length !== list.length) {
+      this.save(STORAGE_KEYS.EXPELLED_USERS, updated);
+    }
+  }
+
+  clearExpelledUser(id, discordId) {
+    let list = this.getExpelledUserIds();
+    const originalLen = list.length;
+    list = list.filter(item => item !== id && (!discordId || item !== discordId));
+    if (list.length !== originalLen) {
+      this.save(STORAGE_KEYS.EXPELLED_USERS, list);
+    }
+  }
+
   isExpelled(id, discordId) {
     const list = this.getExpelledUserIds();
-    return (id && list.includes(id)) || (discordId && list.includes(discordId));
+    return Boolean((id && list.includes(id)) || (discordId && list.includes(discordId)));
   }
 
   // Métodos de acceso rápido con protección contra listas vacías accidentales
-  getUsers() {
+  getAllUsers() {
+    return this.get(STORAGE_KEYS.USERS) || [];
+  }
+
+  getUsers(includeExpelled = false) {
     const users = this.get(STORAGE_KEYS.USERS) || [];
+    if (includeExpelled) return users;
     const expelled = this.getExpelledUserIds();
-    if (expelled.length === 0) return users;
-    return users.filter(u => !expelled.includes(u.id) && !expelled.includes(u.discordId));
+    return users.filter(u => !u.isExpelled && !expelled.includes(u.id) && !expelled.includes(u.discordId));
   }
 
   getDogs() {

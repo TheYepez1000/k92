@@ -1145,6 +1145,39 @@ function renderMemberProfile() {
     return;
   }
 
+  // Si el agente está expulsado de la unidad
+  if (user.isExpelled || (window.K9Store && window.K9Store.isExpelled && window.K9Store.isExpelled(user.id, user.discordId))) {
+    container.innerHTML = `
+      <div class="empty-state-box" style="margin:3rem auto; max-width:620px; border:1px solid rgba(255,59,48,0.5); background:linear-gradient(135deg,rgba(18,24,38,0.95),rgba(35,10,10,0.85)); padding:2.5rem 2rem; box-shadow:0 10px 40px rgba(255,0,0,0.25);">
+        <div class="empty-icon" style="font-size:3rem; margin-bottom:0.75rem;">🚫</div>
+        <h3 class="font-tactical" style="color:#ff5252; margin-bottom:0.5rem; font-size:1.35rem; letter-spacing:0.04em;">EXPEDIENTE DADO DE BAJA / EXPULSADO</h3>
+        <p style="color:#fff; font-size:0.95rem; margin-bottom:0.5rem;">
+          Agente: <strong>${user.name}</strong> (@${user.discordUsername || '—'}).
+        </p>
+        <p style="color:var(--text-muted); font-size:0.86rem; line-height:1.6; margin-bottom:1.5rem;">
+          Tu ficha y placa operativa han sido <strong style="color:#ff5252;">dadas de baja de la Unidad K9 por decisión de Jefatura</strong>.<br>
+          No dispones de acceso operativo a binomios, expedientes ni al despacho de mandos.
+        </p>
+        <div style="background:rgba(0,0,0,0.4); border:1px dashed rgba(255,59,48,0.4); border-radius:8px; padding:1.2rem; margin-bottom:1.5rem; text-align:center;">
+          <div style="font-size:0.72rem; color:var(--text-subtle); letter-spacing:0.08em; margin-bottom:0.4rem;">IDENTIFICADOR DISCORD DEL EXPEDIENTE:</div>
+          <code style="font-family:var(--font-mono); font-size:1.15rem; color:#ff8080; font-weight:700; background:rgba(255,59,48,0.1); padding:0.3rem 0.8rem; border-radius:6px; letter-spacing:0.05em;">${user.discordId || '—'}</code>
+          <p style="font-size:0.75rem; color:var(--text-muted); margin:0.5rem 0 0;">
+            Si la Jefatura aprueba tu readmisión, tu expediente volverá a activarse automáticamente y podrás volver a operar.
+          </p>
+        </div>
+        <div style="display:flex; justify-content:center; gap:0.75rem; flex-wrap:wrap;">
+          <button class="btn-tactical btn-tactical-primary btn-tactical-sm" onclick="switchGeneralSubtab('normativas')">
+            ⚖️ Ver Normativas Oficiales
+          </button>
+          <button class="btn-tactical btn-tactical-gold btn-tactical-sm" onclick="switchGeneralSubtab('galeria')">
+            🐕 Galería de Canes K9
+          </button>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
   // Si el usuario no tiene rango asignado por Jefatura, bloquear Mi Perfil
   if (!user.isVerified || user.rank === 'Sin Rango Asignado' || (typeof user.rank === 'string' && user.rank.includes('Pendiente'))) {
     container.innerHTML = `
@@ -1940,11 +1973,12 @@ window.denyDogRequest = function (reqId) {
 // SUBTAB 2: APARTADO DE AGENTES
 // ─────────────────────────────────────────────────────────────────
 function renderAgentsSection(container) {
-  const users = window.K9Store.getUsers();
+  const allUsers = window.K9Store.getAllUsers ? window.K9Store.getAllUsers() : window.K9Store.getUsers();
+  const activeUsers = allUsers.filter(u => !u.isExpelled && !window.K9Store.isExpelled(u.id, u.discordId));
   const dogs = window.K9Store.getDogs();
   const pendingReqs = (window.K9Store.getDogRequests ? window.K9Store.getDogRequests() : []).filter(r => r.status === 'pendiente');
   const presets = window.K9Store.getAgentPresets ? window.K9Store.getAgentPresets() : [];
-  const pendingDiscordUsers = users.filter(u => !u.isVerified || u.rank === 'Sin Rango Asignado' || (typeof u.rank === 'string' && u.rank.includes('Pendiente')));
+  const pendingDiscordUsers = activeUsers.filter(u => !u.isVerified || u.rank === 'Sin Rango Asignado' || (typeof u.rank === 'string' && u.rank.includes('Pendiente')));
 
   container.innerHTML = `
     <!-- 0. LISTA DE USUARIOS AUTENTICADOS CON DISCORD EN ESPERA DE ASIGNACIÓN DE RANGO -->
@@ -1954,7 +1988,7 @@ function renderAgentsSection(container) {
           <span style="font-size:1.4rem;">👥</span>
           <div>
             <h3 class="font-tactical" style="font-size:1.05rem; margin:0; color:${pendingDiscordUsers.length > 0 ? 'var(--tactical-gold)' : '#fff'};">
-              USUARIOS AUTENTICADOS CON DISCORD (${users.length} TOTAL / ${pendingDiscordUsers.length} PENDIENTES DE RANGO)
+              USUARIOS AUTENTICADOS CON DISCORD (${allUsers.length} TOTAL / ${pendingDiscordUsers.length} PENDIENTES DE RANGO)
             </h3>
             <span style="font-size:0.75rem; color:var(--text-muted);">
               Listado en tiempo real de todos los agentes que han iniciado sesión con su cuenta de Discord en el portal K9
@@ -2152,7 +2186,7 @@ function renderAgentsSection(container) {
             </tr>
           </thead>
           <tbody id="agentsTableBody">
-            ${renderAgentsTableRows(users, dogs)}
+            ${renderAgentsTableRows(allUsers, dogs)}
           </tbody>
         </table>
       </div>
@@ -2253,10 +2287,10 @@ function renderAgentsSection(container) {
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
       const q = e.target.value.toLowerCase();
-      const filtered = users.filter(u =>
-        u.name.toLowerCase().includes(q) ||
-        u.placa.toLowerCase().includes(q) ||
-        u.rank.toLowerCase().includes(q)
+      const filtered = allUsers.filter(u =>
+        (u.name || '').toLowerCase().includes(q) ||
+        (u.placa || '').toLowerCase().includes(q) ||
+        (u.rank || '').toLowerCase().includes(q)
       );
       document.getElementById('agentsTableBody').innerHTML = renderAgentsTableRows(filtered, dogs);
     });
@@ -2277,19 +2311,24 @@ function renderAgentsTableRows(users, dogs) {
   if (!users || users.length === 0) return '';
   return users.map(u => {
     const dog = dogs.find(d => d.id === u.assignedDogId);
+    const isExp = u.isExpelled || (window.K9Store && window.K9Store.isExpelled && window.K9Store.isExpelled(u.id, u.discordId));
     return `
-      <tr>
+      <tr style="${isExp ? 'background:rgba(255,59,48,0.04);' : ''}">
         <td>
           <div style="display:flex; align-items:center; gap:0.75rem;">
-            <img src="${u.avatar}" style="width:36px; height:36px; border-radius:50%; object-fit:cover; border:1px solid var(--border-tactical);" alt="${u.name}" onerror="this.src='assets/images/emblem.jpg'">
+            <img src="${u.avatar}" style="width:36px; height:36px; border-radius:50%; object-fit:cover; border:1px solid ${isExp ? 'rgba(255,59,48,0.5)' : 'var(--border-tactical)'}; opacity:${isExp ? '0.75' : '1'};" alt="${u.name}" onerror="this.src='assets/images/emblem.jpg'">
             <div>
-              <strong style="color:#fff; font-family:var(--font-tactical);">${u.name}</strong>
-              <div style="font-family:var(--font-headline); font-size:0.75rem; color:var(--police-cyan);">PLACA #${u.placa}</div>
+              <strong style="color:${isExp ? '#ff8080' : '#fff'}; font-family:var(--font-tactical);">${u.name}</strong>
+              <div style="font-family:var(--font-headline); font-size:0.75rem; color:${isExp ? '#ff5252' : 'var(--police-cyan)'};">PLACA #${u.placa}</div>
             </div>
           </div>
         </td>
         <td>
-          ${(!u.isVerified || u.rank === 'Sin Rango Asignado') ? `
+          ${isExp ? `
+            <span style="font-family:var(--font-headline); letter-spacing:0.05em; color:#ff5252; background:rgba(255,59,48,0.15); border:1px solid rgba(255,59,48,0.4); padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem; font-weight:700; display:inline-block;">
+              🚫 EXPULSADO
+            </span>
+          ` : (!u.isVerified || u.rank === 'Sin Rango Asignado') ? `
             <span style="font-family:var(--font-headline); letter-spacing:0.05em; color:var(--tactical-gold); background:rgba(255,183,3,0.15); border:1px solid var(--border-gold); padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem; font-weight:700; display:inline-block;">
               ⚠️ PENDIENTE DE RANGO
             </span>
@@ -2317,21 +2356,27 @@ function renderAgentsTableRows(users, dogs) {
           <span style="font-family:var(--font-tactical); color:var(--tactical-gold);">${(u.badges || []).length} 🎖️</span>
         </td>
         <td>
-          <span style="font-family:var(--font-tactical); font-size:0.75rem; color:${(!u.isVerified || u.rank === 'Sin Rango Asignado') ? 'var(--tactical-gold)' : 'var(--tactical-green)'}; background:${(!u.isVerified || u.rank === 'Sin Rango Asignado') ? 'rgba(255,183,3,0.12)' : 'rgba(0,230,118,0.1)'}; border:1px solid currentColor; padding:0.2rem 0.5rem; border-radius:15px;">
-            ${u.serviceStatus || 'En Espera'}
+          <span style="font-family:var(--font-tactical); font-size:0.75rem; color:${isExp ? '#ff5252' : (!u.isVerified || u.rank === 'Sin Rango Asignado') ? 'var(--tactical-gold)' : 'var(--tactical-green)'}; background:${isExp ? 'rgba(255,59,48,0.1)' : (!u.isVerified || u.rank === 'Sin Rango Asignado') ? 'rgba(255,183,3,0.12)' : 'rgba(0,230,118,0.1)'}; border:1px solid currentColor; padding:0.2rem 0.5rem; border-radius:15px; font-weight:700;">
+            ${isExp ? 'Expulsado por Jefatura' : (u.serviceStatus || 'En Espera')}
           </span>
         </td>
         <td>
           <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
-            <button class="btn-tactical btn-tactical-gold btn-tactical-sm" onclick="editAgentRank('${u.id}')" title="Modificar rango y permisos">
-              ${(!u.isVerified || u.rank === 'Sin Rango Asignado') ? '🎖️ Asignar Rango' : '🎖️ Rango'}
-            </button>
-            <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="editAgentDogAssignment('${u.id}')" title="Asignar o cambiar can">
-              🐕 Can
-            </button>
-            <button class="btn-tactical btn-tactical-sm" onclick="removeAgentFromRoster('${u.id}')" title="Expulsar agente de la unidad" style="background:rgba(255,59,48,0.12); border:1px solid rgba(255,59,48,0.4); color:#ff5252; font-weight:700;">
-              🚫 Expulsar
-            </button>
+            ${isExp ? `
+              <button class="btn-tactical btn-tactical-sm" onclick="window.readmitAgent('${u.id}')" title="Quitar la expulsión y readmitir en la Unidad K9" style="background:rgba(0,230,118,0.18); border:1px solid #00e676; color:#00e676; font-weight:700; white-space:nowrap;">
+                🟢 Readmitir
+              </button>
+            ` : `
+              <button class="btn-tactical btn-tactical-gold btn-tactical-sm" onclick="editAgentRank('${u.id}')" title="Modificar rango y permisos">
+                ${(!u.isVerified || u.rank === 'Sin Rango Asignado') ? '🎖️ Asignar Rango' : '🎖️ Rango'}
+              </button>
+              <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="editAgentDogAssignment('${u.id}')" title="Asignar o cambiar can">
+                🐕 Can
+              </button>
+              <button class="btn-tactical btn-tactical-sm" onclick="removeAgentFromRoster('${u.id}')" title="Expulsar agente de la unidad" style="background:rgba(255,59,48,0.12); border:1px solid rgba(255,59,48,0.4); color:#ff5252; font-weight:700;">
+                🚫 Expulsar
+              </button>
+            `}
           </div>
         </td>
       </tr>
@@ -2340,8 +2385,8 @@ function renderAgentsTableRows(users, dogs) {
 }
 
 window.editAgentRank = function (userId) {
-  const users = window.K9Store.getUsers();
-  const user = users.find(u => u.id === userId);
+  const allUsers = window.K9Store.getAllUsers ? window.K9Store.getAllUsers() : window.K9Store.getUsers();
+  const user = allUsers.find(u => u.id === userId);
   if (!user) return;
 
   const RANKS = [
@@ -2446,7 +2491,7 @@ window.editAgentRank = function (userId) {
     user.isVerified    = true;
     user.permissions   = isJef ? ['*'] : [];
     user.serviceStatus = isJef ? 'En Activo / Mando' : 'En Activo';
-    window.K9Store.save(STORAGE_KEYS.USERS, users);
+    window.K9Store.save(STORAGE_KEYS.USERS, allUsers);
 
     // Persistir preset para futuros logins
     if (user.discordId) {
@@ -2489,10 +2534,10 @@ window.editAgentRank = function (userId) {
   });
 };
 
-// ─── Expulsar agente de la unidad (revocar rango y eliminar de la lista) ───
+// ─── Expulsar agente de la unidad (revocar rango y registrar expulsión) ───
 window.removeAgentFromRoster = function (userId) {
-  const users = window.K9Store.getUsers();
-  const user  = users.find(u => u.id === userId);
+  const allUsers = window.K9Store.getAllUsers ? window.K9Store.getAllUsers() : window.K9Store.getUsers();
+  const user  = allUsers.find(u => u.id === userId);
   if (!user) return;
 
   // Confirmación rápida con modal inline
@@ -2509,7 +2554,7 @@ window.removeAgentFromRoster = function (userId) {
       <p style="color:var(--text-muted);font-size:0.88rem;margin-bottom:1.5rem;line-height:1.5;">
         ¿Estás seguro de que quieres <strong style="color:#ff5252;">expulsar</strong> a
         <strong style="color:#fff;">${user.name}</strong> [${user.placa}] de la Unidad K9?<br>
-        <small style="color:#64748b;">Se revocará su rango y dejará de tener acceso.</small>
+        <small style="color:#64748b;">Se revocará su rango y acceso operativo. Jefatura podrá readmitirlo en cualquier momento.</small>
       </p>
       <div style="display:flex;gap:0.75rem;">
         <button id="cancelKick" class="btn-tactical btn-tactical-outline" style="flex:1;justify-content:center;">Cancelar</button>
@@ -2524,12 +2569,18 @@ window.removeAgentFromRoster = function (userId) {
   overlay.addEventListener('click', (e) => { if (e.target === overlay) closeK(); });
 
   document.getElementById('confirmKick').addEventListener('click', () => {
-    // 0. Registrar permanentemente como expulsado (tombstone para que la sincronización en la nube nunca lo resucite)
+    // 0. Registrar permanentemente como expulsado en la lista de expulsiones
     window.K9Store.addExpelledUserId(user.id, user.discordId);
 
-    // 1. Quitar de la lista de usuarios
-    const remainingUsers = window.K9Store.getUsers().filter(u => u.id !== user.id && (!user.discordId || u.discordId !== user.discordId));
-    window.K9Store.save(STORAGE_KEYS.USERS, remainingUsers);
+    // 1. Marcar usuario como expulsado en la base de datos (para permitir que Jefatura lo vea y pueda readmitirlo)
+    user.isExpelled = true;
+    user.rank = '🚫 Expulsado de la Unidad';
+    user.isVerified = false;
+    user.isJefatura = false;
+    user.permissions = [];
+    user.serviceStatus = 'Expulsado por Jefatura';
+    user.expelledAt = new Date().toLocaleDateString('es-ES');
+    window.K9Store.save(STORAGE_KEYS.USERS, allUsers);
 
     // 2. Eliminar su preset para que no pueda recuperar el rango en el próximo login
     if (user.discordId) {
@@ -2547,6 +2598,7 @@ window.removeAgentFromRoster = function (userId) {
         dog.handlerName = 'Pendiente de Asignación';
         window.K9Store.save(STORAGE_KEYS.DOGS, dogs);
       }
+      user.assignedDogId = null;
     }
 
     // 4. Si el usuario actual es el expulsado, cerrar sesión
@@ -2560,7 +2612,7 @@ window.removeAgentFromRoster = function (userId) {
       window.K9CloudSync.push();
     }
 
-    // 4. Log webhook
+    // 6. Log webhook
     if (window.K9Webhook) {
       const admin = window.K9Auth.getCurrentUser();
       if (admin) {
@@ -2583,9 +2635,99 @@ window.removeAgentFromRoster = function (userId) {
   });
 };
 
+// ─── Readmitir agente en la unidad (revocar expulsión y reactivar expediente) ───
+window.readmitAgent = function (userId) {
+  const allUsers = window.K9Store.getAllUsers ? window.K9Store.getAllUsers() : window.K9Store.getUsers();
+  const user = allUsers.find(u => u.id === userId);
+  if (!user) return;
+
+  const existing = document.getElementById('modalReadmitAgent');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'modalReadmitAgent';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(5,9,20,0.85);backdrop-filter:blur(6px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;';
+  overlay.innerHTML = `
+    <div style="background:linear-gradient(135deg,#0d1424,#072018);border:1px solid rgba(0,230,118,0.4);border-radius:14px;padding:2rem;width:100%;max-width:440px;box-shadow:0 25px 60px rgba(0,0,0,0.7);text-align:center;">
+      <div style="font-size:2.5rem;margin-bottom:0.75rem;">🟢</div>
+      <h3 style="margin:0 0 0.5rem;color:#00e676;font-family:var(--font-tactical);font-size:1.15rem;letter-spacing:0.04em;">READMITIR AGENTE EN K9</h3>
+      <p style="color:var(--text-muted);font-size:0.88rem;margin-bottom:1.5rem;line-height:1.5;">
+        ¿Deseas levantar la expulsión de <strong style="color:#fff;">${user.name}</strong> [${user.placa}] y concederle de nuevo acceso a la Unidad K9?<br>
+        <small style="color:#94a3b8;">Su expediente se reactivará como Aspirante K9 y podrá volver a entrar con Discord con normalidad.</small>
+      </p>
+      <div style="display:flex;gap:0.75rem;">
+        <button id="cancelReadmit" class="btn-tactical btn-tactical-outline" style="flex:1;justify-content:center;">Cancelar</button>
+        <button id="confirmReadmit" class="btn-tactical btn-tactical-sm" style="flex:1;justify-content:center;background:rgba(0,230,118,0.2);border:1px solid #00e676;color:#00e676;font-weight:700;">🟢 Readmitir</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  const closeR = () => overlay.remove();
+  document.getElementById('cancelReadmit').addEventListener('click', closeR);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeR(); });
+
+  document.getElementById('confirmReadmit').addEventListener('click', () => {
+    // 1. Quitar de la lista de expulsados
+    window.K9Store.clearExpelledUser(user.id, user.discordId);
+
+    // 2. Reactivar usuario en la base de datos
+    user.isExpelled = false;
+    user.rank = 'Aspirante K9';
+    user.serviceStatus = 'En Activo';
+    user.isVerified = true;
+    user.isJefatura = false;
+    user.permissions = [];
+    user.readmittedAt = new Date().toLocaleDateString('es-ES');
+    delete user.expelledAt;
+    window.K9Store.save(STORAGE_KEYS.USERS, allUsers);
+
+    // 3. Crear preset para que cuando entre con Discord mantenga su estado activo
+    if (user.discordId) {
+      const presets = window.K9Store.getAgentPresets ? window.K9Store.getAgentPresets() : [];
+      const cleanPresets = presets.filter(p => p.discordId !== user.discordId);
+      cleanPresets.push({
+        discordId: user.discordId,
+        discordUsername: user.discordUsername || '',
+        placa: user.placa || 'K-99',
+        rank: user.rank,
+        isJefatura: false,
+        permissions: [],
+        serviceStatus: 'En Activo',
+        createdAt: new Date().toLocaleDateString('es-ES')
+      });
+      window.K9Store.save(STORAGE_KEYS.AGENT_PRESETS, cleanPresets);
+    }
+
+    // 4. Log webhook
+    if (window.K9Webhook) {
+      const admin = window.K9Auth.getCurrentUser();
+      window.K9Webhook.sendLog({
+        title: '🟢 Agente Readmitido en la Unidad K9',
+        color: 0x00e676,
+        fields: [
+          { name: 'Mando', value: admin ? admin.name + ' (' + admin.placa + ')' : 'Jefatura', inline: true },
+          { name: 'Agente Readmitido', value: user.name + ' [' + user.placa + ']', inline: true },
+          { name: 'Discord', value: user.discordId || user.discordUsername || '—', inline: true }
+        ]
+      });
+    }
+
+    // 5. Sincronizar inmediatamente en la nube
+    if (window.K9CloudSync) {
+      window.K9CloudSync.push();
+    }
+
+    if (window.K9Audio) window.K9Audio.playTacticalBeep(880, 0.15);
+    showToast(`🟢 ${user.name} ha sido readmitido en la Unidad K9. Puede volver a entrar.`, 'success');
+    closeR();
+    renderJefaturaSubtab('agentes');
+  });
+};
+
 window.editAgentDogAssignment = function (userId) {
-  const users = window.K9Store.getUsers();
-  const user = users.find(u => u.id === userId);
+  const allUsers = window.K9Store.getAllUsers ? window.K9Store.getAllUsers() : window.K9Store.getUsers();
+  const user = allUsers.find(u => u.id === userId);
   const dogs = window.K9Store.getDogs();
 
   if (!user) return;
@@ -2610,7 +2752,7 @@ window.editAgentDogAssignment = function (userId) {
     }
   }
 
-  window.K9Store.save(STORAGE_KEYS.USERS, users);
+  window.K9Store.save(STORAGE_KEYS.USERS, allUsers);
   showToast(`Asignación de binomio actualizada para ${user.name}`, 'success');
   renderJefaturaSubtab('agentes');
 };
