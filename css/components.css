@@ -22,6 +22,41 @@
 }
 
 /* ==========================================================================
+   IMAGEN DE FONDO CINEMÁTICA K9 (POLICÍAS, PERRO Y PATRULLA)
+   ========================================================================== */
+.hero-backdrop-img-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.hero-backdrop-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 36%;
+  opacity: 0.46;
+  filter: contrast(1.15) brightness(0.82) saturate(1.1);
+  transform: scale(1.02);
+  transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease;
+}
+
+.k9-hero-banner:hover .hero-backdrop-img {
+  transform: scale(1.04);
+  opacity: 0.52;
+}
+
+.hero-backdrop-overlay {
+  position: absolute;
+  inset: 0;
+  background: 
+    linear-gradient(180deg, rgba(4, 6, 9, 0.4) 0%, rgba(4, 6, 9, 0.68) 45%, rgba(4, 6, 9, 0.94) 88%, var(--color-void-black) 100%),
+    radial-gradient(ellipse at center, rgba(4, 6, 9, 0.2) 20%, rgba(4, 6, 9, 0.82) 80%);
+}
+
+/* ==========================================================================
    HAZ DE LUCES DIAGONALES NEÓN (ATMÓSFERA RAYCAST)
    Composición diagonal en perspectiva con resplandor cyan, azul y coral
    ========================================================================== */
@@ -29,8 +64,10 @@
   position: absolute;
   inset: -15% -25%;
   pointer-events: none;
-  z-index: 1;
+  z-index: 2;
   overflow: hidden;
+  mix-blend-mode: screen;
+  opacity: 0.72;
 }
 
 /* Resplandor atmosférico central azul oscuro */
@@ -153,7 +190,7 @@
 .hero-content,
 .raycast-hero-content {
   position: relative;
-  z-index: 2;
+  z-index: 3;
   padding: 4.5rem 2rem 3rem;
   display: flex;
   flex-direction: column;
