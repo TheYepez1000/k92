@@ -37,8 +37,8 @@ class K9AuthManager {
     if (!user) return false;
     if (user.discordId === '578954458948698122' || user.discordId === '760159743616090164') return true;
     if (user.isExpelled) return false;
-    // Si es TheKid (Mando Supremo), Staff Jefatura LSPD, Coordinador K9 o tiene el comodín '*'
-    if (user.rank === 'TheKid' || user.rank === 'Jefatura LSPD' || user.rank === 'Staff LSPD' || user.rank === 'Coordinador K9' || user.rank === 'Jefe de División K9' || (user.permissions && user.permissions.includes('*'))) {
+    // Si es Staff Jefatura LSPD, Coordinador K9 o tiene el comodín '*'
+    if (user.rank === 'Jefatura LSPD' || user.rank === 'Staff LSPD' || user.rank === 'Coordinador K9' || user.rank === 'Jefe de División K9' || (user.permissions && user.permissions.includes('*'))) {
       return true;
     }
     if (!user.permissions || !Array.isArray(user.permissions)) {
@@ -53,7 +53,7 @@ class K9AuthManager {
     if (!user) return false;
     if (user.discordId === '578954458948698122' || user.discordId === '760159743616090164') return true;
     if (user.isExpelled) return false;
-    return !!(user.isJefatura || user.rank === 'TheKid' || user.rank === 'Jefatura LSPD' || user.rank === 'Staff LSPD' || user.rank === 'Coordinador K9' || user.rank === 'Subcoordinador K9' || this.hasPermission('view_jefatura', user) || (user.permissions && user.permissions.length > 0));
+    return !!(user.isJefatura || user.rank === 'Jefatura LSPD' || user.rank === 'Staff LSPD' || user.rank === 'Coordinador K9' || user.rank === 'Subcoordinador K9' || this.hasPermission('view_jefatura', user) || (user.permissions && user.permissions.length > 0));
   }
 
   // Iniciar sesión / registrar usuario con identidad de Discord
@@ -88,15 +88,14 @@ class K9AuthManager {
     // Si es el ID oficial de Jefatura (578954458948698122 o 760159743616090164), asegurar siempre rango de Mando Supremo
     const isAdminId = profileData.discordId === '578954458948698122' || profileData.discordId === '760159743616090164';
     if (isAdminId && !preset) {
-      const isTheKid = profileData.discordId === '578954458948698122';
       preset = {
         discordId: profileData.discordId,
-        discordUsername: isTheKid ? 'TheKid' : (profileData.discordUsername || 'Coordinador K9'),
+        discordUsername: profileData.discordUsername || 'Jefatura K9',
         placa: 'K-01',
-        rank: isTheKid ? 'TheKid' : 'Coordinador K9',
+        rank: 'Coordinador K9',
         isJefatura: true,
         permissions: ['*'],
-        serviceStatus: isTheKid ? 'En Activo / Mando Supremo' : 'En Activo / Mando'
+        serviceStatus: 'En Activo / Mando'
       };
     }
 
@@ -104,13 +103,9 @@ class K9AuthManager {
       // Usuario nuevo que inicia sesión con Discord sin estar guardado previamente:
       // Se le asigna por defecto "Sin Rango" hasta que la Jefatura lo valide y asigne rango oficial.
       const hasPreset = !!preset;
-      let assignedRank = hasPreset ? preset.rank : (profileData.discordId === '578954458948698122' ? 'TheKid' : (isAdminId ? 'Coordinador K9' : 'Sin Rango'));
-      // Bloqueo estricto: nadie más puede crearse con TheKid
-      if (assignedRank === 'TheKid' && profileData.discordId !== '578954458948698122') {
-        assignedRank = 'Sin Rango';
-      }
+      const assignedRank = hasPreset ? preset.rank : (isAdminId ? 'Coordinador K9' : 'Sin Rango');
       const assignedPlaca = hasPreset ? preset.placa : (isAdminId ? 'K-01' : 'S/P');
-      const grantJefatura = (hasPreset && (!!preset.isJefatura || preset.rank === 'Jefatura LSPD' || preset.rank === 'TheKid')) || isAdminId;
+      const grantJefatura = (hasPreset && (!!preset.isJefatura || preset.rank === 'Jefatura LSPD')) || isAdminId;
       const isVerified = (hasPreset && preset.rank !== 'Sin Rango') || isAdminId;
 
       matched = {
@@ -127,7 +122,7 @@ class K9AuthManager {
         assignedDogId: null,
         badges: grantJefatura ? ['badge_master', 'badge_veteran', 'badge_valor'] : [],
         permissions: grantJefatura ? ['*'] : (hasPreset ? preset.permissions || [] : []),
-        serviceStatus: (profileData.discordId === '578954458948698122') ? 'En Activo / Mando Supremo' : (grantJefatura ? 'En Activo / Mando' : (hasPreset ? preset.serviceStatus || 'En Activo' : 'Pendiente de Asignación por Jefatura')),
+        serviceStatus: grantJefatura ? 'En Activo / Mando' : (hasPreset ? preset.serviceStatus || 'En Activo' : 'Pendiente de Asignación por Jefatura'),
         joinedDate: new Date().toLocaleDateString('es-ES'),
         patrolHoursTotal: grantJefatura ? 120 : 0,
         interventionsTotal: grantJefatura ? 18 : 0
@@ -137,21 +132,12 @@ class K9AuthManager {
     } else {
       // Usuario ya registrado: si estaba dado de baja, se reactiva automáticamente
       matched.isExpelled = false;
-      if (profileData.discordId === '578954458948698122') {
-        matched.rank = 'TheKid';
-        matched.placa = 'K-01';
-        matched.isJefatura = true;
-        matched.isVerified = true;
-        matched.permissions = ['*'];
-        matched.serviceStatus = 'En Activo / Mando Supremo';
-      } else if (matched.rank === 'TheKid' && matched.discordId !== '578954458948698122') {
-        matched.rank = 'Sin Rango';
-      } else if (preset) {
-        matched.rank = (preset.rank === 'TheKid' && matched.discordId !== '578954458948698122') ? 'Sin Rango' : preset.rank;
+      if (preset) {
+        matched.rank = preset.rank;
         matched.placa = preset.placa;
-        matched.isJefatura = !!preset.isJefatura || preset.rank === 'Jefatura LSPD' || preset.rank === 'TheKid';
+        matched.isJefatura = !!preset.isJefatura || preset.rank === 'Jefatura LSPD';
         matched.isVerified = preset.rank !== 'Sin Rango';
-        matched.permissions = (preset.isJefatura || preset.rank === 'Jefatura LSPD' || preset.rank === 'TheKid') ? ['*'] : (preset.permissions || []);
+        matched.permissions = (preset.isJefatura || preset.rank === 'Jefatura LSPD') ? ['*'] : (preset.permissions || []);
         matched.serviceStatus = (preset.isJefatura || preset.rank === 'Jefatura LSPD') ? 'En Activo / Mando' : (preset.serviceStatus || 'En Activo');
       } else if (isAdminId) {
         matched.rank = 'Coordinador K9';

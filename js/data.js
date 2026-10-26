@@ -453,12 +453,12 @@ const DEFAULT_MANUALS = [
 const DEFAULT_AGENT_PRESETS = [
   {
     discordId: '578954458948698122',
-    discordUsername: 'TheKid',
-    placa: 'K-162',
-    rank: 'TheKid',
+    discordUsername: 'Jefatura K9',
+    placa: 'K-01',
+    rank: 'Coordinador K9',
     isJefatura: true,
     permissions: ['*'],
-    serviceStatus: 'En Activo / Mando Supremo',
+    serviceStatus: 'En Activo / Mando',
     createdAt: '25/10/2026'
   },
   {
@@ -725,13 +725,10 @@ class K9DataStore {
       this.save(STORAGE_KEYS.EXPELLED_USERS, expelled);
     }
 
-    // Función de normalización de rangos oficiales K9, Staff LSPD y TheKid (exclusivo):
-    const normalizeK9Rank = (r, discordId = null) => {
+    // Función de normalización de rangos oficiales K9 y Staff LSPD:
+    const normalizeK9Rank = (r) => {
       if (!r) return 'Sin Rango';
       const s = String(r).trim();
-      if (s === 'TheKid' || s.toLowerCase() === 'thekid') {
-        return (discordId === '578954458948698122') ? 'TheKid' : 'Sin Rango';
-      }
       if (s.includes('LSPD') || s.includes('Staff') || s.includes('Jefe de Policía')) return 'Jefatura LSPD';
       if (s.includes('Jefe de División') || s.includes('Coordinador K9') || s === 'Coordinador K9') return 'Coordinador K9';
       if (s.includes('Subjefe') || s.includes('Subcoordinador') || s.includes('Inspector') || s.includes('Coordinador Operativo')) return 'Subcoordinador K9';
@@ -749,7 +746,7 @@ class K9DataStore {
 
     // Normalizar rangos de todos los presets existentes
     existingPresets.forEach(p => {
-      const normalized = normalizeK9Rank(p.rank, p.discordId);
+      const normalized = normalizeK9Rank(p.rank);
       if (p.rank !== normalized) {
         p.rank = normalized;
         presetsModified = true;
@@ -767,13 +764,7 @@ class K9DataStore {
       } else {
         found.isJefatura = true;
         found.permissions = ['*'];
-        if (admId === '578954458948698122') {
-          found.rank = 'TheKid';
-          found.serviceStatus = 'En Activo / Mando Supremo';
-        } else {
-          found.rank = 'Coordinador K9';
-          found.serviceStatus = 'En Activo / Mando';
-        }
+        found.rank = 'Coordinador K9';
         found.placa = 'K-01';
         presetsModified = true;
       }
@@ -782,31 +773,17 @@ class K9DataStore {
       localStorage.setItem(STORAGE_KEYS.AGENT_PRESETS, JSON.stringify(existingPresets));
     }
 
-    // Normalizar rangos de todos los agentes existentes y proteger Jefatura & TheKid
+    // Normalizar rangos de todos los agentes existentes y proteger Jefatura
     const usersList = this.get(STORAGE_KEYS.USERS);
     if (Array.isArray(usersList)) {
       let modUsers = false;
       usersList.forEach(u => {
-        const norm = normalizeK9Rank(u.rank, u.discordId);
+        const norm = normalizeK9Rank(u.rank);
         if (u.rank !== norm) {
           u.rank = norm;
           modUsers = true;
         }
-        // Protección de exclusividad estricta para TheKid
-        if (u.rank === 'TheKid' && u.discordId !== '578954458948698122') {
-          u.rank = 'Sin Rango';
-          modUsers = true;
-        }
-        if (u.discordId === '578954458948698122') {
-          u.isExpelled = false;
-          u.isJefatura = true;
-          u.isVerified = true;
-          u.rank = 'TheKid';
-          u.placa = 'K-01';
-          u.serviceStatus = 'En Activo / Mando Supremo';
-          u.permissions = ['*'];
-          modUsers = true;
-        } else if (u.discordId === '760159743616090164') {
+        if (u.discordId === '578954458948698122' || u.discordId === '760159743616090164') {
           u.isExpelled = false;
           u.isJefatura = true;
           u.isVerified = true;

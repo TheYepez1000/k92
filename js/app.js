@@ -894,7 +894,7 @@ function renderMemberCardsHtml(users, dogs, allBadges, isJef) {
           <div class="member-card-info">
             <span class="member-card-placa">PLACA #${u.placa || 'PENDIENTE'}</span>
             <h4 class="font-gobold">${u.name}</h4>
-            <span class="member-card-rank-badge ${u.rank === 'TheKid' ? 'badge-thekid' : (u.rank === 'Jefatura LSPD' ? 'badge-staff-lspd' : (u.isJefatura ? 'chat-badge-jefatura' : ''))}">${u.rank === 'TheKid' ? '⚡ TheKid' : (u.rank || 'Aspirante K9')}</span>
+            <span class="member-card-rank-badge ${u.isJefatura ? 'chat-badge-jefatura' : ''}">${u.rank || 'Aspirante K9'}</span>
           </div>
         </div>
 
@@ -947,26 +947,10 @@ window.editMember = function (id) {
   document.getElementById('editMemberId').value = u.id;
   document.getElementById('editMemberName').value = u.name;
   document.getElementById('editMemberPlaca').value = u.placa;
-  const rankSelect = document.getElementById('editMemberRank');
-  if (rankSelect) {
-    let optTheKid = rankSelect.querySelector('option[value="TheKid"]');
-    if (u.discordId === '578954458948698122') {
-      if (!optTheKid) {
-        optTheKid = document.createElement('option');
-        optTheKid.value = 'TheKid';
-        optTheKid.textContent = '⚡ TheKid (Mando Supremo)';
-        rankSelect.prepend(optTheKid);
-      }
-      optTheKid.hidden = false;
-      optTheKid.disabled = false;
-    } else {
-      if (optTheKid) optTheKid.remove();
-    }
-  }
   document.getElementById('editMemberRank').value = u.rank || 'Agente Guia';
   document.getElementById('editMemberAvatar').value = u.avatar || '';
   document.getElementById('editMemberDiscordId').value = u.discordId || '';
-  document.getElementById('editMemberIsJefatura').checked = (u.rank === 'TheKid') || !!u.isJefatura;
+  document.getElementById('editMemberIsJefatura').checked = !!u.isJefatura;
 
   const dogSelect = document.getElementById('editMemberDogSelect');
   if (dogSelect) {
@@ -2387,64 +2371,30 @@ function renderAgentsSection(container) {
 
   // Listener para el formulario de pre-registro por Discord ID
   const formPreset = document.getElementById('formAgentPreset');
-  const presetDiscInput = document.getElementById('presetDiscordId');
-  const presetRankSelect = document.getElementById('presetRank');
-
-  if (presetDiscInput && presetRankSelect) {
-    presetDiscInput.addEventListener('input', (e) => {
-      const val = e.target.value.trim();
-      let opt = presetRankSelect.querySelector('option[value="TheKid"]');
-      if (val === '578954458948698122') {
-        if (!opt) {
-          opt = document.createElement('option');
-          opt.value = 'TheKid';
-          opt.textContent = '⚡ TheKid (Mando Supremo)';
-          presetRankSelect.prepend(opt);
-        }
-        opt.hidden = false;
-        opt.disabled = false;
-      } else {
-        if (opt) {
-          if (presetRankSelect.value === 'TheKid') presetRankSelect.value = 'Agente Guia';
-          opt.remove();
-        }
-      }
-    });
-  }
-
   if (formPreset) {
     formPreset.addEventListener('submit', (e) => {
       e.preventDefault();
       const discordIdVal = document.getElementById('presetDiscordId').value.trim();
       const placaVal = document.getElementById('presetPlaca').value.trim();
       const rankVal = document.getElementById('presetRank').value;
-      let isJefaturaVal = document.getElementById('presetIsJefatura').checked;
+      const isJefaturaVal = document.getElementById('presetIsJefatura').checked;
 
       if (!discordIdVal || !placaVal) {
         showToast('Completa el Discord ID y la placa.', 'warning');
         return;
       }
 
-      // Validación estricta: TheKid solo para 578954458948698122
-      if (rankVal === 'TheKid' && discordIdVal !== '578954458948698122') {
-        showToast('El rango TheKid es exclusivo y solo se le puede asignar al Discord ID: 578954458948698122', 'error');
-        return;
-      }
-
-      const isTheKid = rankVal === 'TheKid' && discordIdVal === '578954458948698122';
-      if (isTheKid) isJefaturaVal = true;
-
       // 1. Guardar preset
       const currentPresets = window.K9Store.getAgentPresets ? window.K9Store.getAgentPresets() : [];
       const updatedPresets = currentPresets.filter(p => p.discordId !== discordIdVal);
       updatedPresets.push({
         discordId: discordIdVal,
-        discordUsername: isTheKid ? 'TheKid' : discordIdVal,
+        discordUsername: discordIdVal,
         placa: placaVal,
         rank: rankVal,
         isJefatura: isJefaturaVal,
         permissions: isJefaturaVal ? ['*'] : [],
-        serviceStatus: isTheKid ? 'En Activo / Mando Supremo' : (isJefaturaVal ? 'En Activo / Mando' : 'En Activo'),
+        serviceStatus: isJefaturaVal ? 'En Activo / Mando' : 'En Activo',
         createdAt: new Date().toLocaleDateString('es-ES')
       });
       window.K9Store.save(STORAGE_KEYS.AGENT_PRESETS, updatedPresets);
@@ -2563,14 +2513,6 @@ function renderAgentsTableRows(users, dogs) {
             <span style="font-family:var(--font-headline); letter-spacing:0.05em; color:var(--tactical-gold); background:rgba(255,183,3,0.15); border:1px solid var(--border-gold); padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem; font-weight:700; display:inline-block;">
               ⚠️ PENDIENTE DE RANGO
             </span>
-          ` : (u.rank === 'TheKid') ? `
-            <span class="badge-thekid" style="font-family:var(--font-headline); letter-spacing:0.06em; padding:0.25rem 0.6rem; border-radius:4px; font-size:0.75rem; font-weight:800; display:inline-block;">
-              ⚡ THEKID
-            </span>
-          ` : (u.rank === 'Jefatura LSPD') ? `
-            <span class="badge-staff-lspd" style="font-family:var(--font-headline); letter-spacing:0.05em; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem; font-weight:700; display:inline-block;">
-              👑 JEFATURA LSPD
-            </span>
           ` : `
             <span style="font-family:var(--font-headline); letter-spacing:0.05em; color:${u.isJefatura ? 'var(--tactical-gold)' : 'var(--text-main)'}; font-size:0.85rem;">
               ${u.rank}
@@ -2628,9 +2570,7 @@ window.editAgentRank = function (userId) {
   const user = allUsers.find(u => u.id === userId);
   if (!user) return;
 
-  const isTargetTheKid = user.discordId === '578954458948698122';
   const RANKS = [
-    ...(isTargetTheKid ? [{ value: 'TheKid', label: '⚡ TheKid (Mando Supremo)', color: '#f472b6' }] : []),
     { value: 'Jefatura LSPD',     label: '👑 Jefatura LSPD (Staff)', color: '#f43f5e' },
     { value: 'Coordinador K9',    label: '🦅 Coordinador K9',     color: '#fbbf24' },
     { value: 'Subcoordinador K9', label: '⭐ Subcoordinador K9',  color: '#f59e0b' },
@@ -2726,20 +2666,13 @@ window.editAgentRank = function (userId) {
 
     if (!newPlaca) { showToast('Introduce una placa válida.', 'warning'); return; }
 
-    // Bloqueo estricto: nadie más puede tener TheKid
-    if (selectedRank === 'TheKid' && user.discordId !== '578954458948698122') {
-      showToast('El rango TheKid es exclusivo y solo se le puede asignar al Discord ID: 578954458948698122', 'error');
-      return;
-    }
-
-    const isTheKid     = selectedRank === 'TheKid' && user.discordId === '578954458948698122';
-    const isStaffOrJef = isJef || isTheKid || selectedRank === 'Jefatura LSPD' || selectedRank === 'Coordinador K9';
+    const isStaffOrJef = isJef || selectedRank === 'Jefatura LSPD' || selectedRank === 'Coordinador K9';
     user.rank          = selectedRank;
     user.placa         = newPlaca;
     user.isJefatura    = isStaffOrJef;
     user.isVerified    = selectedRank !== 'Sin Rango';
     user.permissions   = isStaffOrJef ? ['*'] : [];
-    user.serviceStatus = isTheKid ? 'En Activo / Mando Supremo' : (selectedRank === 'Sin Rango' ? 'Pendiente de Asignación por Jefatura' : (isStaffOrJef ? 'En Activo / Mando' : 'En Activo'));
+    user.serviceStatus = selectedRank === 'Sin Rango' ? 'Pendiente de Asignación por Jefatura' : (isStaffOrJef ? 'En Activo / Mando' : 'En Activo');
     window.K9Store.save(STORAGE_KEYS.USERS, allUsers);
 
     // Persistir preset para futuros logins
@@ -4517,25 +4450,14 @@ ON CONFLICT (id) DO NOTHING;
       if (member) {
         member.name = (document.getElementById('editMemberName').value || '').trim();
         member.placa = (document.getElementById('editMemberPlaca').value || '').trim();
-        const chosenRank = document.getElementById('editMemberRank').value;
-        const discordIdVal = (document.getElementById('editMemberDiscordId').value || member.discordId || '').trim();
-        if (chosenRank === 'TheKid' && discordIdVal !== '578954458948698122') {
-          showToast('El rango TheKid es exclusivo y solo se le puede asignar al Discord ID: 578954458948698122', 'error');
-          return;
-        }
-        member.rank = chosenRank;
+        member.rank = document.getElementById('editMemberRank').value;
         const newDogId = document.getElementById('editMemberDogSelect').value || null;
         member.assignedDogId = newDogId;
         const newAvatar = (document.getElementById('editMemberAvatar').value || '').trim();
         if (newAvatar) member.avatar = newAvatar;
+        const discordIdVal = (document.getElementById('editMemberDiscordId').value || '').trim();
         if (discordIdVal) member.discordId = discordIdVal;
-        const isTheKid = (member.rank === 'TheKid' && discordIdVal === '578954458948698122');
-        member.isJefatura = isTheKid || !!document.getElementById('editMemberIsJefatura').checked;
-        if (isTheKid) {
-          member.permissions = ['*'];
-          member.serviceStatus = 'En Activo / Mando Supremo';
-          member.isVerified = true;
-        }
+        member.isJefatura = !!document.getElementById('editMemberIsJefatura').checked;
 
         // Actualizar vínculo inverso en dogs si se asignó un can
         const dogs = window.K9Store.getDogs();
@@ -4572,22 +4494,6 @@ ON CONFLICT (id) DO NOTHING;
         if (oldRankInput && selUser) {
           oldRankInput.value = selUser.rank;
         }
-        const promoRankSelect = document.getElementById('promoNewRank');
-        if (promoRankSelect) {
-          let optTheKid = promoRankSelect.querySelector('option[value="TheKid"]');
-          if (selUser && selUser.discordId === '578954458948698122') {
-            if (!optTheKid) {
-              optTheKid = document.createElement('option');
-              optTheKid.value = 'TheKid';
-              optTheKid.textContent = '⚡ TheKid (Mando Supremo)';
-              promoRankSelect.prepend(optTheKid);
-            }
-            optTheKid.hidden = false;
-            optTheKid.disabled = false;
-          } else {
-            if (optTheKid) optTheKid.remove();
-          }
-        }
       });
     }
 
@@ -4603,21 +4509,10 @@ ON CONFLICT (id) DO NOTHING;
       const citation = (document.getElementById('promoCitation').value || '').trim();
       const currentUser = window.K9Auth.getCurrentUser();
 
-      // Bloqueo estricto: nadie más puede ser ascendido a TheKid
-      if (newRank === 'TheKid' && user.discordId !== '578954458948698122') {
-        showToast('El rango TheKid es exclusivo y solo se le puede asignar al Discord ID: 578954458948698122', 'error');
-        return;
-      }
-
       // 1. Actualizar rango en users
       user.rank = newRank;
-      const isTheKid = (newRank === 'TheKid' && user.discordId === '578954458948698122');
-      if (isTheKid || newRank.includes('Jefe') || newRank.includes('Subjefe') || newRank.includes('Coordinador') || newRank.includes('LSPD')) {
+      if (newRank.includes('Jefe') || newRank.includes('Subjefe') || newRank.includes('Coordinador')) {
         user.isJefatura = true;
-        if (isTheKid) {
-          user.permissions = ['*'];
-          user.serviceStatus = 'En Activo / Mando Supremo';
-        }
       }
       window.K9Store.save(STORAGE_KEYS.USERS, users);
 
