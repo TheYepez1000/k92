@@ -28,6 +28,11 @@
 <body>
 
   <!-- ====================================================================
+       MARCA DE AGUA / LOGO DE FONDO OFICIAL K9
+       ==================================================================== -->
+  <div class="k9-background-watermark" aria-hidden="true"></div>
+
+  <!-- ====================================================================
        BARRA SUPERIOR HUD TÁCTICA
        ==================================================================== -->
   <header class="top-hud-bar">
@@ -41,35 +46,48 @@
         <div class="brand-info">
           <div class="brand-title">
             <span>UNIDAD K9</span>
-            <span class="brand-badge-tag">DIVISIÓN POLICIAL</span>
+            <span class="brand-sub-pill">LSPD</span>
           </div>
-          <span class="brand-subtitle font-gobold">JEFATURA & OPERACIONES ESPECIALES</span>
+          <span class="brand-subtitle">DIVISIÓN POLICIAL & OPERACIONES</span>
         </div>
       </div>
 
-      <!-- Indicador de Red Táctica Operativa y Sincronización en la Nube -->
-      <div class="tactical-live-status" onclick="openModal('modalCloudSync')" style="cursor:pointer;"
-        title="Ver estado de sincronización en la nube">
-        <span class="pulse-dot" id="cloudSyncDot"></span>
-        <span id="cloudSyncLabel">SINC NUBE: CONECTADO</span>
-      </div>
-
-      <!-- Pestañas de Navegación Principal -->
+      <!-- Pestañas de Navegación Principal Unificadas -->
       <nav class="nav-tabs" aria-label="Navegación principal">
-        <button class="nav-tab-btn active" data-view="inicio" id="navBtnInicio">
-          <span>🌐</span> Normativas & Canes
+        <button class="nav-tab-btn active" data-view="inicio" id="navBtnInicio" title="Normativa Oficial y Plantilla de Canes">
+          <span class="nav-icon">⚖️</span>
+          <span class="nav-label">Normativa</span>
         </button>
-        <button class="nav-tab-btn" data-view="perfil" id="navBtnPerfil">
-          <span>🐕</span> Mi Perfil K9 <span class="jefatura-lock-badge" id="perfilLockBadge"
-            style="background:rgba(88,101,242,0.15); color:#a5b4fc; border-color:rgba(88,101,242,0.3); font-size:0.6rem;">DISCORD</span>
+        <button class="nav-tab-btn" data-view="miembros" id="navBtnMiembros" title="Directorio Oficial de Miembros K9">
+          <span class="nav-icon">👥</span>
+          <span class="nav-label">Miembros</span>
         </button>
-        <button class="nav-tab-btn jefatura-tab" data-view="jefatura" id="navBtnJefatura">
-          <span>👑</span> Jefatura K9 <span class="jefatura-lock-badge">RESTRINGIDO</span>
+        <button class="nav-tab-btn" data-view="ascensos" id="navBtnAscensos" title="Tablón Oficial de Ascensos de Jefatura">
+          <span class="nav-icon">🎖️</span>
+          <span class="nav-label">Ascensos</span>
+        </button>
+        <button class="nav-tab-btn" data-view="condecoraciones" id="navBtnCondecoraciones" title="Condecoraciones & Distinciones Policiales">
+          <span class="nav-icon">🏅</span>
+          <span class="nav-label">Condecoraciones</span>
+        </button>
+        <button class="nav-tab-btn" data-view="perfil" id="navBtnPerfil" title="Expediente Personal & Despacho con Jefatura">
+          <span class="nav-icon">🐕</span>
+          <span class="nav-label">Mi Perfil</span>
+        </button>
+        <button class="nav-tab-btn jefatura-tab" data-view="jefatura" id="navBtnJefatura" title="Centro de Mando de Jefatura K9">
+          <span class="nav-icon">👑</span>
+          <span class="nav-label">Jefatura</span>
+          <span class="nav-lock-mini" title="Acceso Exclusivo de Mandos">🔒</span>
         </button>
       </nav>
 
-      <!-- Controles de Usuario y Autenticación con Discord -->
-      <div class="auth-controls-wrap">
+      <!-- Cluster Derecho: Indicador Cloud, Audio y Auth -->
+      <div class="top-hud-right">
+        <div class="tactical-live-status" onclick="openModal('modalCloudSync')" style="cursor:pointer;"
+          title="Ver estado de sincronización en la nube">
+          <span class="pulse-dot" id="cloudSyncDot"></span>
+          <span id="cloudSyncLabel">EN LÍNEA</span>
+        </div>
         <button class="audio-toggle-btn sound-on" id="audioToggleBtn" title="Activar/Silenciar Radio Táctica">
           <span>🔊</span>
         </button>
@@ -87,7 +105,7 @@
   <main class="main-wrapper">
 
     <!-- ================================================================
-         VISTA 1: GENERAL & TABLÓN PÚBLICO (INICIO)
+         VISTA 1: GENERAL & TABLÓN PÚBLICO (INICIO - NORMATIVA & CANES)
          ================================================================ -->
     <section class="view-container active" id="view-inicio">
 
@@ -142,22 +160,7 @@
         </div>
       </div>
 
-      <!-- ================================================================
-           LOGO CENTRAL DE LA DIVISIÓN K9 (CENTERPIECE SHOWCASE)
-           ================================================================ -->
-      <div class="k9-centerpiece-showcase">
-        <div class="k9-centerpiece-ring">
-          <div class="k9-centerpiece-glow"></div>
-          <img src="assets/images/emblem.jpg" alt="Emblema Oficial K9" class="k9-centerpiece-img">
-        </div>
-        <div class="k9-centerpiece-meta">
-          <span class="k9-centerpiece-badge">LOS SANTOS POLICE DEPARTMENT · K9 DIVISION</span>
-          <h2 class="k9-centerpiece-title font-gobold">UNIDAD K9 DE INTERVENCIÓN POLICIAL</h2>
-          <p class="k9-centerpiece-motto font-gobold">FIDELIDAD · VALOR · DISCIPLINA TÁCTICA</p>
-        </div>
-      </div>
-
-      <!-- Sub-navegación General (Renderizado dinámico según autenticación con Discord) -->
+      <!-- Sub-navegación General (Normativas, Manuales, Canes, Anuncios) -->
       <div class="subnav-tabs-row" id="generalSubnavRow" style="margin-bottom: 2rem;">
         <!-- Inyectado dinámicamente por app.js -->
       </div>
@@ -168,14 +171,35 @@
     </section>
 
     <!-- ================================================================
-         VISTA 2: PERFIL DE MIEMBRO (ACCESO INDIVIDUAL)
+         VISTA 2: MIEMBROS K9 (DIRECTORIO OFICIAL)
+         ================================================================ -->
+    <section class="view-container" id="view-miembros">
+      <!-- Renderizado dinámicamente por app.js (renderMembersDirectory) -->
+    </section>
+
+    <!-- ================================================================
+         VISTA 3: ASCENSOS OFICIALES DE JEFATURA
+         ================================================================ -->
+    <section class="view-container" id="view-ascensos">
+      <!-- Renderizado dinámicamente por app.js (renderPromotionsSection) -->
+    </section>
+
+    <!-- ================================================================
+         VISTA 4: CONDECORACIONES & INSIGNIAS K9
+         ================================================================ -->
+    <section class="view-container" id="view-condecoraciones">
+      <!-- Renderizado dinámicamente por app.js (renderDecorationsSection) -->
+    </section>
+
+    <!-- ================================================================
+         VISTA 5: PERFIL DE MIEMBRO (ACCESO INDIVIDUAL & DESPACHO)
          ================================================================ -->
     <section class="view-container" id="view-perfil">
       <!-- Renderizado dinámicamente por app.js (renderMemberProfile) -->
     </section>
 
     <!-- ================================================================
-         VISTA 3: CENTRO DE MANDO Y JEFATURA K9 (RESTRINGIDO)
+         VISTA 6: CENTRO DE MANDO Y JEFATURA K9 (RESTRINGIDO)
          ================================================================ -->
     <section class="view-container" id="view-jefatura">
       <!-- Renderizado dinámicamente por app.js (checkJefaturaAccessAndRender) -->
@@ -196,8 +220,6 @@
         </div>
       </div>
       <div class="footer-meta">
-        <div><span>SISTEMA DE AUTENTICACIÓN:</span> DISCORD OAUTH2 PROTOCOL</div>
-        <div><span>TIPOGRAFÍA OFICIAL:</span> CONTHRAX & GOBOLD DISPLAY</div>
         <div style="color:var(--tactical-gold);">DIVISIÓN K9 © 2026 — TODOS LOS DERECHOS RESERVADOS</div>
       </div>
     </div>

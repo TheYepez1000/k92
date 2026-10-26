@@ -18,7 +18,9 @@ const STORAGE_KEYS = {
   AGENT_PRESETS: 'k9_agent_presets',
   CHAT_MESSAGES: 'k9_chat_messages',
   PROMOTIONS: 'k9_data_promotions',
-  LOGS: 'k9_data_logs'
+  LOGS: 'k9_data_logs',
+  EXPELLED_USERS: 'k9_expelled_users',
+  LAST_UPDATE: 'k9_last_local_update'
 };
 
 // Mensajes por defecto del chat de despacho con Jefatura
@@ -545,29 +547,107 @@ class K9DataStore {
   save(key, val) {
     try {
       localStorage.setItem(key, JSON.stringify(val));
-      // Sincronizar automáticamente en la nube cuando se modifica cualquier dato compartido
-      if (key !== STORAGE_KEYS.CURRENT_USER && window.K9CloudSync) {
-        window.K9CloudSync.schedulePush();
+      if (key !== STORAGE_KEYS.CURRENT_USER) {
+        localStorage.setItem(STORAGE_KEYS.LAST_UPDATE, Date.now().toString());
+        // Sincronizar automáticamente en la nube cuando se modifica cualquier dato compartido
+        if (window.K9CloudSync) {
+          window.K9CloudSync.schedulePush();
+        }
       }
     } catch (e) {
       console.error(`Error saving ${key} to storage:`, e);
     }
   }
 
-  // Métodos de acceso rápido
-  getUsers() { return this.get(STORAGE_KEYS.USERS) || []; }
-  getDogs() { return this.get(STORAGE_KEYS.DOGS) || DEFAULT_DOGS; }
+  getLastUpdate() {
+    const ts = localStorage.getItem(STORAGE_KEYS.LAST_UPDATE);
+    return ts ? parseInt(ts, 10) : 0;
+  }
+
+  // Gestión de agentes expulsados (Tombstones y readmisión)
+  getExpelledUserIds() {
+    const list = this.get(STORAGE_KEYS.EXPELLED_USERS);
+    return Array.isArray(list) ? list : [];
+  }
+
+  addExpelledUserId(id, discordId) {
+    const list = this.getExpelledUserIds();
+    let changed = false;
+    if (id && !list.includes(id)) { list.push(id); changed = true; }
+    if (discordId && !list.includes(discordId)) { list.push(discordId); changed = true; }
+    if (changed) {
+      this.save(STORAGE_KEYS.EXPELLED_USERS, list);
+    }
+  }
+
+  removeExpelledUserId(idOrDiscordId) {
+    if (!idOrDiscordId) return;
+    const list = this.getExpelledUserIds();
+    const updated = list.filter(item => item !== idOrDiscordId);
+    if (updated.length !== list.length) {
+      this.save(STORAGE_KEYS.EXPELLED_USERS, updated);
+    }
+  }
+
+  clearExpelledUser(id, discordId) {
+    let list = this.getExpelledUserIds();
+    const originalLen = list.length;
+    list = list.filter(item => item !== id && (!discordId || item !== discordId));
+    if (list.length !== originalLen) {
+      this.save(STORAGE_KEYS.EXPELLED_USERS, list);
+    }
+  }
+
+  isExpelled(id, discordId) {
+    const list = this.getExpelledUserIds();
+    return Boolean((id && list.includes(id)) || (discordId && list.includes(discordId)));
+  }
+
+  // Métodos de acceso rápido con protección contra listas vacías accidentales
+  getAllUsers() {
+    return this.get(STORAGE_KEYS.USERS) || [];
+  }
+
+  getUsers(includeExpelled = false) {
+    const users = this.get(STORAGE_KEYS.USERS) || [];
+    if (includeExpelled) return users;
+    const expelled = this.getExpelledUserIds();
+    return users.filter(u => !u.isExpelled && !expelled.includes(u.id) && !expelled.includes(u.discordId));
+  }
+
+  getDogs() {
+    const dogs = this.get(STORAGE_KEYS.DOGS);
+    return (Array.isArray(dogs) && dogs.length > 0) ? dogs : DEFAULT_DOGS;
+  }
+
   getReports() { return this.get(STORAGE_KEYS.REPORTS) || []; }
   getDisciplinary() { return this.get(STORAGE_KEYS.DISCIPLINARY) || []; }
   getBadges() { return this.get(STORAGE_KEYS.BADGES) || DEFAULT_BADGES; }
   getAnnouncements() { return this.get(STORAGE_KEYS.ANNOUNCEMENTS) || DEFAULT_ANNOUNCEMENTS; }
-  getNormatives() { return this.get(STORAGE_KEYS.NORMATIVES) || DEFAULT_NORMATIVES; }
-  getManuals() { return this.get(STORAGE_KEYS.MANUALS) || DEFAULT_MANUALS; }
+
+  getNormatives() {
+    const norms = this.get(STORAGE_KEYS.NORMATIVES);
+    return (Array.isArray(norms) && norms.length > 0) ? norms : DEFAULT_NORMATIVES;
+  }
+
+  getManuals() {
+    const manuals = this.get(STORAGE_KEYS.MANUALS);
+    return (Array.isArray(manuals) && manuals.length > 0) ? manuals : DEFAULT_MANUALS;
+  }
+
   getDogRequests() { return this.get(STORAGE_KEYS.DOG_REQUESTS) || []; }
-  getAgentPresets() { return this.get(STORAGE_KEYS.AGENT_PRESETS) || DEFAULT_AGENT_PRESETS; }
+  getAgentPresets() {
+    const presets = this.get(STORAGE_KEYS.AGENT_PRESETS) || DEFAULT_AGENT_PRESETS;
+    const expelled = this.getExpelledUserIds();
+    return presets.filter(p => !expelled.includes(p.discordId));
+  }
   getChatMessages() { return this.get(STORAGE_KEYS.CHAT_MESSAGES) || DEFAULT_CHAT_MESSAGES; }
   getPromotions() { return this.get(STORAGE_KEYS.PROMOTIONS) || DEFAULT_PROMOTIONS; }
-  getLogs() { return this.get(STORAGE_KEYS.LOGS) || DEFAULT_LOGS; }
+  getLogs() {
+    const logs = this.get(STORAGE_KEYS.LOGS);
+    // Si la clave existe en localStorage como un array (incluso vacío []), respetarlo
+    return Array.isArray(logs) ? logs : DEFAULT_LOGS;
+  }
 
   addLog(entry) {
     try {

@@ -26,7 +26,7 @@ class K9AuthManager {
   // Verifica si el usuario actual tiene un permiso específico
   hasPermission(permissionId) {
     const user = this.getCurrentUser();
-    if (!user) return false;
+    if (!user || user.isExpelled) return false;
     // Si es Comandante Supremo o tiene el comodín '*'
     if (user.rank === 'Jefe de División K9' || (user.permissions && user.permissions.includes('*'))) {
       return true;
@@ -40,17 +40,55 @@ class K9AuthManager {
   // Verifica si tiene acceso general a la Jefatura
   isJefaturaMember() {
     const user = this.getCurrentUser();
-    if (!user) return false;
+    if (!user || user.isExpelled) return false;
     return user.isJefatura || this.hasPermission('view_jefatura') || (user.permissions && user.permissions.length > 0);
   }
 
   // Iniciar sesión / registrar usuario con identidad de Discord
   loginWithDiscordProfile(profileData) {
-    const users = window.K9Store.getUsers();
-    let matched = users.find(u =>
+    const isUserExpelled = window.K9Store && window.K9Store.isExpelled &&
+      window.K9Store.isExpelled(profileData.discordId, profileData.discordUsername);
+
+    const allUsers = window.K9Store.getAllUsers ? window.K9Store.getAllUsers() : (window.K9Store.get(STORAGE_KEYS.USERS) || []);
+    let matched = allUsers.find(u =>
       (profileData.discordId && u.discordId === profileData.discordId) ||
-      (profileData.discordUsername && u.discordUsername.toLowerCase() === profileData.discordUsername.toLowerCase())
+      (profileData.discordUsername && u.discordUsername &&
+        u.discordUsername.toLowerCase() === profileData.discordUsername.toLowerCase())
     );
+
+    // Si el usuario está expulsado por Jefatura
+    if (isUserExpelled) {
+      if (!matched) {
+        matched = {
+          id: 'user_' + (profileData.discordId ? profileData.discordId.slice(-6) : Math.random().toString(36).substring(2, 8)),
+          name: profileData.name || profileData.discordUsername,
+          placa: 'EXPULSADO',
+          rank: '🚫 Expulsado de la Unidad',
+          discordUsername: profileData.discordUsername,
+          discordId: profileData.discordId || '',
+          avatar: profileData.avatar || 'assets/images/emblem.jpg',
+          isJefatura: false,
+          isVerified: false,
+          isExpelled: true,
+          assignedDogId: null,
+          badges: [],
+          permissions: [],
+          serviceStatus: 'Expulsado por Jefatura',
+          joinedDate: new Date().toLocaleDateString('es-ES')
+        };
+        allUsers.push(matched);
+      } else {
+        matched.isExpelled = true;
+        matched.isJefatura = false;
+        matched.permissions = [];
+        matched.serviceStatus = 'Expulsado por Jefatura';
+        matched.rank = '🚫 Expulsado de la Unidad';
+      }
+      window.K9Store.save(STORAGE_KEYS.USERS, allUsers);
+      window.K9Store.setCurrentUser(matched.id);
+      this.loadUser();
+      return matched;
+    }
 
     // Buscar si la Jefatura le asignó previamente rango en AGENT_PRESETS
     const presets = window.K9Store.getAgentPresets ? window.K9Store.getAgentPresets() : [];
@@ -77,6 +115,7 @@ class K9AuthManager {
         avatar: profileData.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80',
         isJefatura: grantJefatura,
         isVerified: hasPreset, // Solo verificado si Jefatura le asignó rango previamente
+        isExpelled: false,
         assignedDogId: null,
         badges: grantJefatura ? ['badge_master', 'badge_veteran', 'badge_valor'] : [],
         permissions: grantJefatura ? ['*'] : (hasPreset ? preset.permissions || [] : []),
@@ -85,10 +124,11 @@ class K9AuthManager {
         patrolHoursTotal: grantJefatura ? 120 : 0,
         interventionsTotal: grantJefatura ? 18 : 0
       };
-      users.push(matched);
-      window.K9Store.save(STORAGE_KEYS.USERS, users);
+      allUsers.push(matched);
+      window.K9Store.save(STORAGE_KEYS.USERS, allUsers);
     } else {
-      // Usuario ya registrado: si Jefatura le puso rango o lo cambió, sincronizar
+      // Usuario ya registrado (o readmitido)
+      matched.isExpelled = false;
       if (preset) {
         matched.rank = preset.rank;
         matched.placa = preset.placa;
@@ -96,7 +136,7 @@ class K9AuthManager {
         matched.isVerified = true;
         matched.permissions = preset.isJefatura ? ['*'] : (preset.permissions || []);
         matched.serviceStatus = preset.isJefatura ? 'En Activo / Mando' : (preset.serviceStatus || 'En Activo');
-        window.K9Store.save(STORAGE_KEYS.USERS, users);
+        window.K9Store.save(STORAGE_KEYS.USERS, allUsers);
       } else if (!matched.isVerified && !matched.isJefatura) {
         // Asegurar que si no tiene preset ni jefatura, permanezca sin verificar
         matched.rank = 'Sin Rango Asignado';
@@ -104,7 +144,7 @@ class K9AuthManager {
         matched.isJefatura = false;
         matched.isVerified = false;
         matched.permissions = [];
-        window.K9Store.save(STORAGE_KEYS.USERS, users);
+        window.K9Store.save(STORAGE_KEYS.USERS, allUsers);
       }
     }
 
@@ -296,8 +336,18 @@ class K9AuthManager {
           avatar: avatarUrl
         });
 
+        if (!user) {
+          if (typeof setupAuthUI === 'function') setupAuthUI();
+          if (typeof renderCurrentView === 'function') renderCurrentView();
+          return;
+        }
+
         if (typeof showToast === 'function') {
-          showToast(`¡Sesión iniciada con éxito como ${user.name}!`, 'success');
+          if (user.isExpelled) {
+            showToast('⚠️ Sesión iniciada. Tu expediente figura como expulsado de la Unidad K9.', 'error');
+          } else {
+            showToast(`¡Sesión iniciada con éxito como ${user.name}!`, 'success');
+          }
         }
 
         if (typeof setupAuthUI === 'function') setupAuthUI();
