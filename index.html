@@ -77,6 +77,11 @@
           <span class="nav-label">Tareas</span>
           <span class="nav-badge-mini" id="navTasksBadge" style="display:none;">0</span>
         </button>
+        <button class="nav-tab-btn" data-view="vestimenta" id="navBtnVestimenta" data-tooltip="Uniformidad & Vestimenta K9">
+          <span class="nav-icon">🥋</span>
+          <span class="nav-label">Vestimenta</span>
+          <span class="nav-lock-mini" id="vestimentaLockMini" style="display:none;">🔒</span>
+        </button>
         <button class="nav-tab-btn" data-view="perfil" id="navBtnPerfil" data-tooltip="Mi Perfil de Agente">
           <span class="nav-icon">🐕</span>
           <span class="nav-label">Mi Perfil</span>
@@ -280,6 +285,13 @@
          ================================================================ -->
     <section class="view-container" id="view-tareas">
       <!-- Renderizado dinámicamente por app.js (renderTasksCenter) -->
+    </section>
+
+    <!-- ================================================================
+         VISTA: CÓDIGO DE VESTIMENTA & UNIFORMIDAD K9 (SOLO MIEMBROS)
+         ================================================================ -->
+    <section class="view-container" id="view-vestimenta">
+      <!-- Renderizado dinámicamente por app.js (renderVestimentaSection) -->
     </section>
 
     <!-- ================================================================
@@ -589,11 +601,13 @@
             <div class="form-group-tactical">
               <label class="form-label-tactical" for="agentRank">RANGO EN LA DIVISIÓN</label>
               <select id="agentRank" class="form-select-tactical">
-                <option value="Aspirante K9">Aspirante K9</option>
-                <option value="Agente Guia" selected>Agente Guia</option>
-                <option value="Instructor K9">Instructor K9</option>
-                <option value="Subcoordinador K9">Subcoordinador K9</option>
-                <option value="Coordinador K9">Coordinador K9</option>
+                <option value="Jefatura LSPD">👑 Jefatura LSPD (Staff)</option>
+                <option value="Coordinador K9">🦅 Coordinador K9</option>
+                <option value="Subcoordinador K9">⭐ Subcoordinador K9</option>
+                <option value="Instructor K9">🎯 Instructor K9</option>
+                <option value="Agente Guia" selected>🐾 Agente Guia</option>
+                <option value="Aspirante K9">🔰 Aspirante K9</option>
+                <option value="Sin Rango">⏳ Sin Rango Asignado</option>
               </select>
             </div>
             <div class="form-group-tactical">
@@ -1368,11 +1382,13 @@
             <div class="form-group-tactical">
               <label class="form-label-tactical" for="editMemberRank">RANGO OFICIAL</label>
               <select id="editMemberRank" class="form-select-tactical" required>
-                <option value="Coordinador K9">Coordinador K9</option>
-                <option value="Subcoordinador K9">Subcoordinador K9</option>
-                <option value="Instructor K9">Instructor K9</option>
-                <option value="Agente Guia">Agente Guia</option>
-                <option value="Aspirante K9">Aspirante K9</option>
+                <option value="Jefatura LSPD">👑 Jefatura LSPD (Staff)</option>
+                <option value="Coordinador K9">🦅 Coordinador K9</option>
+                <option value="Subcoordinador K9">⭐ Subcoordinador K9</option>
+                <option value="Instructor K9">🎯 Instructor K9</option>
+                <option value="Agente Guia">🐾 Agente Guia</option>
+                <option value="Aspirante K9">🔰 Aspirante K9</option>
+                <option value="Sin Rango">⏳ Sin Rango Asignado</option>
               </select>
             </div>
             <div class="form-group-tactical">
@@ -1480,11 +1496,12 @@
             <div class="form-group-tactical">
               <label class="form-label-tactical" for="promoNewRank">NUEVO RANGO ASIGNADO</label>
               <select id="promoNewRank" class="form-select-tactical" required>
-                <option value="Aspirante K9">Aspirante K9</option>
-                <option value="Agente Guia">Agente Guia</option>
-                <option value="Instructor K9">Instructor K9</option>
-                <option value="Subcoordinador K9">Subcoordinador K9</option>
-                <option value="Coordinador K9">Coordinador K9</option>
+                <option value="Jefatura LSPD">👑 Jefatura LSPD (Staff)</option>
+                <option value="Coordinador K9">🦅 Coordinador K9</option>
+                <option value="Subcoordinador K9">⭐ Subcoordinador K9</option>
+                <option value="Instructor K9">🎯 Instructor K9</option>
+                <option value="Agente Guia">🐾 Agente Guia</option>
+                <option value="Aspirante K9">🔰 Aspirante K9</option>
               </select>
             </div>
           </div>

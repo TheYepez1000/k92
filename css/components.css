@@ -2252,3 +2252,49 @@
   border-color: var(--police-cyan);
 }
 
+/* ==========================================================================
+   INSIGNIA DE RANGO ESPECIAL: JEFATURA LSPD (STAFF)
+   ========================================================================== */
+.badge-staff-lspd {
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.22), rgba(251, 191, 36, 0.18)) !important;
+  border: 1px solid rgba(244, 63, 94, 0.65) !important;
+  color: #ff6b81 !important;
+  box-shadow: 0 0 12px rgba(244, 63, 94, 0.35) !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+}
+
+/* ==========================================================================
+   ESTILOS: CATÁLOGO DE VESTIMENTA & UNIFORMIDAD K9
+   ========================================================================== */
+.vestimenta-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(0, 229, 255, 0.4) !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65), 0 0 15px rgba(0, 229, 255, 0.12) !important;
+}
+
+.vestimenta-card.pinned:hover {
+  border-color: var(--tactical-gold) !important;
+  box-shadow: 0 16px 40px rgba(255, 183, 3, 0.18), 0 0 20px rgba(255, 183, 3, 0.2) !important;
+}
+
+.vestimenta-img-wrap:hover .vestimenta-img {
+  transform: scale(1.05);
+}
+
+.vestimenta-zoom-pill {
+  transition: all var(--transition-fast);
+}
+
+.vestimenta-img-wrap:hover .vestimenta-zoom-pill {
+  background: rgba(0, 229, 255, 0.85) !important;
+  color: #0b111e !important;
+  font-weight: 700;
+}
+
+.vestimenta-lock-box {
+  animation: fadeIn 0.3s ease;
+}
+
+

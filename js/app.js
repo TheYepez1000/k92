@@ -135,6 +135,11 @@ function switchMainView(viewName) {
     if (cont && typeof renderTasksCenter === 'function') {
       renderTasksCenter(cont);
     }
+  } else if (viewName === 'vestimenta') {
+    const cont = document.getElementById('view-vestimenta');
+    if (cont && typeof renderVestimentaSection === 'function') {
+      renderVestimentaSection(cont);
+    }
   } else if (viewName === 'perfil') {
     renderMemberProfile();
   } else if (viewName === 'jefatura') {
@@ -214,6 +219,11 @@ function setupAuthUI() {
 
   if (perfilLockBadge) {
     perfilLockBadge.style.display = (user && user.isVerified) ? 'none' : 'inline-block';
+  }
+  const vestimentaLock = document.getElementById('vestimentaLockMini');
+  const isMember = user && user.isVerified && user.rank && user.rank !== 'Sin Rango' && user.rank !== 'Sin Rango Asignado';
+  if (vestimentaLock) {
+    vestimentaLock.style.display = isMember ? 'none' : 'inline-block';
   }
 
   if (heroActions) {
@@ -2268,11 +2278,13 @@ function renderAgentsSection(container) {
         <div>
           <label style="display:block; font-family:var(--font-headline); font-size:0.7rem; color:var(--police-cyan); letter-spacing:0.05em; margin-bottom:0.3rem;">RANGO OFICIAL ASIGNADO *</label>
           <select id="presetRank" required style="width:100%; padding:0.5rem 0.75rem; background:rgba(10,14,23,0.8); border:1px solid var(--border-tactical); border-radius:4px; color:#fff; font-family:var(--font-headline); font-size:0.85rem;">
-            <option value="Aspirante K9">Aspirante K9</option>
-            <option value="Agente Guia" selected>Agente Guia</option>
-            <option value="Instructor K9">Instructor K9</option>
-            <option value="Subcoordinador K9">Subcoordinador K9</option>
-            <option value="Coordinador K9">Coordinador K9</option>
+            <option value="Jefatura LSPD">👑 Jefatura LSPD (Staff)</option>
+            <option value="Coordinador K9">🦅 Coordinador K9</option>
+            <option value="Subcoordinador K9">⭐ Subcoordinador K9</option>
+            <option value="Instructor K9">🎯 Instructor K9</option>
+            <option value="Agente Guia" selected>🐾 Agente Guia</option>
+            <option value="Aspirante K9">🔰 Aspirante K9</option>
+            <option value="Sin Rango">⏳ Sin Rango Asignado</option>
           </select>
         </div>
 
@@ -2542,11 +2554,13 @@ window.editAgentRank = function (userId) {
   if (!user) return;
 
   const RANKS = [
-    { value: 'Aspirante K9',      label: '🔰 Aspirante K9',       color: '#94a3b8' },
-    { value: 'Agente Guia',       label: '🐾 Agente Guia',        color: '#38bdf8' },
-    { value: 'Instructor K9',     label: '🎓 Instructor K9',      color: '#34d399' },
+    { value: 'Jefatura LSPD',     label: '👑 Jefatura LSPD (Staff)', color: '#f43f5e' },
+    { value: 'Coordinador K9',    label: '🦅 Coordinador K9',     color: '#fbbf24' },
     { value: 'Subcoordinador K9', label: '⭐ Subcoordinador K9',  color: '#f59e0b' },
-    { value: 'Coordinador K9',    label: '🦅 Coordinador K9',     color: '#fbbf24' }
+    { value: 'Instructor K9',     label: '🎓 Instructor K9',      color: '#34d399' },
+    { value: 'Agente Guia',       label: '🐾 Agente Guia',        color: '#38bdf8' },
+    { value: 'Aspirante K9',      label: '🔰 Aspirante K9',       color: '#94a3b8' },
+    { value: 'Sin Rango',         label: '⏳ Sin Rango Asignado', color: '#64748b' }
   ];
 
   // Crear modal inline de cambio de rango
@@ -2635,12 +2649,13 @@ window.editAgentRank = function (userId) {
 
     if (!newPlaca) { showToast('Introduce una placa válida.', 'warning'); return; }
 
+    const isStaffOrJef = isJef || selectedRank === 'Jefatura LSPD' || selectedRank === 'Coordinador K9';
     user.rank          = selectedRank;
     user.placa         = newPlaca;
-    user.isJefatura    = isJef;
-    user.isVerified    = true;
-    user.permissions   = isJef ? ['*'] : [];
-    user.serviceStatus = isJef ? 'En Activo / Mando' : 'En Activo';
+    user.isJefatura    = isStaffOrJef;
+    user.isVerified    = selectedRank !== 'Sin Rango';
+    user.permissions   = isStaffOrJef ? ['*'] : [];
+    user.serviceStatus = selectedRank === 'Sin Rango' ? 'Pendiente de Asignación por Jefatura' : (isStaffOrJef ? 'En Activo / Mando' : 'En Activo');
     window.K9Store.save(STORAGE_KEYS.USERS, allUsers);
 
     // Persistir preset para futuros logins
@@ -6381,4 +6396,500 @@ window.activateSearchResultIndex = function (index) {
     item.action();
   }
 };
+
+// =============================================================================
+// SECCIÓN: CÓDIGO DE VESTIMENTA & UNIFORMIDAD REGLAMENTARIA K9 (EXCLUSIVO MIEMBROS)
+// =============================================================================
+let currentVestimentaFilter = 'todas';
+
+function filterVestimenta(category) {
+  currentVestimentaFilter = category;
+  if (window.K9Audio) window.K9Audio.playTacticalClick();
+  const cont = document.getElementById('view-vestimenta');
+  if (cont) renderVestimentaSection(cont);
+}
+window.filterVestimenta = filterVestimenta;
+
+function renderVestimentaSection(container) {
+  if (!container) return;
+  const user = window.K9Auth ? window.K9Auth.getCurrentUser() : null;
+  const isJef = window.K9Auth ? window.K9Auth.isJefaturaMember() : false;
+  const isMember = user && user.isVerified && user.rank && user.rank !== 'Sin Rango' && user.rank !== 'Sin Rango Asignado';
+
+  // 1. Caso: Usuario no autenticado (anónimo)
+  if (!user) {
+    container.innerHTML = `
+      <div class="vestimenta-lock-box" style="max-width:760px; margin:3rem auto; padding:3.5rem 2rem; background:rgba(10,14,24,0.92); border:1px solid rgba(0,229,255,0.25); border-radius:18px; box-shadow:0 20px 60px rgba(0,0,0,0.7); text-align:center;">
+        <div style="width:76px; height:76px; margin:0 auto 1.5rem; border-radius:50%; background:rgba(0,229,255,0.1); border:1px solid var(--police-cyan); display:flex; align-items:center; justify-content:center; font-size:2.2rem; box-shadow:0 0 25px rgba(0,229,255,0.2);">
+          🔒
+        </div>
+        <div style="display:inline-block; font-family:var(--font-tactical); font-size:0.75rem; letter-spacing:0.12em; color:var(--police-cyan); background:rgba(0,229,255,0.08); padding:0.3rem 0.9rem; border-radius:20px; border:1px solid rgba(0,229,255,0.3); margin-bottom:1.25rem;">
+          ACCESO RESTRINGIDO · DIVISIÓN CANINA K9
+        </div>
+        <h2 style="font-family:var(--font-tactical); color:#fff; font-size:1.75rem; margin-bottom:0.75rem; letter-spacing:0.04em;">
+          CÓDIGO DE VESTIMENTA & UNIFORMIDAD OFICIAL
+        </h2>
+        <p style="color:var(--text-muted); font-size:0.95rem; line-height:1.6; max-width:580px; margin:0 auto 2rem;">
+          Esta sección contiene las directrices técnicas, prendas tácticas y catálogo fotográfico de uniformes oficiales del cuerpo policial. Para acceder al catálogo debes iniciar sesión con tu cuenta de Discord y ser miembro activo de la división.
+        </p>
+        <button class="btn-tactical btn-tactical-primary" onclick="if(window.K9Auth) window.K9Auth.startDiscordOAuth();" style="padding:0.75rem 1.8rem; font-size:0.95rem; margin:0 auto; gap:0.5rem;">
+          <span>💬</span> Iniciar Sesión con Discord
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  // 2. Caso: Usuario autenticado pero "Sin Rango" (pendiente de validación por Jefatura)
+  if (!isMember) {
+    container.innerHTML = `
+      <div class="vestimenta-lock-box" style="max-width:760px; margin:3rem auto; padding:3.5rem 2rem; background:rgba(18,24,38,0.95); border:1px solid rgba(255,183,3,0.35); border-radius:18px; box-shadow:0 20px 60px rgba(0,0,0,0.7); text-align:center;">
+        <div style="width:76px; height:76px; margin:0 auto 1.5rem; border-radius:50%; background:rgba(255,183,3,0.12); border:1px solid var(--tactical-gold); display:flex; align-items:center; justify-content:center; font-size:2.2rem; box-shadow:0 0 25px rgba(255,183,3,0.2);">
+          ⏳
+        </div>
+        <div style="display:inline-block; font-family:var(--font-tactical); font-size:0.75rem; letter-spacing:0.12em; color:var(--tactical-gold); background:rgba(255,183,3,0.1); padding:0.3rem 0.9rem; border-radius:20px; border:1px solid rgba(255,183,3,0.3); margin-bottom:1.25rem;">
+          AUTORIZACIÓN PENDIENTE · EXPEDIENTE SIN ASIGNAR
+        </div>
+        <h2 style="font-family:var(--font-tactical); color:#fff; font-size:1.65rem; margin-bottom:0.75rem; letter-spacing:0.03em;">
+          ACCESO PENDIENTE DE ASIGNACIÓN DE RANGO
+        </h2>
+        <p style="color:var(--text-muted); font-size:0.92rem; line-height:1.6; max-width:580px; margin:0 auto 1.5rem;">
+          Has iniciado sesión como <strong style="color:#fff;">${escapeHtml(user.name)}</strong> (<span style="color:var(--police-cyan); font-family:var(--font-mono);">${escapeHtml(user.discordUsername || user.discordId || '')}</span>), pero tu cuenta figura actualmente como <strong style="color:var(--tactical-gold);">Sin Rango</strong>. En cuanto la Jefatura K9 o el Alto Mando LSPD valide tu ficha y te asigne un rango oficial en la lista de agentes, tendrás acceso inmediato a este catálogo de uniformes.
+        </p>
+        <div style="background:rgba(255,255,255,0.03); border:1px dashed rgba(255,183,3,0.25); border-radius:10px; padding:1rem; max-width:480px; margin:0 auto; font-size:0.82rem; color:var(--text-subtle);">
+          ℹ️ Tu perfil ya figura en la lista de agentes pendientes de asignación de Jefatura.
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  // 3. Caso: Miembro Acreditado (acceso completo de lectura + edición si es Jefatura)
+  const allUniforms = window.K9Store ? window.K9Store.getUniforms() : [];
+
+  // Filtrado
+  let filtered = [...allUniforms];
+  if (currentVestimentaFilter === 'fijados') {
+    filtered = filtered.filter(u => u.pinned);
+  } else if (currentVestimentaFilter !== 'todas') {
+    filtered = filtered.filter(u => (u.category || '').toLowerCase() === currentVestimentaFilter.toLowerCase());
+  }
+
+  // Ordenar: Fijados primero
+  filtered.sort((a, b) => {
+    if (a.pinned && !b.pinned) return -1;
+    if (!a.pinned && b.pinned) return 1;
+    return (a.title || '').localeCompare(b.title || '');
+  });
+
+  const pinnedCount = allUniforms.filter(u => u.pinned).length;
+
+  container.innerHTML = `
+    <div class="vestimenta-wrapper" style="max-width:1380px; margin:0 auto; padding:0 0.5rem 3rem;">
+      <!-- Header Táctico -->
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1.25rem; margin-bottom:2rem; background:linear-gradient(135deg,rgba(10,17,32,0.85),rgba(6,10,20,0.92)); border:1px solid rgba(0,229,255,0.18); border-radius:16px; padding:1.75rem 2rem; box-shadow:0 12px 35px rgba(0,0,0,0.5);">
+        <div>
+          <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
+            <span style="font-size:1.5rem;">🥋</span>
+            <span style="font-family:var(--font-tactical); font-size:0.75rem; letter-spacing:0.12em; color:var(--police-cyan); text-transform:uppercase;">
+              DIVISIÓN CANINA K9 · CÓDIGO DE VESTIMENTA OFICIAL
+            </span>
+            ${isJef ? `<span style="font-family:var(--font-tactical); font-size:0.7rem; color:var(--tactical-gold); background:rgba(255,183,3,0.12); padding:0.15rem 0.6rem; border-radius:12px; border:1px solid rgba(255,183,3,0.3); font-weight:700;">👑 MODO EDICIÓN JEFATURA</span>` : ''}
+          </div>
+          <h2 style="font-family:var(--font-tactical); font-size:1.6rem; color:#fff; margin:0 0 0.5rem 0; letter-spacing:0.03em;">
+            CATÁLOGO REGLAMENTARIO DE UNIFORMIDAD & INDUMENTARIA POLICIAL
+          </h2>
+          <p style="color:var(--text-muted); font-size:0.86rem; margin:0; max-width:850px; line-height:1.5;">
+            Directrices oficiales de prendas tácticas, chalecos balísticos, arneses y uniformes autorizados para el servicio en binomio de la Unidad Canina K9 y el Departamento de Policía LSPD.
+          </p>
+        </div>
+
+        ${isJef ? `
+          <button class="btn-tactical btn-tactical-gold" onclick="openVestimentaModal()" style="padding:0.65rem 1.25rem; font-size:0.85rem; font-weight:700; white-space:nowrap; gap:0.5rem;">
+            <span>➕</span> Añadir Nueva Vestimenta
+          </button>
+        ` : ''}
+      </div>
+
+      <!-- Barra de Filtros -->
+      <div class="vestimenta-filter-bar" style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1.75rem; align-items:center;">
+        <span style="font-family:var(--font-headline); font-size:0.75rem; color:var(--text-subtle); margin-right:0.25rem;">FILTRAR:</span>
+        <button class="subnav-pill-btn ${currentVestimentaFilter === 'todas' ? 'active' : ''}" onclick="filterVestimenta('todas')">
+          Todas (${allUniforms.length})
+        </button>
+        <button class="subnav-pill-btn ${currentVestimentaFilter === 'fijados' ? 'active' : ''}" onclick="filterVestimenta('fijados')" style="${pinnedCount > 0 ? 'border-color:rgba(255,183,3,0.4); color:var(--tactical-gold);' : ''}">
+          ⭐ Fijados (${pinnedCount})
+        </button>
+        <button class="subnav-pill-btn ${currentVestimentaFilter === 'Patrulla Ordinaria' ? 'active' : ''}" onclick="filterVestimenta('Patrulla Ordinaria')">
+          Patrulla Ordinaria
+        </button>
+        <button class="subnav-pill-btn ${currentVestimentaFilter === 'Asalto & Táctico' ? 'active' : ''}" onclick="filterVestimenta('Asalto & Táctico')">
+          Asalto & Táctico
+        </button>
+        <button class="subnav-pill-btn ${currentVestimentaFilter === 'Adiestramiento / Chenil' ? 'active' : ''}" onclick="filterVestimenta('Adiestramiento / Chenil')">
+          Adiestramiento / Chenil
+        </button>
+        <button class="subnav-pill-btn ${currentVestimentaFilter === 'Gala & Ceremonial' ? 'active' : ''}" onclick="filterVestimenta('Gala & Ceremonial')">
+          Gala & Ceremonial
+        </button>
+        <button class="subnav-pill-btn ${currentVestimentaFilter === 'Mando & Jefatura' ? 'active' : ''}" onclick="filterVestimenta('Mando & Jefatura')">
+          Mando & Jefatura
+        </button>
+      </div>
+
+      <!-- Grid de Vestimentas -->
+      ${filtered.length === 0 ? `
+        <div style="background:rgba(255,255,255,0.02); border:1px dashed var(--border-subtle); border-radius:12px; padding:3rem; text-align:center; color:var(--text-muted);">
+          <div style="font-size:2rem; margin-bottom:0.5rem;">🥋</div>
+          <p style="margin:0; font-size:0.95rem;">No hay uniformes registrados en este filtro.</p>
+        </div>
+      ` : `
+        <div class="vestimenta-cards-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(360px, 1fr)); gap:1.5rem;">
+          ${filtered.map(u => renderSingleUniformCard(u, isJef)).join('')}
+        </div>
+      `}
+    </div>
+  `;
+}
+window.renderVestimentaSection = renderVestimentaSection;
+
+function renderSingleUniformCard(u, isJef) {
+  const isPinned = !!u.pinned;
+  const componentsList = Array.isArray(u.components) ? u.components : (typeof u.components === 'string' ? u.components.split('\n').filter(Boolean) : []);
+  const safeImg = u.image || 'assets/images/k9_patrol_officers.jpg';
+
+  return `
+    <div class="vestimenta-card ${isPinned ? 'pinned' : ''}" id="vestimentaCard_${u.id}" style="
+      background: linear-gradient(180deg, rgba(13,20,36,0.92) 0%, rgba(8,12,22,0.95) 100%);
+      border: 1px solid ${isPinned ? 'rgba(255,183,3,0.45)' : 'rgba(255,255,255,0.08)'};
+      border-radius: 14px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: ${isPinned ? '0 10px 30px rgba(255,183,3,0.14), 0 0 1px rgba(255,183,3,0.5)' : '0 10px 30px rgba(0,0,0,0.5)'};
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      position: relative;
+    ">
+      ${isPinned ? `
+        <div class="vestimenta-pinned-badge" style="
+          position: absolute; top: 12px; left: 12px; z-index: 5;
+          background: linear-gradient(135deg, rgba(255,183,3,0.95), rgba(245,158,11,0.95));
+          color: #0b111e; font-family: var(--font-tactical); font-size: 0.68rem; font-weight: 800;
+          letter-spacing: 0.08em; padding: 0.25rem 0.65rem; border-radius: 20px;
+          display: flex; align-items: center; gap: 0.35rem; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        ">
+          <span>📌</span> FIJADO POR JEFATURA
+        </div>
+      ` : ''}
+
+      <!-- Contenedor Fotográfico con Lightbox -->
+      <div class="vestimenta-img-wrap" onclick="openImageLightbox('${safeImg}', '${escapeHtml(u.title)}')" style="
+        position: relative; height: 230px; overflow: hidden; background: #000; cursor: pointer;
+      " title="Haz clic para ampliar la fotografía">
+        <img src="${safeImg}" alt="${escapeHtml(u.title)}" onerror="this.src='assets/images/k9_patrol_officers.jpg'" style="
+          width: 100%; height: 100%; object-fit: cover; object-position: center 30%;
+          transition: transform 0.4s ease;
+        " class="vestimenta-img">
+        <div style="position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, rgba(8,12,22,0.95) 100%);"></div>
+        <div class="vestimenta-zoom-pill" style="
+          position: absolute; bottom: 10px; right: 12px;
+          background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.2);
+          color: #fff; font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 12px;
+          display: flex; align-items: center; gap: 0.3rem; pointer-events: none;
+        ">
+          <span>🔍</span> Ampliar foto
+        </div>
+        <span style="
+          position: absolute; top: 12px; right: 12px;
+          background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); border: 1px solid rgba(0,229,255,0.3);
+          color: var(--police-cyan); font-family: var(--font-headline); font-size: 0.68rem;
+          padding: 0.2rem 0.55rem; border-radius: 8px; font-weight: 700; text-transform: uppercase;
+        ">
+          ${escapeHtml(u.category || 'General')}
+        </span>
+      </div>
+
+      <!-- Cuerpo del Card -->
+      <div style="padding: 1.25rem; display: flex; flex-direction: column; flex: 1;">
+        <h3 style="
+          margin: 0 0 0.5rem 0; font-family: var(--font-tactical); font-size: 1.15rem;
+          color: #fff; letter-spacing: 0.02em; line-height: 1.3;
+        ">
+          ${escapeHtml(u.title)}
+        </h3>
+
+        ${u.authorizedRanks ? `
+          <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.75rem; font-size: 0.75rem; color: #a5b4fc;">
+            <span>👮</span> <strong style="color:var(--text-subtle);">Autorizado:</strong> ${escapeHtml(u.authorizedRanks)}
+          </div>
+        ` : ''}
+
+        ${u.description ? `
+          <p style="
+            font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; margin: 0 0 1rem 0;
+          ">
+            ${escapeHtml(u.description)}
+          </p>
+        ` : ''}
+
+        <!-- Lista de Componentes / Prendas -->
+        <div style="margin-top: auto; padding-top: 0.85rem; border-top: 1px solid rgba(255,255,255,0.06);">
+          <div style="font-family: var(--font-headline); font-size: 0.7rem; color: var(--police-cyan); letter-spacing: 0.05em; margin-bottom: 0.5rem;">
+            PRENDAS Y COMPONENTES OFICIALES:
+          </div>
+          <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 0.35rem;">
+            ${componentsList.map(comp => `
+              <li style="font-size: 0.78rem; color: #cbd5e1; display: flex; align-items: flex-start; gap: 0.4rem; line-height: 1.4;">
+                <span style="color: var(--tactical-green); font-size: 0.8rem; line-height: 1;">✔</span>
+                <span>${escapeHtml(comp)}</span>
+              </li>
+            `).join('')}
+          </ul>
+        </div>
+
+        <!-- Barra de Gestión de Jefatura (Fijar, Editar, Eliminar) -->
+        ${isJef ? `
+          <div style="margin-top: 1.2rem; padding-top: 0.85rem; border-top: 1px dashed rgba(255,183,3,0.3); display: flex; gap: 0.4rem; justify-content: flex-end; align-items: center;">
+            <button class="btn-tactical btn-tactical-sm" onclick="togglePinVestimenta('${u.id}')" style="
+              background: ${isPinned ? 'rgba(255,183,3,0.18)' : 'rgba(255,255,255,0.05)'};
+              border: 1px solid ${isPinned ? 'var(--tactical-gold)' : 'rgba(255,255,255,0.15)'};
+              color: ${isPinned ? 'var(--tactical-gold)' : '#fff'};
+              font-size: 0.75rem; padding: 0.35rem 0.7rem;
+            " title="${isPinned ? 'Desfijar de la cabecera' : 'Fijar en la parte superior'}">
+              <span>${isPinned ? '⭐ Fijado' : '📌 Fijar'}</span>
+            </button>
+            <button class="btn-tactical btn-tactical-sm btn-tactical-outline" onclick="openVestimentaModal('${u.id}')" style="
+              font-size: 0.75rem; padding: 0.35rem 0.7rem;
+            " title="Editar vestimenta y fotografía">
+              <span>✏️ Editar</span>
+            </button>
+            <button class="btn-tactical btn-tactical-sm" onclick="deleteVestimenta('${u.id}')" style="
+              background: rgba(255,59,48,0.1); border: 1px solid rgba(255,59,48,0.3); color: #ff5252;
+              font-size: 0.75rem; padding: 0.35rem 0.6rem;
+            " title="Eliminar vestimenta">
+              <span>🗑️</span>
+            </button>
+          </div>
+        ` : ''}
+      </div>
+    </div>
+  `;
+}
+
+// Modal de Creación / Edición de Vestimenta (Exclusivo Jefatura)
+function openVestimentaModal(uniformId = null) {
+  if (!window.K9Auth || !window.K9Auth.isJefaturaMember()) {
+    showToast('Acceso restringido a Jefatura de Unidad.', 'error');
+    return;
+  }
+
+  const existing = document.getElementById('modalVestimentaManage');
+  if (existing) existing.remove();
+
+  const uniforms = window.K9Store ? window.K9Store.getUniforms() : [];
+  const u = uniformId ? uniforms.find(item => item.id === uniformId) : null;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'modalVestimentaManage';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(5,9,20,0.85);backdrop-filter:blur(6px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;animation:fadeIn 0.18s ease;overflow-y:auto;';
+
+  const defaultComponents = u ? (Array.isArray(u.components) ? u.components.join('\n') : u.components) : '';
+
+  overlay.innerHTML = `
+    <div style="background:linear-gradient(135deg,#0d1424,#111827);border:1px solid rgba(0,229,255,0.3);border-radius:14px;padding:2rem;width:100%;max-width:580px;box-shadow:0 25px 60px rgba(0,0,0,0.7);position:relative;margin:auto;">
+      <button id="closeVestimentaModal" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:#64748b;font-size:1.4rem;cursor:pointer;line-height:1;">&times;</button>
+      <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem;">
+        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#00e5ff22,#f59e0b22);border:1px solid rgba(0,229,255,0.4);display:flex;align-items:center;justify-content:center;font-size:1.4rem;">🥋</div>
+        <div>
+          <h3 style="margin:0;color:#fff;font-family:var(--font-tactical);font-size:1.15rem;letter-spacing:0.04em;">
+            ${u ? 'EDITAR VESTIMENTA REGLAMENTARIA' : 'REGISTRAR NUEVA VESTIMENTA K9'}
+          </h3>
+          <p style="margin:0;font-size:0.78rem;color:var(--text-muted);">Configuración visual y técnica para los miembros del cuerpo</p>
+        </div>
+      </div>
+
+      <form id="vestimentaForm" style="display:flex;flex-direction:column;gap:1rem;">
+        <div>
+          <label style="display:block;font-family:var(--font-headline);font-size:0.7rem;color:var(--police-cyan);letter-spacing:0.06em;margin-bottom:0.35rem;">NOMBRE DE LA VESTIMENTA *</label>
+          <input type="text" id="vestTitle" required placeholder="Ej: Uniforme Operativo de Patrulla K9" value="${u ? escapeHtml(u.title) : ''}" style="width:100%;padding:0.6rem 0.8rem;background:rgba(10,14,23,0.8);border:1px solid var(--border-tactical);border-radius:6px;color:#fff;font-family:var(--font-headline);font-size:0.88rem;">
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+          <div>
+            <label style="display:block;font-family:var(--font-headline);font-size:0.7rem;color:var(--police-cyan);letter-spacing:0.06em;margin-bottom:0.35rem;">CATEGORÍA *</label>
+            <select id="vestCategory" required style="width:100%;padding:0.6rem 0.8rem;background:rgba(10,14,23,0.8);border:1px solid var(--border-tactical);border-radius:6px;color:#fff;font-family:var(--font-headline);font-size:0.85rem;">
+              <option value="Patrulla Ordinaria" ${u && u.category === 'Patrulla Ordinaria' ? 'selected' : ''}>Patrulla Ordinaria</option>
+              <option value="Asalto & Táctico" ${u && u.category === 'Asalto & Táctico' ? 'selected' : ''}>Asalto & Táctico</option>
+              <option value="Adiestramiento / Chenil" ${u && u.category === 'Adiestramiento / Chenil' ? 'selected' : ''}>Adiestramiento / Chenil</option>
+              <option value="Gala & Ceremonial" ${u && u.category === 'Gala & Ceremonial' ? 'selected' : ''}>Gala & Ceremonial</option>
+              <option value="Mando & Jefatura" ${u && u.category === 'Mando & Jefatura' ? 'selected' : ''}>Mando & Jefatura</option>
+            </select>
+          </div>
+          <div>
+            <label style="display:block;font-family:var(--font-headline);font-size:0.7rem;color:var(--police-cyan);letter-spacing:0.06em;margin-bottom:0.35rem;">RANGOS AUTORIZADOS</label>
+            <input type="text" id="vestRanks" placeholder="Ej: Todos los Guías Caninos" value="${u ? escapeHtml(u.authorizedRanks || '') : 'Todos los Guías Caninos'}" style="width:100%;padding:0.6rem 0.8rem;background:rgba(10,14,23,0.8);border:1px solid var(--border-tactical);border-radius:6px;color:#fff;font-family:var(--font-headline);font-size:0.85rem;">
+          </div>
+        </div>
+
+        <div>
+          <label style="display:block;font-family:var(--font-headline);font-size:0.7rem;color:var(--police-cyan);letter-spacing:0.06em;margin-bottom:0.35rem;">FOTOGRAFÍA OFICIAL DE LA VESTIMENTA (URL O SUBIR ARCHIVO) *</label>
+          <div style="display:flex;gap:0.5rem;align-items:center;">
+            <input type="text" id="vestImage" required placeholder="assets/images/... o https://..." value="${u ? escapeHtml(u.image || '') : 'assets/images/k9_patrol_officers.jpg'}" style="flex:1;padding:0.6rem 0.8rem;background:rgba(10,14,23,0.8);border:1px solid var(--border-tactical);border-radius:6px;color:#fff;font-family:var(--font-mono);font-size:0.82rem;">
+            <label class="btn-tactical btn-tactical-outline" style="padding:0.6rem 0.8rem;font-size:0.75rem;cursor:pointer;white-space:nowrap;margin:0;">
+              <span>📁 Subir</span>
+              <input type="file" id="vestUploadFile" accept="image/*" style="display:none;">
+            </label>
+          </div>
+          <div id="vestImagePreviewWrap" style="margin-top:0.5rem;height:120px;border-radius:8px;overflow:hidden;background:#000;border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;">
+            <img id="vestImagePreview" src="${u && u.image ? u.image : 'assets/images/k9_patrol_officers.jpg'}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='assets/images/k9_patrol_officers.jpg'">
+          </div>
+        </div>
+
+        <div>
+          <label style="display:block;font-family:var(--font-headline);font-size:0.7rem;color:var(--police-cyan);letter-spacing:0.06em;margin-bottom:0.35rem;">DESCRIPCIÓN / PROPÓSITO OPERATIVO</label>
+          <textarea id="vestDesc" rows="2" placeholder="Describe cuándo y cómo debe utilizarse esta vestimenta..." style="width:100%;padding:0.6rem 0.8rem;background:rgba(10,14,23,0.8);border:1px solid var(--border-tactical);border-radius:6px;color:#fff;font-family:var(--font-body);font-size:0.82rem;resize:vertical;">${u ? escapeHtml(u.description || '') : ''}</textarea>
+        </div>
+
+        <div>
+          <label style="display:block;font-family:var(--font-headline);font-size:0.7rem;color:var(--police-cyan);letter-spacing:0.06em;margin-bottom:0.35rem;">PRENDAS Y COMPONENTES REGLAMENTARIOS (UNA POR LÍNEA) *</label>
+          <textarea id="vestComponents" rows="4" required placeholder="Camisa táctica LSPD&#10;Pantalón táctico azul noche&#10;Chaleco balístico con identificación K9&#10;Cinturón de dotación con kit de correa&#10;Botas tácticas de media caña" style="width:100%;padding:0.6rem 0.8rem;background:rgba(10,14,23,0.8);border:1px solid var(--border-tactical);border-radius:6px;color:#fff;font-family:var(--font-body);font-size:0.82rem;resize:vertical;">${escapeHtml(defaultComponents)}</textarea>
+        </div>
+
+        <div style="background:rgba(255,183,3,0.06);border:1px solid rgba(255,183,3,0.25);border-radius:8px;padding:0.75rem 1rem;">
+          <label style="display:flex;align-items:center;gap:0.6rem;cursor:pointer;font-size:0.85rem;color:#fff;">
+            <input type="checkbox" id="vestPinned" ${u && u.pinned ? 'checked' : ''} style="width:18px;height:18px;accent-color:var(--tactical-gold);cursor:pointer;">
+            <span style="font-weight:600;">📌 Fijar esta vestimenta en la parte superior del catálogo</span>
+          </label>
+        </div>
+
+        <div style="display:flex;gap:0.75rem;justify-content:flex-end;margin-top:0.5rem;">
+          <button type="button" id="cancelVestBtn" class="btn-tactical btn-tactical-ghost" style="padding:0.6rem 1.2rem;">Cancelar</button>
+          <button type="submit" class="btn-tactical btn-tactical-gold" style="padding:0.6rem 1.5rem;font-weight:700;">💾 Guardar Vestimenta</button>
+        </div>
+      </form>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  // Preview de imagen en tiempo real
+  const imgInput = document.getElementById('vestImage');
+  const imgPreview = document.getElementById('vestImagePreview');
+  imgInput.addEventListener('input', () => {
+    imgPreview.src = imgInput.value.trim() || 'assets/images/k9_patrol_officers.jpg';
+  });
+
+  // Subida de imagen local (FileReader a base64)
+  const fileInput = document.getElementById('vestUploadFile');
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (loadEvent) => {
+      imgInput.value = loadEvent.target.result;
+      imgPreview.src = loadEvent.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  const closeModal = () => overlay.remove();
+  document.getElementById('closeVestimentaModal').addEventListener('click', closeModal);
+  document.getElementById('cancelVestBtn').addEventListener('click', closeModal);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+
+  // Envío del formulario
+  document.getElementById('vestimentaForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const title = document.getElementById('vestTitle').value.trim();
+    const category = document.getElementById('vestCategory').value;
+    const authorizedRanks = document.getElementById('vestRanks').value.trim();
+    const image = document.getElementById('vestImage').value.trim() || 'assets/images/k9_patrol_officers.jpg';
+    const description = document.getElementById('vestDesc').value.trim();
+    const componentsRaw = document.getElementById('vestComponents').value.trim();
+    const pinned = document.getElementById('vestPinned').checked;
+
+    const components = componentsRaw.split('\n').map(s => s.trim()).filter(Boolean);
+
+    const uniformData = {
+      id: u ? u.id : undefined,
+      title,
+      category,
+      authorizedRanks,
+      image,
+      description,
+      components,
+      pinned,
+      updatedAt: new Date().toISOString()
+    };
+
+    window.K9Store.saveUniform(uniformData);
+    if (window.K9CloudSync) window.K9CloudSync.push();
+
+    showToast(u ? 'Vestimenta actualizada con éxito.' : 'Nueva vestimenta registrada en el catálogo.', 'success');
+    closeModal();
+
+    const cont = document.getElementById('view-vestimenta');
+    if (cont) renderVestimentaSection(cont);
+  });
+}
+window.openVestimentaModal = openVestimentaModal;
+
+// Fijar / Desfijar vestimenta
+function togglePinVestimenta(uniformId) {
+  if (!window.K9Auth || !window.K9Auth.isJefaturaMember()) {
+    showToast('Acceso exclusivo de Jefatura.', 'error');
+    return;
+  }
+  const isPinned = window.K9Store.togglePinUniform(uniformId);
+  if (window.K9CloudSync) window.K9CloudSync.push();
+  if (window.K9Audio) window.K9Audio.playTacticalClick();
+  showToast(isPinned ? '📌 Vestimenta fijada en la parte superior.' : 'Vestimenta desfijada.', 'info');
+  const cont = document.getElementById('view-vestimenta');
+  if (cont) renderVestimentaSection(cont);
+}
+window.togglePinVestimenta = togglePinVestimenta;
+
+// Eliminar vestimenta
+function deleteVestimenta(uniformId) {
+  if (!window.K9Auth || !window.K9Auth.isJefaturaMember()) {
+    showToast('Acceso exclusivo de Jefatura.', 'error');
+    return;
+  }
+  if (!confirm('¿Estás seguro de que deseas eliminar esta vestimenta del catálogo oficial?')) return;
+  window.K9Store.deleteUniform(uniformId);
+  if (window.K9CloudSync) window.K9CloudSync.push();
+  showToast('Vestimenta eliminada del catálogo.', 'info');
+  const cont = document.getElementById('view-vestimenta');
+  if (cont) renderVestimentaSection(cont);
+}
+window.deleteVestimenta = deleteVestimenta;
+
+// Lightbox para zoom de fotografías
+function openImageLightbox(imgSrc, title = 'Fotografía Oficial') {
+  const existing = document.getElementById('k9ImageLightbox');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'k9ImageLightbox';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(2,4,10,0.92);backdrop-filter:blur(8px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:1.5rem;animation:fadeIn 0.2s ease;';
+
+  overlay.innerHTML = `
+    <div style="position:relative;max-width:920px;max-height:90vh;display:flex;flex-direction:column;align-items:center;">
+      <button id="closeLightboxBtn" style="position:absolute;top:-42px;right:0;background:none;border:none;color:#fff;font-size:2rem;cursor:pointer;line-height:1;opacity:0.8;">&times;</button>
+      <div style="border-radius:12px;overflow:hidden;border:1px solid rgba(0,229,255,0.3);box-shadow:0 25px 70px rgba(0,0,0,0.85);background:#000;">
+        <img src="${imgSrc}" alt="${escapeHtml(title)}" style="max-width:100%;max-height:80vh;display:block;object-fit:contain;">
+      </div>
+      <div style="margin-top:0.75rem;color:#cbd5e1;font-family:var(--font-tactical);font-size:0.95rem;text-align:center;letter-spacing:0.04em;">
+        ${escapeHtml(title)}
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+  document.getElementById('closeLightboxBtn').addEventListener('click', close);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+}
+window.openImageLightbox = openImageLightbox;
+
 

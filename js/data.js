@@ -23,7 +23,8 @@ const STORAGE_KEYS = {
   LAST_UPDATE: 'k9_last_local_update',
   TASKS: 'k9_data_tasks',
   EVENTS: 'k9_data_events',
-  NOTIFICATIONS: 'k9_data_notifications'
+  NOTIFICATIONS: 'k9_data_notifications',
+  UNIFORMS: 'k9_data_uniforms'
 };
 if (typeof window !== 'undefined') window.STORAGE_KEYS = STORAGE_KEYS;
 
@@ -542,6 +543,97 @@ const DEFAULT_NOTIFICATIONS = [
   }
 ];
 
+// Catálogo de Vestimenta e Indumentaria Policial K9 por defecto
+const DEFAULT_UNIFORMS = [
+  {
+    id: 'unif_01',
+    title: 'Uniforme Operativo de Patrulla K9',
+    category: 'Patrulla Ordinaria',
+    description: 'Indumentaria reglamentaria estándar para patrullaje preventivo y respuesta a emergencias en binomio.',
+    image: 'assets/images/k9_patrol_officers.jpg',
+    authorizedRanks: 'Aspirante K9, Agente Guia, Instructor K9, Subcoordinador K9, Coordinador K9, Jefatura LSPD',
+    pinned: true,
+    components: [
+      'Camisa táctica LSPD manga corta / larga con parches oficiales K9',
+      'Pantalón táctico azul noche ignífugo con bolsillos reforzados',
+      'Chaleco balístico exterior nivel IIIA con velcro K9 POLICE y porta-placa',
+      'Cinturón táctico con funda safariland, taser, cargadores y kit de correa K9',
+      'Porta-arnés y mosquetón de anclaje rápido canino',
+      'Botas tácticas de media caña impermeables'
+    ],
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'unif_02',
+    title: 'Equipo Táctico de Asalto & Operaciones Especiales',
+    category: 'Asalto & Táctico',
+    description: 'Vestimenta de máxima protección para intervenciones de alto riesgo, entradas forzadas y tiradores activos.',
+    image: 'assets/images/hero_dog.jpg',
+    authorizedRanks: 'Agente Guia, Instructor K9, Subcoordinador K9, Coordinador K9, Jefatura LSPD',
+    pinned: true,
+    components: [
+      'Uniforme combate ripstop negro / multicam black con coderas y rodilleras',
+      'Chaleco táctico portaplacas pesado nivel IV con sistema MOLLE',
+      'Casco balístico táctico con montura para cámara y linterna perimetral',
+      'Protección ocular táctica y guantes ignífugos de asalto',
+      'Arnés táctico canino con asa de elevación y placa balística canina',
+      'Bolsa táctica de pernera con botiquín hemostático TCCC-K9'
+    ],
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'unif_03',
+    title: 'Indumentaria de Adiestramiento & Cuidados de Chenil',
+    category: 'Adiestramiento / Chenil',
+    description: 'Equipamiento para sesiones de obediencia, mordida táctica, ejercicios de rastro en campo y mantenimiento diario del can.',
+    image: 'assets/images/k9_rex.jpg',
+    authorizedRanks: 'Todos los miembros acreditados',
+    pinned: false,
+    components: [
+      'Polo táctico transpirable K9 Unit alta visibilidad / oscuro',
+      'Pantalón de faena resistente a manchas y mordiscos superficiales',
+      'Chaleco de adiestramiento con bolsillos para señuelos, premios y mordedores',
+      'Manga de mordida y traje de protección integral (cuando proceda)',
+      'Correa de rastreo larga de 10 metros y arnés de tracción canino'
+    ],
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'unif_04',
+    title: 'Uniforme de Gala & Protocolo Policial',
+    category: 'Gala & Ceremonial',
+    description: 'Indumentaria de etiqueta para ceremonias oficiales, entrega de despachos, medallas y homenajes oficiales.',
+    image: 'assets/images/emblem.jpg',
+    authorizedRanks: 'Agente Guia, Instructor K9, Subcoordinador K9, Coordinador K9, Jefatura LSPD',
+    pinned: false,
+    components: [
+      'Guerrera de gala azul oscuro con distintivos dorados de la División K9',
+      'Pantalón recto de gala con vivos reglamentarios',
+      'Gorra de plato policial con escarapela metálica dorada',
+      'Guantes blancos ceremoniales',
+      'Pasador de condecoraciones y medallas en el pecho',
+      'Corbata negra y cordón de mando (según rango)'
+    ],
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'unif_05',
+    title: 'Uniformidad de Alto Mando & Staff LSPD',
+    category: 'Mando & Jefatura',
+    description: 'Vestimenta distintiva para Jefatura de División y Mandos Superiores de la LSPD en supervisión de unidades caninas.',
+    image: 'assets/images/emblem.jpg',
+    authorizedRanks: 'Subcoordinador K9, Coordinador K9, Jefatura LSPD',
+    pinned: false,
+    components: [
+      'Camisa de mando blanca / azul noche con hombreras de rango dorado',
+      'Placa dorada de Jefatura LSPD y distintivos de mando supremo',
+      'Chaleco ejecutivo de supervisión táctica con leyenda JEFATURA',
+      'Distintivo dorado de Coordinación Suprema K9 / LSPD'
+    ],
+    updatedAt: new Date().toISOString()
+  }
+];
+
 // Clase Gestora del Estado
 class K9DataStore {
   constructor() {
@@ -622,6 +714,9 @@ class K9DataStore {
     if (!localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS)) {
       this.save(STORAGE_KEYS.NOTIFICATIONS, DEFAULT_NOTIFICATIONS);
     }
+    if (!localStorage.getItem(STORAGE_KEYS.UNIFORMS)) {
+      this.save(STORAGE_KEYS.UNIFORMS, DEFAULT_UNIFORMS);
+    }
 
     // Asegurar que el ID oficial de Jefatura nunca esté en la lista de expulsados
     let expelled = this.get(STORAGE_KEYS.EXPELLED_USERS);
@@ -630,17 +725,18 @@ class K9DataStore {
       this.save(STORAGE_KEYS.EXPELLED_USERS, expelled);
     }
 
-    // Función de normalización de los 5 rangos oficiales:
-    // Aspirante K9, Agente Guia, Instructor K9, Subcoordinador K9, Coordinador K9
+    // Función de normalización de rangos oficiales K9 y Staff LSPD:
     const normalizeK9Rank = (r) => {
-      if (!r) return 'Aspirante K9';
+      if (!r) return 'Sin Rango';
       const s = String(r).trim();
+      if (s.includes('LSPD') || s.includes('Staff') || s.includes('Jefe de Policía')) return 'Jefatura LSPD';
       if (s.includes('Jefe de División') || s.includes('Coordinador K9') || s === 'Coordinador K9') return 'Coordinador K9';
       if (s.includes('Subjefe') || s.includes('Subcoordinador') || s.includes('Inspector') || s.includes('Coordinador Operativo')) return 'Subcoordinador K9';
       if (s.includes('Instructor') || s.includes('Instuctor')) return 'Instructor K9';
       if (s.includes('Oficial') || s.includes('Guía') || s.includes('Guia') || s === 'Agente Guia' || s === 'Agente Guía') return 'Agente Guia';
       if (s.includes('Aspirante')) return 'Aspirante K9';
-      return 'Agente Guia';
+      if (s === 'Sin Rango' || s.includes('Sin Rango')) return 'Sin Rango';
+      return s;
     };
 
     // Asegurar que los presets de Jefatura oficial siempre estén presentes y activos con rangos actualizados
@@ -1095,6 +1191,54 @@ class K9DataStore {
     const filtered = list.filter(n => n.id !== notifId);
     this.save(STORAGE_KEYS.NOTIFICATIONS, filtered);
     return true;
+  }
+
+  // Gestión de Uniformidad & Vestimenta K9
+  getUniforms() {
+    const list = this.get(STORAGE_KEYS.UNIFORMS);
+    return Array.isArray(list) && list.length > 0 ? list : DEFAULT_UNIFORMS;
+  }
+
+  saveUniform(uniformData) {
+    const list = [...this.getUniforms()];
+    const index = list.findIndex(u => u.id === uniformData.id);
+    const item = Object.assign({
+      id: 'unif_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+      title: 'Uniforme K9',
+      category: 'Patrulla Ordinaria',
+      description: '',
+      image: 'assets/images/k9_patrol_officers.jpg',
+      components: [],
+      authorizedRanks: 'Todos los Guías Caninos',
+      pinned: false,
+      updatedAt: new Date().toISOString()
+    }, uniformData);
+
+    if (index >= 0) {
+      list[index] = item;
+    } else {
+      list.unshift(item);
+    }
+    this.save(STORAGE_KEYS.UNIFORMS, list);
+    return item;
+  }
+
+  deleteUniform(uniformId) {
+    const list = this.getUniforms().filter(u => u.id !== uniformId);
+    this.save(STORAGE_KEYS.UNIFORMS, list);
+    return true;
+  }
+
+  togglePinUniform(uniformId) {
+    const list = [...this.getUniforms()];
+    const item = list.find(u => u.id === uniformId);
+    if (item) {
+      item.pinned = !item.pinned;
+      item.updatedAt = new Date().toISOString();
+      this.save(STORAGE_KEYS.UNIFORMS, list);
+      return item.pinned;
+    }
+    return false;
   }
 
   resetAll() {

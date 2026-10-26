@@ -309,7 +309,8 @@ class K9SupabaseManager {
           expelledUserIds: window.K9Store.getExpelledUserIds() || [],
           tasks: (window.K9Store.getRawTasks ? window.K9Store.getRawTasks() : (window.K9Store.get(k.TASKS) || [])),
           events: (window.K9Store.getRawEvents ? window.K9Store.getRawEvents() : (window.K9Store.get(k.EVENTS) || [])),
-          notifications: (window.K9Store.getRawNotifications ? window.K9Store.getRawNotifications() : (window.K9Store.get(k.NOTIFICATIONS) || []))
+          notifications: (window.K9Store.getRawNotifications ? window.K9Store.getRawNotifications() : (window.K9Store.get(k.NOTIFICATIONS) || [])),
+          uniforms: (window.K9Store.getUniforms ? window.K9Store.getUniforms() : (window.K9Store.get(k.UNIFORMS) || []))
         };
       }
     }

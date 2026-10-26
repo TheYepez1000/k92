@@ -32,7 +32,8 @@ const K9_SYNC_KEYS = (typeof window !== 'undefined' && window.STORAGE_KEYS) || (
   LAST_UPDATE: 'k9_last_local_update',
   TASKS: 'k9_data_tasks',
   EVENTS: 'k9_data_events',
-  NOTIFICATIONS: 'k9_data_notifications'
+  NOTIFICATIONS: 'k9_data_notifications',
+  UNIFORMS: 'k9_data_uniforms'
 });
 
 class K9CloudSyncManager {
@@ -120,6 +121,7 @@ class K9CloudSyncManager {
       tasks: (window.K9Store.getRawTasks ? window.K9Store.getRawTasks() : (window.K9Store.get(K9_SYNC_KEYS.TASKS) || [])),
       events: (window.K9Store.getRawEvents ? window.K9Store.getRawEvents() : (window.K9Store.get(K9_SYNC_KEYS.EVENTS) || [])),
       notifications: (window.K9Store.getRawNotifications ? window.K9Store.getRawNotifications() : (window.K9Store.get(K9_SYNC_KEYS.NOTIFICATIONS) || [])),
+      uniforms: (window.K9Store.getUniforms ? window.K9Store.getUniforms() : (window.K9Store.get(K9_SYNC_KEYS.UNIFORMS) || [])),
       webhookUrl: localStorage.getItem('k9_webhook_url') || null
     };
   }
@@ -443,6 +445,12 @@ class K9CloudSyncManager {
       // 16. Centro de Notificaciones
       if (Array.isArray(remote.notifications)) {
         localStorage.setItem(K9_SYNC_KEYS.NOTIFICATIONS, JSON.stringify(remote.notifications));
+        hasChanges = true;
+      }
+
+      // 17. Código de Vestimenta & Uniformidad K9
+      if (Array.isArray(remote.uniforms) && remote.uniforms.length > 0) {
+        localStorage.setItem(K9_SYNC_KEYS.UNIFORMS, JSON.stringify(remote.uniforms));
         hasChanges = true;
       }
 

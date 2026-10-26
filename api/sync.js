@@ -494,6 +494,11 @@ function mergeDatasets(existing, incoming) {
     result.notifications = incoming.notifications.slice(0, 100);
   }
 
+  // 18. Código de Vestimenta & Uniformes
+  if (Array.isArray(incoming.uniforms)) {
+    result.uniforms = incoming.uniforms;
+  }
+
   result.updatedAt = incoming.updatedAt || Date.now();
   return result;
 }

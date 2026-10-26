@@ -37,8 +37,8 @@ class K9AuthManager {
     if (!user) return false;
     if (user.discordId === '578954458948698122' || user.discordId === '760159743616090164') return true;
     if (user.isExpelled) return false;
-    // Si es Coordinador K9 o tiene el comodín '*'
-    if (user.rank === 'Coordinador K9' || user.rank === 'Jefe de División K9' || (user.permissions && user.permissions.includes('*'))) {
+    // Si es Staff Jefatura LSPD, Coordinador K9 o tiene el comodín '*'
+    if (user.rank === 'Jefatura LSPD' || user.rank === 'Staff LSPD' || user.rank === 'Coordinador K9' || user.rank === 'Jefe de División K9' || (user.permissions && user.permissions.includes('*'))) {
       return true;
     }
     if (!user.permissions || !Array.isArray(user.permissions)) {
@@ -53,7 +53,7 @@ class K9AuthManager {
     if (!user) return false;
     if (user.discordId === '578954458948698122' || user.discordId === '760159743616090164') return true;
     if (user.isExpelled) return false;
-    return !!(user.isJefatura || user.rank === 'Coordinador K9' || user.rank === 'Subcoordinador K9' || this.hasPermission('view_jefatura', user) || (user.permissions && user.permissions.length > 0));
+    return !!(user.isJefatura || user.rank === 'Jefatura LSPD' || user.rank === 'Staff LSPD' || user.rank === 'Coordinador K9' || user.rank === 'Subcoordinador K9' || this.hasPermission('view_jefatura', user) || (user.permissions && user.permissions.length > 0));
   }
 
   // Iniciar sesión / registrar usuario con identidad de Discord
@@ -100,11 +100,13 @@ class K9AuthManager {
     }
 
     if (!matched) {
-      // Usuario nuevo que inicia sesión con Discord
+      // Usuario nuevo que inicia sesión con Discord sin estar guardado previamente:
+      // Se le asigna por defecto "Sin Rango" hasta que la Jefatura lo valide y asigne rango oficial.
       const hasPreset = !!preset;
-      const assignedRank = hasPreset ? preset.rank : (isAdminId ? 'Coordinador K9' : 'Aspirante K9');
+      const assignedRank = hasPreset ? preset.rank : (isAdminId ? 'Coordinador K9' : 'Sin Rango');
       const assignedPlaca = hasPreset ? preset.placa : (isAdminId ? 'K-01' : 'S/P');
-      const grantJefatura = (hasPreset && !!preset.isJefatura) || isAdminId;
+      const grantJefatura = (hasPreset && (!!preset.isJefatura || preset.rank === 'Jefatura LSPD')) || isAdminId;
+      const isVerified = (hasPreset && preset.rank !== 'Sin Rango') || isAdminId;
 
       matched = {
         id: 'user_' + (profileData.discordId ? profileData.discordId.slice(-6) : Math.random().toString(36).substring(2, 8)),
@@ -115,7 +117,7 @@ class K9AuthManager {
         discordId: profileData.discordId || Math.floor(100000000000000000 + Math.random() * 900000000000000000).toString(),
         avatar: profileData.avatar || 'assets/images/emblem.jpg',
         isJefatura: grantJefatura,
-        isVerified: hasPreset || isAdminId,
+        isVerified: isVerified,
         isExpelled: false,
         assignedDogId: null,
         badges: grantJefatura ? ['badge_master', 'badge_veteran', 'badge_valor'] : [],
@@ -133,10 +135,10 @@ class K9AuthManager {
       if (preset) {
         matched.rank = preset.rank;
         matched.placa = preset.placa;
-        matched.isJefatura = !!preset.isJefatura;
-        matched.isVerified = true;
-        matched.permissions = preset.isJefatura ? ['*'] : (preset.permissions || []);
-        matched.serviceStatus = preset.isJefatura ? 'En Activo / Mando' : (preset.serviceStatus || 'En Activo');
+        matched.isJefatura = !!preset.isJefatura || preset.rank === 'Jefatura LSPD';
+        matched.isVerified = preset.rank !== 'Sin Rango';
+        matched.permissions = (preset.isJefatura || preset.rank === 'Jefatura LSPD') ? ['*'] : (preset.permissions || []);
+        matched.serviceStatus = (preset.isJefatura || preset.rank === 'Jefatura LSPD') ? 'En Activo / Mando' : (preset.serviceStatus || 'En Activo');
       } else if (isAdminId) {
         matched.rank = 'Coordinador K9';
         matched.placa = 'K-01';
@@ -146,9 +148,9 @@ class K9AuthManager {
         matched.serviceStatus = 'En Activo / Mando';
       } else if (matched.rank === '🚫 Expulsado de la Unidad' || matched.serviceStatus === 'Expulsado por Jefatura' || matched.placa === 'EXPULSADO') {
         // Restaurar a servicio activo
-        matched.rank = matched.previousRank || 'Agente Guia';
-        matched.placa = (matched.placa && matched.placa !== 'EXPULSADO') ? matched.placa : 'K-99';
-        matched.isVerified = true;
+        matched.rank = matched.previousRank || 'Sin Rango';
+        matched.placa = (matched.placa && matched.placa !== 'EXPULSADO') ? matched.placa : 'S/P';
+        matched.isVerified = matched.rank !== 'Sin Rango';
         matched.serviceStatus = 'En Activo';
       }
       if (profileData.avatar) matched.avatar = profileData.avatar;
