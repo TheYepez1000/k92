@@ -52,7 +52,12 @@ class K9CloudSyncManager {
     if (custom && custom.trim()) {
       return custom.trim();
     }
-    // Si estamos en Vercel o un host web, usar el endpoint serverless propio
+    // Si Supabase ya está configurado, NO usar el endpoint serverless /api/sync
+    // para evitar que reinicios en frío de funciones serverless sobrescriban datos persistentes
+    if (window.K9Supabase && window.K9Supabase.isConfigured()) {
+      return null;
+    }
+    // Si estamos en Vercel o un host web y no hay Supabase, usar el endpoint serverless propio
     if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
       return window.location.origin + '/api/sync';
     }
@@ -131,6 +136,11 @@ class K9CloudSyncManager {
   // Enviar cambios locales a la nube
   async push() {
     if (this._isApplyingRemote) return;
+    // Si Supabase está configurado pero aún no completó la lectura inicial, postergar para no pisar la nube con datos por defecto
+    if (window.K9Supabase && window.K9Supabase.isConfigured() && !window.K9Supabase.hasInitialPullCompleted) {
+      console.warn('[K9CloudSync] Push postergado: esperando lectura inicial de Supabase...');
+      return;
+    }
     const payload = this.exportPayload();
     if (!payload) return;
 
@@ -152,7 +162,7 @@ class K9CloudSyncManager {
       }
     }
 
-    // 2. Endpoint REST o Firebase complementario / fallback
+    // 2. Endpoint REST o Firebase complementario / fallback (SOLO si Supabase NO está configurado)
     const endpoint = this.getEndpointUrl();
     if (!endpoint) {
       if (!supabaseOk && (!window.K9Supabase || !window.K9Supabase.isConfigured())) {
@@ -201,15 +211,16 @@ class K9CloudSyncManager {
         this._inFlight = false;
         if (remoteData) {
           this.setStatus('online');
-          return;
         }
+        return remoteData; // IMPORTANTE: no continuar hacia /api/sync si Supabase está activo
       } catch (err) {
         this._inFlight = false;
         console.warn('[K9CloudSync] Fallo en pull de Supabase:', err);
+        return null;
       }
     }
 
-    // 2. Fallback: Endpoint REST / Firebase
+    // 2. Fallback: Endpoint REST / Firebase (SOLO si Supabase NO está configurado)
     const endpoint = this.getEndpointUrl();
     if (!endpoint) {
       if (window.K9Supabase && window.K9Supabase.isConfigured()) {

@@ -21,7 +21,8 @@ class K9SupabaseManager {
     this.client = null;
     this.channel = null;
     this.isConnected = false;
-    this._inFlight = false;
+    this._inFlightPromise = null;
+    this.hasInitialPullCompleted = false;
     this.init();
   }
 
@@ -191,6 +192,7 @@ class K9SupabaseManager {
             }
             this._lastPushedHash = remoteHash;
             this.handleRemotePayload(newPayload);
+            this.hasInitialPullCompleted = true;
           } else {
             this.pull(true);
           }
@@ -203,9 +205,20 @@ class K9SupabaseManager {
 
   // Descargar el estado completo desde Supabase (Soporta cliente JS y REST nativo)
   async pull(force = false) {
-    if (!this.isConfigured() || this._inFlight) return null;
-    this._inFlight = true;
+    if (!this.isConfigured()) return null;
+    if (this._inFlightPromise) {
+      return this._inFlightPromise;
+    }
+    this._inFlightPromise = this._doPull(force);
+    try {
+      const res = await this._inFlightPromise;
+      return res;
+    } finally {
+      this._inFlightPromise = null;
+    }
+  }
 
+  async _doPull(force = false) {
     try {
       let payload = null;
 
@@ -243,22 +256,22 @@ class K9SupabaseManager {
         }
       }
 
-      this._inFlight = false;
       this.isConnected = true;
 
       // Si la nube está vacía ({}) o sin claves, auto-sembrar con los datos locales
       if (!payload || typeof payload !== 'object' || Object.keys(payload).length === 0) {
         console.log('[K9Supabase] Nube vacía o inicial detectada. Sembrando datos locales en Supabase...');
+        this.hasInitialPullCompleted = true;
         await this.push();
         return null;
       }
 
       this.handleRemotePayload(payload);
+      this.hasInitialPullCompleted = true;
       localStorage.setItem(SUPABASE_STORAGE_KEYS.LAST_SYNC, Date.now().toString());
       this.updateIndicatorUI(true);
       return payload;
     } catch (err) {
-      this._inFlight = false;
       console.warn('[K9Supabase] Fallo general en pull:', err);
       return null;
     }
@@ -266,6 +279,11 @@ class K9SupabaseManager {
 
   // Subir el estado completo de la plataforma a Supabase (Soporta cliente JS y REST nativo)
   async push(customPayload = null) {
+    // Si aún no hemos completado la lectura inicial de Supabase, bloquear push automático para NUNCA sobrescribir la nube con datos locales vacíos o por defecto
+    if (!this.hasInitialPullCompleted && !customPayload) {
+      console.warn('[K9Supabase] Push cancelado: esperando lectura inicial de Supabase para no sobreescribir datos.');
+      return false;
+    }
     let payload = customPayload;
     if (!payload) {
       if (window.K9CloudSync && typeof window.K9CloudSync.exportPayload === 'function') {

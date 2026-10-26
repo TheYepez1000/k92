@@ -555,6 +555,52 @@ module.exports = async (req, res) => {
     }
   }
 
+  // Prioridad: Sincronización directa con Supabase PostgreSQL (persistencia permanente)
+  const supabaseUrl = process.env.SUPABASE_URL || 'https://lokfaliwnnfqmachndwv.supabase.co';
+  const supabaseKey = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxva2ZhbGl3bm5mcW1hY2huZHd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI5OTgxNDEsImV4cCI6MjEwODU3NDE0MX0.7YVbrxy_hi3drFl4wUFVmr8xMZHBUgchhzvmOiUr0cg';
+
+  if (supabaseUrl && supabaseKey) {
+    try {
+      if (req.method === 'POST' || req.method === 'PUT') {
+        const incoming = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+        const upsertRes = await fetch(`${supabaseUrl}/rest/v1/k9_app_state`, {
+          method: 'POST',
+          headers: {
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'resolution=merge-duplicates'
+          },
+          body: JSON.stringify({
+            id: 'k9_global_state',
+            payload: incoming,
+            updated_at: new Date().toISOString(),
+            updated_by: 'API Sync Bridge'
+          })
+        });
+        if (upsertRes.ok) {
+          return res.status(200).json({ ok: true, source: 'supabase', data: incoming });
+        }
+      } else {
+        const getRes = await fetch(`${supabaseUrl}/rest/v1/k9_app_state?id=eq.k9_global_state&select=payload`, {
+          headers: {
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`,
+            'Accept': 'application/json'
+          }
+        });
+        if (getRes.ok) {
+          const rows = await getRes.json();
+          if (Array.isArray(rows) && rows.length > 0 && rows[0].payload && Object.keys(rows[0].payload).length > 0) {
+            return res.status(200).json(rows[0].payload);
+          }
+        }
+      }
+    } catch (errSupabase) {
+      console.warn('[API Sync Supabase Bridge Error]:', errSupabase);
+    }
+  }
+
   // Fallback: Memoria del proceso Serverless con guardado en archivo local
   if (req.method === 'POST' || req.method === 'PUT') {
     const incoming = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;

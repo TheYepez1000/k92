@@ -545,7 +545,12 @@ const DEFAULT_NOTIFICATIONS = [
 // Clase Gestora del Estado
 class K9DataStore {
   constructor() {
-    this.init();
+    this._isInitializing = true;
+    try {
+      this.init();
+    } finally {
+      this._isInitializing = false;
+    }
   }
 
   init() {
@@ -714,10 +719,13 @@ class K9DataStore {
       localStorage.setItem(key, JSON.stringify(val));
       if (key !== STORAGE_KEYS.CURRENT_USER) {
         localStorage.setItem(STORAGE_KEYS.LAST_UPDATE, Date.now().toString());
+        // NO sincronizar a la nube durante la inicialización interna del dataStore
+        if (this._isInitializing) return;
+
         // Sincronizar automáticamente en la nube cuando se modifica cualquier dato compartido por el usuario local
         if (window.K9CloudSync && !window.K9CloudSync._isApplyingRemote && typeof window.K9CloudSync.schedulePush === 'function') {
           window.K9CloudSync.schedulePush();
-        } else if (!window.K9CloudSync && window.K9Supabase && typeof window.K9Supabase.push === 'function' && window.K9Supabase.isConfigured()) {
+        } else if (!window.K9CloudSync && window.K9Supabase && window.K9Supabase.hasInitialPullCompleted && typeof window.K9Supabase.push === 'function' && window.K9Supabase.isConfigured()) {
           window.K9Supabase.push();
         }
       }
