@@ -714,10 +714,10 @@ class K9DataStore {
       localStorage.setItem(key, JSON.stringify(val));
       if (key !== STORAGE_KEYS.CURRENT_USER) {
         localStorage.setItem(STORAGE_KEYS.LAST_UPDATE, Date.now().toString());
-        // Sincronizar automáticamente en la nube cuando se modifica cualquier dato compartido
-        if (window.K9CloudSync && typeof window.K9CloudSync.schedulePush === 'function') {
+        // Sincronizar automáticamente en la nube cuando se modifica cualquier dato compartido por el usuario local
+        if (window.K9CloudSync && !window.K9CloudSync._isApplyingRemote && typeof window.K9CloudSync.schedulePush === 'function') {
           window.K9CloudSync.schedulePush();
-        } else if (window.K9Supabase && typeof window.K9Supabase.push === 'function' && window.K9Supabase.isConfigured()) {
+        } else if (!window.K9CloudSync && window.K9Supabase && typeof window.K9Supabase.push === 'function' && window.K9Supabase.isConfigured()) {
           window.K9Supabase.push();
         }
       }

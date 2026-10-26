@@ -181,16 +181,22 @@ class K9SupabaseManager {
           table: 'k9_app_state'
         },
         (change) => {
-          console.log('[K9Supabase Realtime] Cambio detectado en la nube:', change.eventType);
-          if (change.new && change.new.payload) {
-            this.handleRemotePayload(change.new.payload);
+          if (!change || !change.new) return;
+          const newPayload = change.new.payload;
+          if (newPayload) {
+            // Anti-eco: Si el cambio recibido es idéntico a lo que acabamos de subir nosotros, ignorarlo
+            const remoteHash = JSON.stringify(newPayload);
+            if (this._lastPushedHash && remoteHash === this._lastPushedHash) {
+              return;
+            }
+            this._lastPushedHash = remoteHash;
+            this.handleRemotePayload(newPayload);
           } else {
             this.pull(true);
           }
         }
       )
       .subscribe((status) => {
-        console.log('[K9Supabase Realtime] Estado del canal:', status);
         this.updateIndicatorUI(status === 'SUBSCRIBED');
       });
   }
@@ -339,6 +345,7 @@ class K9SupabaseManager {
 
     if (ok) {
       this.isConnected = true;
+      this._lastPushedHash = JSON.stringify(payload);
       localStorage.setItem(SUPABASE_STORAGE_KEYS.LAST_SYNC, Date.now().toString());
       this.updateIndicatorUI(true);
       return true;
