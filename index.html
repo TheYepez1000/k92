@@ -46,44 +46,48 @@
         <div class="brand-info">
           <div class="brand-title">
             <span>UNIDAD K9</span>
-            <span class="brand-badge-tag">DIVISIÓN POLICIAL</span>
+            <span class="brand-sub-pill">LSPD</span>
           </div>
-          <span class="brand-subtitle font-gobold">JEFATURA & OPERACIONES ESPECIALES</span>
+          <span class="brand-subtitle">DIVISIÓN POLICIAL & OPERACIONES</span>
         </div>
       </div>
 
-      <!-- Indicador de Red Táctica Operativa y Sincronización en la Nube -->
-      <div class="tactical-live-status" onclick="openModal('modalCloudSync')" style="cursor:pointer;"
-        title="Ver estado de sincronización en la nube">
-        <span class="pulse-dot" id="cloudSyncDot"></span>
-        <span id="cloudSyncLabel">SINC NUBE: CONECTADO</span>
-      </div>
-
-      <!-- Pestañas de Navegación Principal -->
+      <!-- Pestañas de Navegación Principal Unificadas -->
       <nav class="nav-tabs" aria-label="Navegación principal">
-        <button class="nav-tab-btn active" data-view="inicio" id="navBtnInicio" title="Normativa y Canes K9">
-          <span>⚖️</span> Normativa & Canes
+        <button class="nav-tab-btn active" data-view="inicio" id="navBtnInicio" title="Normativa Oficial y Plantilla de Canes">
+          <span class="nav-icon">⚖️</span>
+          <span class="nav-label">Normativa</span>
         </button>
         <button class="nav-tab-btn" data-view="miembros" id="navBtnMiembros" title="Directorio Oficial de Miembros K9">
-          <span>👥</span> Miembros K9
+          <span class="nav-icon">👥</span>
+          <span class="nav-label">Miembros</span>
         </button>
-        <button class="nav-tab-btn" data-view="ascensos" id="navBtnAscensos" title="Tablón Oficial de Ascensos">
-          <span>🎖️</span> Ascensos Oficiales
+        <button class="nav-tab-btn" data-view="ascensos" id="navBtnAscensos" title="Tablón Oficial de Ascensos de Jefatura">
+          <span class="nav-icon">🎖️</span>
+          <span class="nav-label">Ascensos</span>
         </button>
-        <button class="nav-tab-btn" data-view="condecoraciones" id="navBtnCondecoraciones" title="Condecoraciones & Medallas">
-          <span>🏅</span> Condecoraciones
+        <button class="nav-tab-btn" data-view="condecoraciones" id="navBtnCondecoraciones" title="Condecoraciones & Distinciones Policiales">
+          <span class="nav-icon">🏅</span>
+          <span class="nav-label">Condecoraciones</span>
         </button>
-        <button class="nav-tab-btn" data-view="perfil" id="navBtnPerfil" title="Expediente Personal & Despacho">
-          <span>🐕</span> Mi Perfil K9 <span class="jefatura-lock-badge" id="perfilLockBadge"
-            style="background:rgba(88,101,242,0.15); color:#a5b4fc; border-color:rgba(88,101,242,0.3); font-size:0.6rem;">DISCORD</span>
+        <button class="nav-tab-btn" data-view="perfil" id="navBtnPerfil" title="Expediente Personal & Despacho con Jefatura">
+          <span class="nav-icon">🐕</span>
+          <span class="nav-label">Mi Perfil</span>
         </button>
-        <button class="nav-tab-btn jefatura-tab" data-view="jefatura" id="navBtnJefatura" title="Panel Exclusivo de Mandos">
-          <span>👑</span> Jefatura K9 <span class="jefatura-lock-badge">RESTRINGIDO</span>
+        <button class="nav-tab-btn jefatura-tab" data-view="jefatura" id="navBtnJefatura" title="Centro de Mando de Jefatura K9">
+          <span class="nav-icon">👑</span>
+          <span class="nav-label">Jefatura</span>
+          <span class="nav-lock-mini" title="Acceso Exclusivo de Mandos">🔒</span>
         </button>
       </nav>
 
-      <!-- Controles de Usuario y Autenticación con Discord -->
-      <div class="auth-controls-wrap">
+      <!-- Cluster Derecho: Indicador Cloud, Audio y Auth -->
+      <div class="top-hud-right">
+        <div class="tactical-live-status" onclick="openModal('modalCloudSync')" style="cursor:pointer;"
+          title="Ver estado de sincronización en la nube">
+          <span class="pulse-dot" id="cloudSyncDot"></span>
+          <span id="cloudSyncLabel">EN LÍNEA</span>
+        </div>
         <button class="audio-toggle-btn sound-on" id="audioToggleBtn" title="Activar/Silenciar Radio Táctica">
           <span>🔊</span>
         </button>
@@ -216,8 +220,6 @@
         </div>
       </div>
       <div class="footer-meta">
-        <div><span>SISTEMA DE AUTENTICACIÓN:</span> DISCORD OAUTH2 PROTOCOL</div>
-        <div><span>TIPOGRAFÍA OFICIAL:</span> CONTHRAX & GOBOLD DISPLAY</div>
         <div style="color:var(--tactical-gold);">DIVISIÓN K9 © 2026 — TODOS LOS DERECHOS RESERVADOS</div>
       </div>
     </div>

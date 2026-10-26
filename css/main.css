@@ -133,45 +133,52 @@ h1, h2, h3, h4, h5, h6,
   letter-spacing: 0.06em;
 }
 
-/* Header & Barra Superior */
+/* ==========================================================================
+   HEADER HUD TÁCTICO & NAVEGACIÓN SUPERIOR
+   ========================================================================== */
 .top-hud-bar {
-  background: rgba(8, 12, 23, 0.85);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border-bottom: 1px solid var(--border-tactical);
+  background: rgba(8, 14, 28, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(0, 229, 255, 0.16);
   position: sticky;
   top: 0;
   z-index: 1000;
-  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.7);
 }
 
 .top-hud-container {
-  max-width: 1440px;
+  max-width: 1560px;
   margin: 0 auto;
-  padding: 0.75rem 1.5rem;
+  padding: 0.6rem 1.25rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
 }
 
+/* Marca / Logo Izquierda */
 .brand-wrapper {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
+  gap: 0.75rem;
   text-decoration: none;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .brand-emblem-wrap {
-  width: 52px;
-  height: 52px;
+  width: 44px;
+  height: 44px;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  filter: drop-shadow(0 0 10px rgba(0, 102, 255, 0.5));
-  transition: transform var(--transition-normal);
+  border-radius: 50%;
+  padding: 2px;
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.4), rgba(255, 183, 3, 0.3));
+  box-shadow: 0 0 12px rgba(0, 102, 255, 0.35);
+  transition: transform 0.2s ease;
 }
 
 .brand-wrapper:hover .brand-emblem-wrap {
@@ -181,8 +188,8 @@ h1, h2, h3, h4, h5, h6,
 .brand-emblem-img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  border-radius: 8px;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 .brand-info {
@@ -191,63 +198,37 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .brand-title {
-  font-family: var(--font-tactical);
-  font-size: 1.35rem;
-  font-weight: 700;
+  font-family: 'Barlow Condensed', 'Inter', sans-serif !important;
+  font-size: 1.25rem;
+  font-weight: 800;
   color: #fff;
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.45rem;
   line-height: 1.1;
-  text-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
-.brand-badge-tag {
-  font-family: var(--font-headline);
-  font-size: 0.75rem;
-  background: linear-gradient(135deg, var(--police-blue), var(--police-cyan));
-  color: #000;
-  font-weight: 800;
-  padding: 0.1rem 0.45rem;
+.brand-sub-pill {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: rgba(0, 229, 255, 0.15);
+  border: 1px solid rgba(0, 229, 255, 0.4);
+  color: var(--police-cyan);
+  padding: 0.05rem 0.4rem;
   border-radius: 4px;
   letter-spacing: 0.08em;
 }
 
 .brand-subtitle {
-  font-family: var(--font-headline);
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  letter-spacing: 0.12em;
-}
-
-/* Status Operativo Indicator */
-.tactical-live-status {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: rgba(0, 230, 118, 0.08);
-  border: 1px solid rgba(0, 230, 118, 0.3);
-  padding: 0.35rem 0.85rem;
-  border-radius: 20px;
-  font-family: var(--font-tactical);
-  font-size: 0.75rem;
-  color: var(--tactical-green);
+  font-family: 'Barlow Condensed', sans-serif !important;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #64748b;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.pulse-dot {
-  width: 8px;
-  height: 8px;
-  background-color: var(--tactical-green);
-  border-radius: 50%;
-  box-shadow: 0 0 10px var(--tactical-green);
-  animation: pulseGreen 2s infinite ease-in-out;
-}
-
-@keyframes pulseGreen {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(0.8); }
 }
 
 /* ==========================================================================
@@ -262,7 +243,7 @@ h1, h2, h3, h4, h5, h6,
   height: min(720px, 85vw);
   background: radial-gradient(circle at center, rgba(0, 229, 255, 0.05) 0%, transparent 65%),
               url('../assets/images/emblem.jpg') center/contain no-repeat;
-  opacity: 0.06;
+  opacity: 0.055;
   filter: grayscale(20%) drop-shadow(0 0 60px rgba(0, 102, 255, 0.4));
   pointer-events: none;
   z-index: 0;
@@ -274,66 +255,120 @@ h1, h2, h3, h4, h5, h6,
   z-index: 1;
 }
 
-/* Navegación Principal */
+/* ==========================================================================
+   NAVEGACIÓN PRINCIPAL (UNIFORME & ELEGANTE)
+   ========================================================================== */
 .nav-tabs {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
-  background: rgba(16, 24, 43, 0.7);
-  padding: 0.25rem 0.35rem;
+  gap: 0.3rem;
+  background: rgba(12, 19, 36, 0.85);
+  padding: 0.28rem 0.35rem;
   border-radius: 10px;
-  border: 1px solid var(--border-subtle);
-  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .nav-tab-btn {
   background: transparent;
-  border: none;
-  color: var(--text-muted);
-  font-family: var(--font-tactical);
-  font-size: 0.8rem;
-  padding: 0.45rem 0.75rem;
-  border-radius: 8px;
+  border: 1px solid transparent;
+  color: #94a3b8;
+  font-family: 'Barlow Condensed', 'Inter', -apple-system, sans-serif !important;
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 0.42rem 0.82rem;
+  border-radius: 7px;
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  transition: all var(--transition-fast);
+  gap: 0.42rem;
+  transition: all 0.16s ease;
   text-transform: uppercase;
+  letter-spacing: 0.04em;
   white-space: nowrap;
+}
+
+.nav-tab-btn .nav-icon {
+  font-size: 0.95rem;
+  line-height: 1;
 }
 
 .nav-tab-btn:hover {
   color: #fff;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .nav-tab-btn.active {
   color: #fff;
-  background: linear-gradient(135deg, rgba(0, 102, 255, 0.45), rgba(0, 229, 255, 0.25));
-  border: 1px solid var(--border-tactical);
-  box-shadow: 0 0 15px rgba(0, 102, 255, 0.3);
+  background: linear-gradient(135deg, rgba(0, 102, 255, 0.35), rgba(0, 229, 255, 0.22));
+  border: 1px solid rgba(0, 229, 255, 0.45);
+  box-shadow: 0 0 15px rgba(0, 102, 255, 0.25);
 }
 
 .nav-tab-btn.jefatura-tab {
-  position: relative;
-  border: 1px solid transparent;
+  color: #fbbf24;
+}
+
+.nav-tab-btn.jefatura-tab:hover {
+  background: rgba(251, 191, 36, 0.08);
+  color: #fde68a;
 }
 
 .nav-tab-btn.jefatura-tab.active {
-  background: linear-gradient(135deg, rgba(255, 183, 3, 0.25), rgba(251, 133, 0, 0.15));
-  border-color: var(--border-gold);
-  color: var(--tactical-gold);
-  box-shadow: 0 0 15px rgba(255, 183, 3, 0.2);
+  color: #fde68a;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.24), rgba(245, 158, 11, 0.16));
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  box-shadow: 0 0 15px rgba(251, 191, 36, 0.2);
 }
 
-.jefatura-lock-badge {
-  font-size: 0.65rem;
-  background: rgba(255, 183, 3, 0.2);
-  color: var(--tactical-gold);
-  border: 1px solid var(--border-gold);
-  padding: 0.1rem 0.35rem;
-  border-radius: 4px;
+.nav-lock-mini {
+  font-size: 0.7rem;
+  opacity: 0.75;
+}
+
+/* Cluster Derecho: Utilidades, Sincronización y Auth */
+.top-hud-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.tactical-live-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: rgba(0, 230, 118, 0.06);
+  border: 1px solid rgba(0, 230, 118, 0.25);
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  font-family: 'Barlow Condensed', 'Inter', sans-serif !important;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--tactical-green);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tactical-live-status:hover {
+  background: rgba(0, 230, 118, 0.12);
+  border-color: rgba(0, 230, 118, 0.45);
+}
+
+.pulse-dot {
+  width: 7px;
+  height: 7px;
+  background-color: var(--tactical-green);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--tactical-green);
+  animation: pulseGreen 2s infinite ease-in-out;
+}
+
+@keyframes pulseGreen {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
 }
 
 /* User Profile & Auth Controls */
