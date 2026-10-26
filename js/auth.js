@@ -160,6 +160,9 @@ class K9AuthManager {
     window.K9Store.setCurrentUser(matched.id, matched.discordId);
     this.loadUser();
     if (window.K9CloudSync) window.K9CloudSync.push();
+    if (window.K9Supabase && window.K9Supabase.isConfigured()) {
+      window.K9Supabase.push();
+    }
     if (window.K9Audio) window.K9Audio.playRadioChirp();
 
     // Log de login al webhook
@@ -358,8 +361,10 @@ class K9AuthManager {
         this.isAuthenticating = false;
 
         if (!user) {
-          if (typeof setupAuthUI === 'function') setupAuthUI();
-          if (typeof renderCurrentView === 'function') renderCurrentView();
+          if (typeof window.setupAuthUI === 'function') window.setupAuthUI();
+          else if (typeof setupAuthUI === 'function') setupAuthUI();
+          if (typeof window.renderCurrentView === 'function') window.renderCurrentView();
+          else if (typeof renderCurrentView === 'function') renderCurrentView();
           return;
         }
 
@@ -371,16 +376,22 @@ class K9AuthManager {
           }
         }
 
-        if (typeof setupAuthUI === 'function') setupAuthUI();
-        if (typeof renderCurrentView === 'function') renderCurrentView();
-        if (typeof updateLiveCounters === 'function') updateLiveCounters();
+        if (typeof window.setupAuthUI === 'function') window.setupAuthUI();
+        else if (typeof setupAuthUI === 'function') setupAuthUI();
+
+        if (typeof window.renderCurrentView === 'function') window.renderCurrentView();
+        else if (typeof renderCurrentView === 'function') renderCurrentView();
+
+        if (typeof window.updateLiveCounters === 'function') window.updateLiveCounters();
+        else if (typeof updateLiveCounters === 'function') updateLiveCounters();
       } else {
         this.isAuthenticating = false;
         console.error('Error al consultar perfil de Discord:', response.status);
         if (typeof showToast === 'function') {
           showToast('No se pudo verificar el token de Discord. Intenta de nuevo.', 'warning');
         }
-        if (typeof setupAuthUI === 'function') setupAuthUI();
+        if (typeof window.setupAuthUI === 'function') window.setupAuthUI();
+        else if (typeof setupAuthUI === 'function') setupAuthUI();
       }
     } catch (err) {
       this.isAuthenticating = false;
@@ -388,7 +399,8 @@ class K9AuthManager {
       if (typeof showToast === 'function') {
         showToast('Error de comunicación con la API de Discord', 'warning');
       }
-      if (typeof setupAuthUI === 'function') setupAuthUI();
+      if (typeof window.setupAuthUI === 'function') window.setupAuthUI();
+      else if (typeof setupAuthUI === 'function') setupAuthUI();
     }
   }
 }

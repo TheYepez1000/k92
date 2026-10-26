@@ -38,15 +38,36 @@ class K9SupabaseManager {
     const local = (typeof window !== 'undefined' && window.K9_DB_CONFIG) || {};
     const storedUrl = localStorage.getItem(SUPABASE_STORAGE_KEYS.URL);
     const storedKey = localStorage.getItem(SUPABASE_STORAGE_KEYS.ANON_KEY);
+
+    // Si config.local.js tiene una clave JWT válida (empieza por eyJ), tiene PRIORIDAD ABSOLUTA
+    let activeKey = '';
+    if (local.key && String(local.key).trim().startsWith('eyJ')) {
+      activeKey = String(local.key).trim();
+    } else if (storedKey && String(storedKey).trim().startsWith('eyJ')) {
+      activeKey = String(storedKey).trim();
+    } else {
+      activeKey = (storedKey || local.key || '').trim();
+    }
+
+    const activeUrl = this.normalizeUrl(local.url || storedUrl || DEFAULT_SUPABASE_URL);
+
+    // Auto-sanar localStorage si contenía una clave no-JWT o antigua
+    if (activeKey && activeKey.startsWith('eyJ') && storedKey !== activeKey) {
+      try {
+        localStorage.setItem(SUPABASE_STORAGE_KEYS.ANON_KEY, activeKey);
+        localStorage.setItem(SUPABASE_STORAGE_KEYS.URL, activeUrl);
+      } catch (e) {}
+    }
+
     return {
-      url: this.normalizeUrl(storedUrl || local.url || DEFAULT_SUPABASE_URL),
-      key: (storedKey || local.key || '').trim()
+      url: activeUrl,
+      key: activeKey
     };
   }
 
   isConfigured() {
     const cfg = this.getConfig();
-    return Boolean(cfg.url && cfg.key && cfg.url.startsWith('http') && cfg.key.length > 10);
+    return Boolean(cfg.url && cfg.key && cfg.url.startsWith('http') && cfg.key.length > 20);
   }
 
   saveConfig(url, key) {
@@ -69,11 +90,24 @@ class K9SupabaseManager {
     }
   }
 
+  // Petición REST nativa directa a Supabase (independiente de librerías externas o caídas de CDN)
+  async _restFetch(path, options = {}) {
+    const cfg = this.getConfig();
+    if (!cfg.url || !cfg.key) return null;
+    const url = `${cfg.url.replace(/\/+$/, '')}${path}`;
+    const headers = Object.assign({
+      'apikey': cfg.key,
+      'Authorization': `Bearer ${cfg.key}`,
+      'Accept': 'application/json'
+    }, options.headers || {});
+
+    return fetch(url, Object.assign({}, options, { headers }));
+  }
+
   init() {
-    const local = (typeof window !== 'undefined' && window.K9_DB_CONFIG) || {};
-    if (local.key && !localStorage.getItem(SUPABASE_STORAGE_KEYS.ANON_KEY)) {
-      localStorage.setItem(SUPABASE_STORAGE_KEYS.ANON_KEY, local.key);
-      localStorage.setItem(SUPABASE_STORAGE_KEYS.URL, local.url || DEFAULT_SUPABASE_URL);
+    const cfg = this.getConfig();
+    if (cfg.key && cfg.key.startsWith('eyJ')) {
+      this.isConnected = true;
     }
 
     if (!this.isConfigured()) {
@@ -82,44 +116,39 @@ class K9SupabaseManager {
       return;
     }
 
-    if (!window.supabase || typeof window.supabase.createClient !== 'function') {
-      this._initRetries = (this._initRetries || 0) + 1;
-      if (this._initRetries <= 5) {
-        console.warn(`[K9Supabase] La librería de Supabase aún no está cargada. Reintento ${this._initRetries}/5 en 1s...`);
-        setTimeout(() => this.init(), 1000);
-      } else {
-        console.warn('[K9Supabase] La librería de Supabase no se pudo cargar desde el CDN tras 5 intentos.');
-      }
-      return;
-    }
-    this._initRetries = 0;
-
-    try {
-      const cfg = this.getConfig();
-      this.client = window.supabase.createClient(cfg.url, cfg.key, {
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false
-        },
-        realtime: {
-          params: {
-            eventsPerSecond: 10
+    // Inicializar cliente Supabase oficial para WebSockets en tiempo real si está disponible
+    if (window.supabase && typeof window.supabase.createClient === 'function') {
+      try {
+        this.client = window.supabase.createClient(cfg.url, cfg.key, {
+          auth: {
+            persistSession: false,
+            autoRefreshToken: false
+          },
+          realtime: {
+            params: {
+              eventsPerSecond: 10
+            }
           }
-        }
-      });
+        });
 
-      this.isConnected = true;
-      console.log('[K9Supabase] Cliente PostgreSQL inicializado correctamente');
-      this.setupRealtimeSubscription();
-      this.updateIndicatorUI();
-
-      // Sincronizar inmediatamente al iniciar
-      setTimeout(() => this.pull(), 400);
-    } catch (err) {
-      console.error('[K9Supabase] Error al inicializar cliente:', err);
-      this.isConnected = false;
-      this.updateIndicatorUI();
+        this.isConnected = true;
+        console.log('[K9Supabase] Cliente PostgreSQL conectado con soporte Realtime');
+        this.setupRealtimeSubscription();
+      } catch (err) {
+        console.warn('[K9Supabase] Advertencia al instanciar cliente JS (se usará REST nativo):', err);
+      }
+    } else {
+      // Si la librería de Supabase aún no cargó desde CDN, reintentar para WebSockets sin bloquear
+      this._initRetries = (this._initRetries || 0) + 1;
+      if (this._initRetries <= 8) {
+        setTimeout(() => this.init(), 1200);
+      }
     }
+
+    this.updateIndicatorUI();
+
+    // Sincronizar inmediatamente al iniciar usando pull()
+    setTimeout(() => this.pull(), 250);
   }
 
   // Suscripción WebSockets para cambios en vivo entre todos los dispositivos
@@ -158,71 +187,129 @@ class K9SupabaseManager {
       });
   }
 
-  // Descargar el estado completo desde la tabla PostgreSQL de Supabase
+  // Descargar el estado completo desde Supabase (Soporta cliente JS y REST nativo)
   async pull(force = false) {
-    if (!this.isConnected || !this.client || this._inFlight) return null;
+    if (!this.isConfigured() || this._inFlight) return null;
     this._inFlight = true;
 
     try {
-      const { data, error } = await this.client
-        .from('k9_app_state')
-        .select('payload, updated_at')
-        .eq('id', 'k9_global_state')
-        .maybeSingle();
+      let payload = null;
+
+      // 1. Intentar mediante cliente oficial
+      if (this.client) {
+        try {
+          const { data, error } = await this.client
+            .from('k9_app_state')
+            .select('payload, updated_at')
+            .eq('id', 'k9_global_state')
+            .maybeSingle();
+
+          if (!error && data && data.payload) {
+            payload = data.payload;
+          }
+        } catch (e) {
+          console.warn('[K9Supabase] Error en cliente JS, usando REST nativo:', e);
+        }
+      }
+
+      // 2. Fallback REST nativo si el cliente no obtuvo datos
+      if (!payload) {
+        try {
+          const resp = await this._restFetch('/rest/v1/k9_app_state?id=eq.k9_global_state&select=payload,updated_at', {
+            cache: 'no-store'
+          });
+          if (resp && resp.ok) {
+            const list = await resp.json();
+            if (Array.isArray(list) && list.length > 0 && list[0].payload) {
+              payload = list[0].payload;
+            }
+          }
+        } catch (errRest) {
+          console.warn('[K9Supabase] Fallo en REST fetch:', errRest);
+        }
+      }
 
       this._inFlight = false;
+      this.isConnected = true;
 
-      if (error) {
-        console.warn('[K9Supabase] Error al consultar datos:', error.message);
+      // Si la nube está vacía ({}) o sin claves, auto-sembrar con los datos locales
+      if (!payload || typeof payload !== 'object' || Object.keys(payload).length === 0) {
+        console.log('[K9Supabase] Nube vacía o inicial detectada. Sembrando datos locales en Supabase...');
+        await this.push();
         return null;
       }
 
-      if (data && data.payload && typeof data.payload === 'object' && Object.keys(data.payload).length > 0) {
-        this.handleRemotePayload(data.payload);
-        localStorage.setItem(SUPABASE_STORAGE_KEYS.LAST_SYNC, Date.now().toString());
-        this.updateIndicatorUI(true);
-        return data.payload;
-      }
-      return null;
+      this.handleRemotePayload(payload);
+      localStorage.setItem(SUPABASE_STORAGE_KEYS.LAST_SYNC, Date.now().toString());
+      this.updateIndicatorUI(true);
+      return payload;
     } catch (err) {
       this._inFlight = false;
-      console.warn('[K9Supabase] Fallo en pull:', err);
+      console.warn('[K9Supabase] Fallo general en pull:', err);
       return null;
     }
   }
 
-  // Subir el estado completo de la plataforma a Supabase
+  // Subir el estado completo de la plataforma a Supabase (Soporta cliente JS y REST nativo)
   async push(customPayload = null) {
-    if (!this.isConnected || !this.client) return false;
+    if (!this.isConfigured()) return false;
 
     const payload = customPayload || (window.K9CloudSync ? window.K9CloudSync.exportPayload() : null);
     if (!payload) return false;
 
-    try {
-      const user = window.K9Auth ? window.K9Auth.getCurrentUser() : null;
-      const updatedBy = user ? `${user.name} [${user.placa}]` : 'Guía Operativo';
+    const user = window.K9Auth ? window.K9Auth.getCurrentUser() : null;
+    const updatedBy = user ? `${user.name} [${user.placa}]` : 'Guía Operativo';
+    const nowIso = new Date().toISOString();
 
-      const { error } = await this.client
-        .from('k9_app_state')
-        .upsert({
-          id: 'k9_global_state',
-          payload: payload,
-          updated_at: new Date().toISOString(),
-          updated_by: updatedBy
-        }, { onConflict: 'id' });
+    let ok = false;
 
-      if (error) {
-        console.error('[K9Supabase] Error al subir datos:', error.message);
-        return false;
+    // 1. Intentar mediante cliente oficial
+    if (this.client) {
+      try {
+        const { error } = await this.client
+          .from('k9_app_state')
+          .upsert({
+            id: 'k9_global_state',
+            payload: payload,
+            updated_at: nowIso,
+            updated_by: updatedBy
+          }, { onConflict: 'id' });
+
+        if (!error) ok = true;
+      } catch (e) {
+        console.warn('[K9Supabase] Upsert con cliente JS falló, recurriendo a REST nativo:', e);
       }
+    }
 
+    // 2. Si falló el cliente o no está cargado, usar REST POST con upsert header
+    if (!ok) {
+      try {
+        const resp = await this._restFetch('/rest/v1/k9_app_state', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Prefer': 'resolution=merge-duplicates'
+          },
+          body: JSON.stringify({
+            id: 'k9_global_state',
+            payload: payload,
+            updated_at: nowIso,
+            updated_by: updatedBy
+          })
+        });
+        if (resp && resp.ok) ok = true;
+      } catch (err) {
+        console.error('[K9Supabase] Error al subir datos vía REST nativo:', err);
+      }
+    }
+
+    if (ok) {
+      this.isConnected = true;
       localStorage.setItem(SUPABASE_STORAGE_KEYS.LAST_SYNC, Date.now().toString());
       this.updateIndicatorUI(true);
       return true;
-    } catch (err) {
-      console.error('[K9Supabase] Fallo en push:', err);
-      return false;
     }
+    return false;
   }
 
   // Integrar datos recibidos en la memoria local

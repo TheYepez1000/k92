@@ -1,149 +1,231 @@
 /* ==========================================================================
    UNIDAD CANINA K9 - COMPONENTES TÁCTICOS Y VISTAS
+   HERO CINEMÁTICO ESTILO RAYCAST (DESIGN (1).md & SCREENSHOT)
    ========================================================================== */
 
-/* Hero Banner Táctico */
-.k9-hero-banner {
+/* Hero Banner Táctico Raycast */
+.k9-hero-banner,
+.raycast-hero {
   position: relative;
-  border-radius: 16px;
+  border-radius: 20px;
   overflow: hidden;
-  border: 1px solid var(--border-tactical);
-  background: linear-gradient(180deg, rgba(16, 24, 43, 0.9), rgba(10, 15, 29, 0.95));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: var(--color-void-black);
   margin-bottom: 2.5rem;
-  box-shadow: var(--shadow-elevation), var(--shadow-glow-cyan);
+  box-shadow: 
+    rgba(255, 255, 255, 0.05) 0px 1px 0px 0px inset,
+    rgba(255, 255, 255, 0.14) 0px 0px 0px 1px,
+    rgba(0, 0, 0, 0.5) 0px -1px 0px 0px inset,
+    0 20px 60px rgba(0, 0, 0, 0.85);
+  display: flex;
+  flex-direction: column;
 }
 
-.hero-background-img {
+/* ==========================================================================
+   HAZ DE LUCES DIAGONALES NEÓN (ATMÓSFERA RAYCAST)
+   Composición diagonal en perspectiva con resplandor cyan, azul y coral
+   ========================================================================== */
+.raycast-hero-beams {
   position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  object-fit: cover;
-  object-position: center 30%;
-  opacity: 0.28;
-  filter: contrast(1.15) brightness(0.9);
-  transition: transform 10s ease;
+  inset: -15% -25%;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
 }
 
-.k9-hero-banner:hover .hero-background-img {
-  transform: scale(1.03);
+/* Resplandor atmosférico central azul oscuro */
+.beam-glow-wash {
+  position: absolute;
+  top: 10%;
+  left: 20%;
+  width: 60%;
+  height: 80%;
+  background: radial-gradient(ellipse at center, rgba(0, 102, 255, 0.35) 0%, rgba(4, 63, 150, 0.18) 45%, transparent 75%);
+  filter: blur(60px);
+  opacity: 0.95;
 }
 
-.hero-content {
+/* Barras diagonales de luz neón */
+.beam-diagonal {
+  position: absolute;
+  border-radius: 9999px;
+  transform: rotate(-38deg);
+  opacity: 0.88;
+  filter: blur(24px);
+  will-change: transform, opacity;
+}
+
+/* Haz 1: Barra principal coral / magenta con reflejos */
+.beam-1 {
+  top: 8%;
+  left: 30%;
+  width: 140px;
+  height: 750px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 42, 95, 0) 0%,
+    rgba(255, 99, 99, 0.9) 25%,
+    rgba(255, 42, 95, 0.95) 55%,
+    rgba(0, 229, 255, 0.65) 85%,
+    transparent 100%
+  );
+  filter: blur(28px);
+}
+
+/* Haz 2: Barra delgada y nítida de alta luminosidad */
+.beam-2 {
+  top: 0%;
+  left: 44%;
+  width: 85px;
+  height: 780px;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(255, 120, 120, 0.85) 20%,
+    rgba(255, 42, 95, 0.95) 60%,
+    rgba(0, 102, 255, 0.75) 90%,
+    transparent 100%
+  );
+  filter: blur(18px);
+}
+
+/* Haz 3: Haz eléctrico cyan policial */
+.beam-3 {
+  top: 15%;
+  left: 56%;
+  width: 100px;
+  height: 700px;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(0, 229, 255, 0.85) 30%,
+    rgba(0, 102, 255, 0.8) 65%,
+    rgba(255, 42, 95, 0.5) 90%,
+    transparent 100%
+  );
+  filter: blur(22px);
+}
+
+/* Haz 4: Resplandor coral ambiental izquierdo */
+.beam-4 {
+  top: -12%;
+  left: 18%;
+  width: 130px;
+  height: 800px;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(255, 42, 95, 0.5) 35%,
+    rgba(0, 102, 255, 0.4) 80%,
+    transparent 100%
+  );
+  filter: blur(42px);
+}
+
+/* Haz 5: Resplandor cyan ambiental derecho */
+.beam-5 {
+  top: 22%;
+  left: 68%;
+  width: 120px;
+  height: 680px;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(0, 229, 255, 0.55) 25%,
+    rgba(0, 102, 255, 0.45) 75%,
+    transparent 100%
+  );
+  filter: blur(36px);
+}
+
+/* Viñeta perimetral: el haz emerge suavemente desde el void black */
+.raycast-hero-beams::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 30%, var(--color-void-black) 78%);
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   CONTENIDO HERO CENTRADO (RAYCAST TYPOGRAPHY & BUTTONS)
+   ========================================================================== */
+.hero-content,
+.raycast-hero-content {
   position: relative;
   z-index: 2;
-  padding: 3rem 2.5rem;
+  padding: 4.5rem 2rem 3rem;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  gap: 2rem;
-  background: linear-gradient(90deg, rgba(5, 8, 17, 0.95) 0%, rgba(5, 8, 17, 0.8) 55%, rgba(5, 8, 17, 0.4) 100%);
+  justify-content: center;
+  text-align: center;
+  max-width: 860px;
+  margin: 0 auto;
+  width: 100%;
 }
 
-.hero-text-block {
-  max-width: 680px;
-}
-
+/* Eyebrow Pill Tag */
+.hero-eyebrow-pill,
 .hero-pill-tag {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   font-family: var(--font-headline);
-  font-size: 0.82rem;
-  letter-spacing: 0.15em;
-  color: var(--police-cyan);
-  background: rgba(0, 229, 255, 0.1);
-  border: 1px solid var(--border-tactical);
-  padding: 0.35rem 0.85rem;
-  border-radius: 30px;
-  margin-bottom: 1rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--color-pure-white);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 0.35rem 0.95rem;
+  border-radius: 9999px;
+  margin-bottom: 1.5rem;
   text-transform: uppercase;
+  box-shadow: rgba(0, 0, 0, 0.25) 0px 2px 6px 0px;
 }
 
-.hero-title {
-  font-family: var(--font-tactical);
-  font-size: 2.8rem;
-  font-weight: 700;
-  line-height: 1.05;
-  margin-bottom: 0.85rem;
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
-  background: linear-gradient(135deg, #ffffff 40%, var(--police-cyan) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.hero-eyebrow-pill .eyebrow-symbol,
+.hero-pill-tag span {
+  color: var(--police-cyan);
+  font-size: 0.85rem;
 }
 
-.hero-description {
-  font-size: 1.05rem;
-  color: var(--text-muted);
+/* Título Display Raycast */
+.hero-title,
+.raycast-headline {
+  font-family: var(--font-headline) !important;
+  font-size: clamp(2.4rem, 4.8vw, 3.8rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: 0.02em;
+  color: var(--color-pure-white);
+  margin-bottom: 1.25rem;
+  text-transform: uppercase;
+  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.9);
+}
+
+/* Subtítulo / Descripción */
+.hero-description,
+.raycast-subtext {
+  font-family: var(--font-body);
+  font-size: 1.08rem;
+  font-weight: 400;
+  color: var(--color-ash);
   line-height: 1.6;
-  margin-bottom: 1.75rem;
+  max-width: 640px;
+  margin: 0 auto 2.25rem;
 }
 
-.hero-actions-row {
+/* Fila de Botones Centrados */
+.hero-actions-row,
+.raycast-actions-row {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  justify-content: center;
+  gap: 0.85rem;
   flex-wrap: wrap;
-}
-
-/* Quick Metrics Counters */
-.hero-stats-panel {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-  min-width: 320px;
-}
-
-.hero-stat-card {
-  background: rgba(16, 24, 43, 0.7);
-  backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--border-subtle);
-  border-radius: 12px;
-  padding: 1.25rem 1rem;
-  text-align: center;
-  transition: all var(--transition-normal);
-  position: relative;
-  overflow: hidden;
-}
-
-.hero-stat-card::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; width: 100%; height: 3px;
-  background: linear-gradient(90deg, transparent, var(--police-cyan), transparent);
-  opacity: 0;
-  transition: opacity var(--transition-fast);
-}
-
-.hero-stat-card:hover {
-  border-color: var(--border-tactical);
-  transform: translateY(-2px);
-  background: rgba(22, 34, 59, 0.85);
-}
-
-.hero-stat-card:hover::before {
-  opacity: 1;
-}
-
-.hero-stat-value {
-  font-family: var(--font-tactical);
-  font-size: 2.2rem;
-  font-weight: 700;
-  color: #fff;
-  line-height: 1.1;
-  text-shadow: 0 0 15px rgba(0, 229, 255, 0.3);
-}
-
-.hero-stat-card.stat-gold .hero-stat-value {
-  color: var(--tactical-gold);
-  text-shadow: 0 0 15px rgba(255, 183, 3, 0.3);
-}
-
-.hero-stat-label {
-  font-family: var(--font-headline);
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-top: 0.25rem;
+  margin-bottom: 1.75rem;
 }
 
 /* Botones Tácticos */
@@ -151,73 +233,218 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.6rem;
-  font-family: var(--font-tactical);
-  font-size: 0.85rem;
-  font-weight: 600;
-  padding: 0.75rem 1.4rem;
+  gap: 0.5rem;
+  font-family: var(--font-body) !important;
+  font-size: 0.88rem;
+  font-weight: 500;
+  padding: 0.65rem 1.35rem;
   border-radius: 8px;
   cursor: pointer;
-  border: none;
+  border: 1px solid transparent;
   text-decoration: none;
-  transition: all var(--transition-fast);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  transition: all 0.15s ease;
+  letter-spacing: 0;
   position: relative;
   user-select: none;
+  white-space: nowrap;
 }
 
+/* Primary: Botón estilo Mist Fill de Raycast (#e6e6e6 con texto oscuro #111214) */
+.btn-tactical-mist,
 .btn-tactical-primary {
-  background: linear-gradient(135deg, var(--police-blue), #00b4d8);
-  color: #fff;
-  box-shadow: 0 4px 15px rgba(0, 102, 255, 0.35);
+  background: var(--color-mist) !important;
+  color: var(--color-void-black) !important;
+  border: none !important;
+  font-weight: 600 !important;
+  box-shadow: rgba(0, 0, 0, 0.03) 0px 7px 3px 0px, rgba(0, 0, 0, 0.25) 0px 4px 4px 0px !important;
 }
 
+.btn-tactical-mist:hover,
 .btn-tactical-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(0, 102, 255, 0.5);
-  background: linear-gradient(135deg, #1a75ff, #00c6eb);
+  background: #ffffff !important;
+  transform: translateY(-1px) !important;
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 6px 16px 0px !important;
 }
 
-.btn-tactical-gold {
-  background: linear-gradient(135deg, var(--tactical-gold), #e07a5f);
-  color: #0b0f19;
-  font-weight: 700;
-  box-shadow: 0 4px 15px rgba(255, 183, 3, 0.3);
-}
-
-.btn-tactical-gold:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(255, 183, 3, 0.45);
-  background: linear-gradient(135deg, #ffc324, #f28464);
-}
-
+/* Outline: Botón estilo Recessed Key Shadow */
 .btn-tactical-outline {
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--text-main);
-  border: 1px solid var(--border-tactical);
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: var(--color-pure-white) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  box-shadow: rgba(255, 255, 255, 0.05) 0px 1px 0px 0px inset !important;
 }
 
 .btn-tactical-outline:hover {
-  background: rgba(0, 229, 255, 0.1);
-  color: #fff;
-  border-color: var(--police-cyan);
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  transform: translateY(-1px) !important;
+}
+
+.btn-tactical-ghost {
+  background: transparent !important;
+  color: var(--color-ash) !important;
+  border: 1px solid transparent !important;
+}
+
+.btn-tactical-ghost:hover {
+  color: var(--color-pure-white) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.btn-tactical-gold {
+  background: rgba(251, 191, 36, 0.14) !important;
+  color: #fde68a !important;
+  border: 1px solid rgba(251, 191, 36, 0.35) !important;
+  font-weight: 600 !important;
+}
+
+.btn-tactical-gold:hover {
+  background: rgba(251, 191, 36, 0.24) !important;
+  border-color: rgba(251, 191, 36, 0.5) !important;
+  transform: translateY(-1px) !important;
 }
 
 .btn-tactical-danger {
-  background: linear-gradient(135deg, var(--tactical-red), #d90429);
-  color: #fff;
-  box-shadow: 0 4px 15px rgba(255, 42, 95, 0.3);
+  background: rgba(255, 42, 95, 0.15) !important;
+  color: #ff6363 !important;
+  border: 1px solid rgba(255, 42, 95, 0.35) !important;
 }
 
 .btn-tactical-danger:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(255, 42, 95, 0.5);
+  background: rgba(255, 42, 95, 0.25) !important;
+  transform: translateY(-1px) !important;
 }
 
 .btn-tactical-sm {
-  padding: 0.45rem 0.85rem;
-  font-size: 0.75rem;
+  padding: 0.45rem 0.95rem;
+  font-size: 0.78rem;
+}
+
+/* Metadata Strip Monospace Técnico */
+.hero-meta-strip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: 'GeistMono', var(--font-tactical), monospace;
+  font-size: 0.74rem;
+  color: var(--color-smoke);
+  letter-spacing: 0.06em;
+  margin-bottom: 1.35rem;
+}
+
+.hero-meta-strip .meta-sep {
+  opacity: 0.35;
+}
+
+/* Quick Link Pill debajo de metadata */
+.hero-quick-link-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: rgba(17, 18, 20, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.38rem 0.95rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: rgba(0, 0, 0, 0.25) 0px 2px 8px 0px;
+}
+
+.hero-quick-link-pill:hover {
+  background: rgba(27, 28, 30, 0.95);
+  border-color: rgba(0, 229, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.quick-pill-tag {
+  font-family: var(--font-headline);
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--police-cyan);
+  background: rgba(0, 229, 255, 0.12);
+  padding: 0.12rem 0.45rem;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+}
+
+.quick-pill-text {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  color: var(--color-ash);
+}
+
+.quick-pill-arrow {
+  color: var(--color-pure-white);
+  font-size: 0.85rem;
+  transition: transform 0.15s ease;
+}
+
+.hero-quick-link-pill:hover .quick-pill-arrow {
+  transform: translateX(3px);
+  color: var(--police-cyan);
+}
+
+/* ==========================================================================
+   PANEL DE MÉTRICAS RAYCAST (TACTILE KEY-SHADOW GRID)
+   ========================================================================== */
+.hero-stats-panel,
+.raycast-stats-panel {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  width: 100%;
+  padding: 1.5rem 2rem 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(4, 5, 6, 0.7);
+  backdrop-filter: blur(14px);
+  position: relative;
+  z-index: 2;
+}
+
+.hero-stat-card,
+.raycast-stat-card {
+  background: rgba(7, 8, 10, 0.75) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 12px !important;
+  padding: 1.15rem 1rem !important;
+  text-align: center !important;
+  box-shadow: 
+    rgba(255, 255, 255, 0.04) 0px 1px 0px 0px inset,
+    rgba(0, 0, 0, 0.35) 0px 2px 4px 0px !important;
+  transition: all 0.2s ease !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-stat-card:hover,
+.raycast-stat-card:hover {
+  background: rgba(17, 18, 20, 0.92) !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  transform: translateY(-2px) !important;
+}
+
+.hero-stat-value {
+  font-family: var(--font-tactical) !important;
+  font-size: 2rem !important;
+  font-weight: 700 !important;
+  color: var(--color-pure-white) !important;
+  line-height: 1 !important;
+  margin-bottom: 0.35rem !important;
+  text-shadow: 0 0 16px rgba(0, 229, 255, 0.3) !important;
+}
+
+.hero-stat-card.stat-gold .hero-stat-value {
+  color: var(--tactical-gold) !important;
+  text-shadow: 0 0 16px rgba(255, 183, 3, 0.3) !important;
+}
+
+.hero-stat-label {
+  font-family: var(--font-headline) !important;
+  font-size: 0.72rem !important;
+  color: var(--color-smoke) !important;
+  letter-spacing: 0.07em !important;
+  text-transform: uppercase !important;
+  margin: 0 !important;
 }
 
 /* Section Header Style */
@@ -262,53 +489,56 @@
   gap: 0.75rem;
 }
 
-/* Tab Sub-Navegación Interna */
+/* Tab Sub-Navegación Interna (Pill Row Raycast) */
 .subnav-tabs-row {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1.75rem;
+  gap: 0.35rem;
+  margin-bottom: 2rem;
   overflow-x: auto;
-  padding-bottom: 0.5rem;
+  padding: 0.35rem;
+  background: rgba(7, 8, 10, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
+  box-shadow: rgba(0, 0, 0, 0.3) 0px 4px 16px 0px;
 }
 
 .subnav-pill-btn {
-  background: rgba(16, 24, 43, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #94a3b8;
-  font-family: 'Barlow Condensed', 'Inter', sans-serif !important;
-  font-size: 0.86rem;
-  font-weight: 600;
-  padding: 0.45rem 0.95rem;
-  border-radius: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--color-ash);
+  font-family: var(--font-body) !important;
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 0.45rem 1rem;
+  border-radius: 9999px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.4rem;
   white-space: nowrap;
-  transition: all 0.16s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  transition: all 0.15s ease;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 .subnav-pill-btn:hover {
-  color: #fff;
-  border-color: rgba(0, 229, 255, 0.3);
-  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-pure-white);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .subnav-pill-btn.active {
-  background: linear-gradient(135deg, rgba(0, 102, 255, 0.35), rgba(0, 229, 255, 0.2));
-  color: #fff;
-  border-color: rgba(0, 229, 255, 0.45);
-  box-shadow: 0 0 14px rgba(0, 102, 255, 0.25);
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--color-pure-white);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: rgba(255, 255, 255, 0.06) 0px 1px 0px 0px inset;
 }
 
 .subnav-pill-btn.jefatura-subnav.active {
-  background: linear-gradient(135deg, rgba(255, 183, 3, 0.25), rgba(251, 133, 0, 0.15));
-  border-color: var(--border-gold);
-  color: var(--tactical-gold);
-  box-shadow: 0 0 12px rgba(255, 183, 3, 0.2);
+  background: rgba(251, 191, 36, 0.18);
+  border-color: rgba(251, 191, 36, 0.4);
+  color: #fde68a;
+  box-shadow: rgba(251, 191, 36, 0.2) 0px 0px 14px 0px;
 }
 
 /* ==========================================================================

@@ -67,14 +67,15 @@ class K9CloudSyncManager {
   }
 
   init() {
-    // 1. Sincronizar inmediatamente al cargar la página
-    setTimeout(() => this.pull(), 500);
+    // 1. Sincronizar inmediatamente al cargar la página (rápido y con confirmación a 1.5s)
+    setTimeout(() => this.pull(true), 150);
+    setTimeout(() => this.pull(), 1500);
 
-    // 2. Intervalo de sondeo continuo (cada 5 segundos)
+    // 2. Intervalo de sondeo continuo (cada 4 segundos)
     if (this._pollInterval) clearInterval(this._pollInterval);
     this._pollInterval = setInterval(() => {
       this.pull();
-    }, 5000);
+    }, 4000);
 
     // 3. Sincronizar al volver a la pestaña activa del navegador
     document.addEventListener('visibilitychange', () => {
@@ -435,6 +436,22 @@ class K9CloudSyncManager {
       // Refrescar vistas activas en tiempo real
       if (typeof window.setupAuthUI === 'function') window.setupAuthUI();
       if (typeof window.renderCurrentView === 'function') window.renderCurrentView();
+      if (typeof window.updateLiveCounters === 'function') window.updateLiveCounters();
+
+      // Refrescar directorio de miembros si el elemento está presente
+      const membersCont = document.getElementById('view-miembros');
+      if (membersCont && typeof window.renderMembersDirectory === 'function') {
+        window.renderMembersDirectory(membersCont);
+      }
+
+      // Refrescar subtab de agentes de Jefatura si está visible
+      const jefaturaCont = document.getElementById('jefaturaSubtabContent');
+      if (jefaturaCont && typeof window.renderAgentsSection === 'function') {
+        const activeSubtab = document.querySelector('.subnav-pill-btn.jefatura-subnav.active');
+        if (activeSubtab && activeSubtab.dataset.subtab === 'agentes') {
+          window.renderAgentsSection(jefaturaCont);
+        }
+      }
 
       // Disparar evento para componentes
       window.dispatchEvent(new CustomEvent('k9:cloud-sync', { detail: remote }));

@@ -32,41 +32,20 @@ function renderGeneralSubnavTabs() {
   const container = document.getElementById('generalSubnavRow');
   if (!container) return;
 
-  const user = window.K9Auth.getCurrentUser();
-
-  if (user) {
-    // Usuario autenticado con Discord: ve normativas, manuales, canes y anuncios de jefatura
-    container.innerHTML = `
-      <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'normativas' ? 'active' : ''}" data-subtab="normativas">
-        ⚖️ Normativas Oficiales
-      </button>
-      <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'manuales' ? 'active' : ''}" data-subtab="manuales">
-        📖 Manuales & Adiestramiento
-      </button>
-      <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'galeria' ? 'active' : ''}" data-subtab="galeria">
-        🐕 Plantilla de Canes K9
-      </button>
-      <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'anuncios' ? 'active' : ''}" data-subtab="anuncios">
-        📢 Anuncios de Jefatura
-      </button>
-    `;
-  } else {
-    // Usuario no autenticado: ve normativas, manuales y canes
-    if (currentGeneralSubtab === 'anuncios') {
-      currentGeneralSubtab = 'normativas';
-    }
-    container.innerHTML = `
-      <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'normativas' ? 'active' : ''}" data-subtab="normativas">
-        ⚖️ Normativas Oficiales
-      </button>
-      <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'manuales' ? 'active' : ''}" data-subtab="manuales">
-        📖 Manuales & Adiestramiento
-      </button>
-      <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'galeria' ? 'active' : ''}" data-subtab="galeria">
-        🐕 Plantilla de Canes K9
-      </button>
-    `;
-  }
+  container.innerHTML = `
+    <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'normativas' ? 'active' : ''}" data-subtab="normativas">
+      ⚖️ Normativas Oficiales
+    </button>
+    <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'manuales' ? 'active' : ''}" data-subtab="manuales">
+      📖 Manuales & Adiestramiento
+    </button>
+    <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'galeria' ? 'active' : ''}" data-subtab="galeria">
+      🐕 Plantilla de Canes K9
+    </button>
+    <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'anuncios' ? 'active' : ''}" data-subtab="anuncios">
+      📢 Anuncios de Jefatura
+    </button>
+  `;
 
   // Enlazar eventos de click en los subnav buttons
   container.querySelectorAll('.general-subnav-btn').forEach(btn => {
@@ -168,6 +147,21 @@ window.switchMainView = switchMainView;
 function renderCurrentView() {
   switchMainView(currentView);
 }
+window.renderCurrentView = renderCurrentView;
+
+// Re-renderizar vistas automáticamente cuando la nube sincroniza nuevos datos
+window.addEventListener('k9:cloud-sync', () => {
+  if (typeof setupAuthUI === 'function') setupAuthUI();
+  if (typeof updateLiveCounters === 'function') updateLiveCounters();
+  const membersCont = document.getElementById('view-miembros');
+  if (membersCont && typeof renderMembersDirectory === 'function') {
+    renderMembersDirectory(membersCont);
+  }
+  const jefaturaCont = document.getElementById('jefaturaSubtabContent');
+  if (jefaturaCont && typeof currentJefaturaSubtab !== 'undefined' && currentJefaturaSubtab === 'agentes') {
+    if (typeof renderAgentsSection === 'function') renderAgentsSection(jefaturaCont);
+  }
+});
 
 // ==========================================
 // AUDIO Y SONIDOS TÁCTICOS
@@ -253,14 +247,14 @@ function setupAuthUI() {
       }
     } else {
       heroActions.innerHTML = `
-        <button class="btn-tactical btn-tactical-primary" onclick="switchGeneralSubtab('normativas')">
+        <button class="btn-tactical btn-tactical-primary" onclick="window.K9Auth.initiateDiscordOAuth()">
+          <span>✦</span> Iniciar Sesión con Discord
+        </button>
+        <button class="btn-tactical btn-tactical-outline" onclick="switchGeneralSubtab('normativas')">
           <span>⚖️</span> Ver Normativas Oficiales
         </button>
-        <button class="btn-tactical btn-tactical-gold" onclick="switchGeneralSubtab('galeria')">
+        <button class="btn-tactical btn-tactical-ghost" onclick="switchGeneralSubtab('galeria')">
           <span>🐕</span> Plantilla de Canes K9
-        </button>
-        <button class="btn-tactical btn-tactical-outline" onclick="window.K9Auth.initiateDiscordOAuth()">
-          <span>✦</span> Iniciar Sesión con Discord
         </button>
       `;
     }
@@ -271,7 +265,7 @@ function setupAuthUI() {
   if (user) {
     // Usuario autenticado con Discord
     authContainer.innerHTML = `
-      <div class="auth-user-badge" id="authUserTrigger">
+      <div class="auth-user-badge" id="authUserTrigger" data-tooltip="Mi Cuenta: ${user.name} [${user.placa}]">
         <div class="auth-avatar-wrap">
           <img src="${user.avatar}" alt="${user.name}" class="auth-avatar-img" onerror="this.src='assets/images/emblem.jpg'">
         </div>
@@ -368,11 +362,10 @@ function setupAuthUI() {
   } else {
     // Sin autenticar
     authContainer.innerHTML = `
-      <button class="discord-login-btn" id="btnLoginDiscord">
+      <button class="discord-login-btn" id="btnLoginDiscord" data-tooltip="Iniciar Sesión con Discord">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
           <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.893.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
         </svg>
-        Entrar con Discord
       </button>
     `;
 
@@ -384,6 +377,7 @@ function setupAuthUI() {
     }
   }
 }
+window.setupAuthUI = setupAuthUI;
 
 // ==========================================
 // VISTA GENERAL / PÚBLICA (ANUNCIOS, NORMATIVAS, MANUALES, GALERÍA)
@@ -395,25 +389,6 @@ function renderGeneralSubtab(subtab) {
   const user = window.K9Auth.getCurrentUser();
 
   if (subtab === 'anuncios') {
-    if (!user || !user.isVerified) {
-      contentEl.innerHTML = `
-        <div class="empty-state-box" style="margin:3rem auto; max-width:550px;">
-          <div class="empty-icon">🔒</div>
-          <h3 class="font-tactical" style="color:#fff; margin-bottom:0.75rem;">ACCESO RESTRINGIDO A ANUNCIOS</h3>
-          <p style="margin-bottom:1.5rem; color:var(--text-muted);">${user ? 'Tu cuenta está pendiente de asignación de rango por Jefatura. Los comunicados internos son de acceso restringido a agentes acreditados.' : 'Los comunicados, directrices operativas y órdenes de servicio de la Jefatura K9 son confidenciales. Debes iniciar sesión con tu cuenta de Discord para visualizarlos.'}</p>
-          ${!user ? `
-            <button class="btn-tactical btn-tactical-primary" onclick="window.K9Auth.initiateDiscordOAuth()">
-              ✦ Iniciar Sesión con Discord
-            </button>
-          ` : `
-            <button class="btn-tactical btn-tactical-primary btn-tactical-sm" onclick="switchGeneralSubtab('normativas')">
-              ⚖️ Ver Normativas Oficiales
-            </button>
-          `}
-        </div>
-      `;
-      return;
-    }
     renderAnnouncements(contentEl);
   } else if (subtab === 'normativas') {
     renderNormatives(contentEl);
@@ -432,12 +407,18 @@ function renderGeneralSubtab(subtab) {
   }
 }
 
+let currentAnnouncementTag = 'TODOS';
+
 function getPriorityBadgeHtml(priority) {
   const p = (priority || 'OFICIAL').toUpperCase();
   if (p === 'URGENTE') {
     return `<span class="ann-priority-badge ann-priority-urgente">🚨 URGENTE</span>`;
   } else if (p === 'IMPORTANTE') {
     return `<span class="ann-priority-badge ann-priority-importante">⚠️ IMPORTANTE</span>`;
+  } else if (p === 'FORMACION') {
+    return `<span class="ann-priority-badge ann-priority-formacion">📖 FORMACIÓN</span>`;
+  } else if (p === 'CANINO') {
+    return `<span class="ann-priority-badge ann-priority-canino">🐾 SERVICIO CANINO</span>`;
   } else if (p === 'INFORMATIVO') {
     return `<span class="ann-priority-badge ann-priority-informativo">ℹ️ INFORMATIVO</span>`;
   } else {
@@ -445,63 +426,125 @@ function getPriorityBadgeHtml(priority) {
   }
 }
 
+window.setAnnouncementTagFilter = function (tag) {
+  currentAnnouncementTag = tag;
+  refreshAnnouncementsView();
+};
+
+function refreshAnnouncementsView() {
+  if (currentView === 'jefatura' && currentJefaturaSubtab === 'anuncios') {
+    renderJefaturaSubtab('anuncios');
+  } else {
+    const generalEl = document.getElementById('generalSubtabContent');
+    if (generalEl) renderAnnouncements(generalEl);
+  }
+}
+
 function renderAnnouncements(container) {
+  if (!container) return;
   const announcements = window.K9Store.getAnnouncements();
-  const canPublish = window.K9Auth.hasPermission('manage_bulletins') || window.K9Auth.isJefaturaMember();
+  const canPublish = window.K9Auth.isJefaturaMember ? window.K9Auth.isJefaturaMember() : false;
+
+  const TAGS = [
+    { id: 'TODOS', label: 'Todos' },
+    { id: 'URGENTE', label: '🚨 Urgente' },
+    { id: 'OFICIAL', label: '🛡️ Oficial' },
+    { id: 'IMPORTANTE', label: '⚠️ Importante' },
+    { id: 'FORMACION', label: '📖 Formación' },
+    { id: 'CANINO', label: '🐾 Canino' },
+    { id: 'INFORMATIVO', label: 'ℹ️ Informativo' }
+  ];
+
+  let filtered = announcements.filter(a => {
+    if (currentAnnouncementTag === 'TODOS') return true;
+    const p = (a.priority || 'OFICIAL').toUpperCase();
+    return p === currentAnnouncementTag;
+  });
+
+  // Fijados al principio
+  filtered.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
 
   container.innerHTML = `
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.25rem; flex-wrap:wrap; gap:1rem;">
       <div>
-        <h3 class="font-tactical" style="font-size:1.35rem; color:#fff;">TABLÓN OFICIAL DE COMUNICADOS</h3>
-        <p style="font-size:0.85rem; color:var(--text-muted);">Directrices, convocatorias y órdenes emitidas por la Jefatura K9</p>
+        <div style="display:inline-flex; align-items:center; gap:0.4rem; background:rgba(0,229,255,0.1); border:1px solid rgba(0,229,255,0.3); padding:0.2rem 0.65rem; border-radius:20px; font-size:0.72rem; color:var(--police-cyan); font-family:var(--font-headline); letter-spacing:0.08em; margin-bottom:0.5rem;">
+          <span>📢</span> TABLÓN OFICIAL DE COMUNICADOS
+        </div>
+        <h3 class="font-tactical" style="font-size:1.4rem; color:#fff; margin:0 0 0.3rem 0;">ANUNCIOS Y DIRECTRICES DE JEFATURA</h3>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin:0;">
+          ${canPublish ? 'Panel de mando para la emisión, fijado y gestión de órdenes directas a la plantilla.' : 'Órdenes de servicio, convocatorias y directrices oficiales de la Jefatura K9.'}
+        </p>
       </div>
       ${canPublish ? `
         <button class="btn-tactical btn-tactical-gold btn-tactical-sm" id="btnNewAnnouncement">
-          <span>+</span> Publicar Comunicado
+          <span>+</span> Publicar Anuncio
         </button>
-      ` : ''}
+      ` : `
+        <span style="font-size:0.75rem; padding:0.3rem 0.65rem; border-radius:6px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.25); color:var(--police-cyan); font-family:var(--font-headline);">
+          🔒 Tablón Oficial K9 · Lectura
+        </span>
+      `}
+    </div>
+
+    <!-- Barra de Filtros por Etiquetas / Prioridad -->
+    <div style="display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap; margin-bottom:1.5rem; background:rgba(16,24,43,0.7); border:1px solid var(--border-tactical); padding:0.6rem 0.85rem; border-radius:10px;">
+      <span style="font-family:var(--font-headline); font-size:0.72rem; color:var(--text-muted); letter-spacing:0.06em; margin-right:0.35rem;">ETIQUETAS:</span>
+      ${TAGS.map(t => {
+        const isActive = currentAnnouncementTag === t.id;
+        return `
+          <button type="button" class="ann-filter-tag-btn" onclick="window.setAnnouncementTagFilter('${t.id}')" style="background:${isActive ? 'rgba(0,229,255,0.2)' : 'rgba(255,255,255,0.04)'}; border:1px solid ${isActive ? 'var(--police-cyan)' : 'rgba(255,255,255,0.1)'}; color:${isActive ? '#00e5ff' : 'var(--text-muted)'}; font-family:var(--font-headline); font-size:0.75rem; padding:0.25rem 0.65rem; border-radius:6px; cursor:pointer; transition:all 0.15s;">
+            ${t.label}
+          </button>
+        `;
+      }).join('')}
     </div>
 
     <div style="display:flex; flex-direction:column; gap:1.25rem;">
-      ${announcements.map(a => `
-        <div style="background:var(--bg-surface); border:1px solid ${a.priority === 'URGENTE' ? 'var(--tactical-red)' : a.priority === 'IMPORTANTE' ? 'var(--border-gold)' : a.pinned ? 'var(--police-cyan)' : 'var(--border-subtle)'}; border-radius:14px; padding:1.5rem; position:relative; box-shadow:var(--shadow-elevation);">
+      ${filtered.length === 0 ? `
+        <div style="text-align:center; padding:3rem 1rem; background:rgba(16,24,43,0.5); border:1px dashed var(--border-tactical); border-radius:12px; color:var(--text-muted);">
+          <div style="font-size:2rem; margin-bottom:0.5rem;">📭</div>
+          <div style="font-size:0.95rem; color:#fff; font-family:var(--font-headline); margin-bottom:0.25rem;">No hay comunicados con esta etiqueta</div>
+          <div style="font-size:0.8rem;">Selecciona "Todos" para ver todas las publicaciones de la unidad.</div>
+        </div>
+      ` : filtered.map(a => `
+        <div style="background:var(--bg-surface); border:1px solid ${a.priority === 'URGENTE' ? 'var(--tactical-red)' : a.priority === 'IMPORTANTE' ? 'var(--border-gold)' : a.pinned ? 'var(--tactical-gold)' : 'var(--border-subtle)'}; ${a.pinned ? 'box-shadow: 0 0 15px rgba(255,183,3,0.15);' : ''} border-radius:14px; padding:1.5rem; position:relative; box-shadow:var(--shadow-elevation);">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; flex-wrap:wrap; gap:0.5rem;">
             <div style="display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap;">
               ${getPriorityBadgeHtml(a.priority)}
-              ${a.pinned ? '<span style="font-family:var(--font-headline); font-size:0.75rem; color:var(--tactical-gold); letter-spacing:0.06em;">📌 FIJADO POR JEFATURA</span>' : ''}
-              <span style="font-family:var(--font-tactical); font-size:0.78rem; color:var(--text-muted);">${a.date}</span>
+              ${a.pinned ? '<span style="font-family:var(--font-headline); font-size:0.75rem; color:var(--tactical-gold); background:rgba(255,183,3,0.12); border:1px solid rgba(255,183,3,0.3); padding:0.2rem 0.5rem; border-radius:4px; letter-spacing:0.06em; font-weight:700;">📌 FIJADO AL INICIO</span>' : ''}
+              <span style="font-family:var(--font-tactical); font-size:0.78rem; color:var(--text-muted);">📅 ${a.date}</span>
             </div>
             ${canPublish ? `
               <div style="display:flex; gap:0.4rem; align-items:center;">
-                <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="window.togglePinAnnouncement('${a.id}')" title="${a.pinned ? 'Desfijar del inicio' : 'Fijar al inicio'}" style="font-size:0.75rem; padding:0.2rem 0.5rem;">
+                <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="window.togglePinAnnouncement('${a.id}')" title="${a.pinned ? 'Desfijar del inicio' : 'Fijar al inicio'}" style="font-size:0.75rem; padding:0.2rem 0.55rem;">
                   ${a.pinned ? '📌 Desfijar' : '📌 Fijar'}
                 </button>
-                <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="window.editAnnouncement('${a.id}')" title="Editar comunicado" style="font-size:0.75rem; padding:0.2rem 0.5rem;">
+                <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="window.editAnnouncement('${a.id}')" title="Editar comunicado" style="font-size:0.75rem; padding:0.2rem 0.55rem;">
                   ✏️ Editar
                 </button>
-                <button class="btn-tactical btn-tactical-sm" onclick="window.deleteAnnouncement('${a.id}')" style="background:rgba(255,59,48,0.12); border:1px solid rgba(255,59,48,0.4); color:#ff5252; font-size:0.75rem; padding:0.2rem 0.5rem;" title="Eliminar comunicado">
+                <button class="btn-tactical btn-tactical-sm" onclick="window.deleteAnnouncement('${a.id}')" style="background:rgba(255,59,48,0.12); border:1px solid rgba(255,59,48,0.4); color:#ff5252; font-size:0.75rem; padding:0.2rem 0.55rem;" title="Eliminar comunicado">
                   🗑️
                 </button>
               </div>
             ` : ''}
           </div>
 
-          <h4 style="font-family:var(--font-tactical); font-size:1.15rem; color:#fff; margin-bottom:0.75rem; line-height:1.3;">
-            ${a.title}
+          <h4 style="font-family:var(--font-tactical); font-size:1.15rem; color:#fff; margin-bottom:0.75rem; line-height:1.3; letter-spacing:0.02em;">
+            ${escapeHtml(a.title)}
           </h4>
 
           ${a.imageUrl ? `
-            <div class="announcement-photo-wrap">
-              <img src="${a.imageUrl}" class="announcement-photo-img" alt="${a.title}" onerror="this.parentElement.style.display='none'">
+            <div class="announcement-photo-wrap" style="margin:1rem 0; border-radius:10px; overflow:hidden; border:1px solid rgba(0,229,255,0.2); max-height:380px; background:rgba(0,0,0,0.5);">
+              <img src="${escapeHtml(a.imageUrl)}" class="announcement-photo-img" alt="${escapeHtml(a.title)}" style="width:100%; max-height:380px; object-fit:cover; display:block;" onerror="this.parentElement.style.display='none'">
             </div>
           ` : ''}
 
           <p style="font-size:0.92rem; color:var(--text-main); line-height:1.6; margin-bottom:1rem; white-space:pre-line;">
-            ${a.content}
+            ${escapeHtml(a.content)}
           </p>
 
-          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-subtle); padding-top:0.75rem; font-size:0.8rem; color:var(--text-subtle);">
-            <span>Emitido por: <strong style="color:var(--text-muted);">${a.author}</strong></span>
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-subtle); padding-top:0.75rem; font-size:0.8rem; color:var(--text-subtle); flex-wrap:wrap; gap:0.5rem;">
+            <span>Emitido por: <strong style="color:var(--text-muted);">${escapeHtml(a.author)}</strong></span>
             <span style="font-family:var(--font-headline); letter-spacing:0.05em; color:var(--police-cyan);">DIVISIÓN CANINA OPERATIVA</span>
           </div>
         </div>
@@ -518,6 +561,10 @@ function renderAnnouncements(container) {
 }
 
 window.editAnnouncement = function (id) {
+  if (!window.K9Auth.isJefaturaMember()) {
+    showToast('⚠️ Permiso denegado: Solo Jefatura puede editar comunicados', 'warning');
+    return;
+  }
   const anns = window.K9Store.getAnnouncements();
   const a = anns.find(x => x.id === id);
   if (!a) return;
@@ -531,6 +578,10 @@ window.editAnnouncement = function (id) {
 };
 
 window.deleteAnnouncement = function (id) {
+  if (!window.K9Auth.isJefaturaMember()) {
+    showToast('⚠️ Permiso denegado: Solo Jefatura puede eliminar comunicados', 'warning');
+    return;
+  }
   const anns = window.K9Store.getAnnouncements();
   const a = anns.find(x => x.id === id);
   if (!a) return;
@@ -543,6 +594,10 @@ window.deleteAnnouncement = function (id) {
 };
 
 window._confirmDeleteAnnouncement = function () {
+  if (!window.K9Auth.isJefaturaMember()) {
+    showToast('⚠️ Permiso denegado: Solo Jefatura puede eliminar comunicados', 'warning');
+    return;
+  }
   const id = window._pendingDeleteAnnId;
   if (!id) return;
   closeModal('modalDeleteAnnouncement');
@@ -553,10 +608,14 @@ window._confirmDeleteAnnouncement = function () {
     window.K9Webhook.log('announcement', 'Comunicado Eliminado', `Se ha eliminado un comunicado del tablón.`);
   }
   showToast('Comunicado retirado y eliminado del tablón', 'info');
-  renderAnnouncements(document.getElementById('generalSubtabContent'));
+  refreshAnnouncementsView();
 };
 
 window.togglePinAnnouncement = function (id) {
+  if (!window.K9Auth.isJefaturaMember()) {
+    showToast('⚠️ Permiso denegado: Solo Jefatura puede fijar comunicados', 'warning');
+    return;
+  }
   const anns = window.K9Store.getAnnouncements();
   const a = anns.find(x => x.id === id);
   if (!a) return;
@@ -564,8 +623,8 @@ window.togglePinAnnouncement = function (id) {
   anns.sort((x, y) => (y.pinned ? 1 : 0) - (x.pinned ? 1 : 0));
   window.K9Store.save(STORAGE_KEYS.ANNOUNCEMENTS, anns);
   if (window.K9CloudSync) window.K9CloudSync.push();
-  showToast(a.pinned ? 'Comunicado fijado al inicio' : 'Comunicado desfijado', 'info');
-  renderAnnouncements(document.getElementById('generalSubtabContent'));
+  showToast(a.pinned ? '📌 Comunicado fijado al inicio' : 'Comunicado desfijado', 'info');
+  refreshAnnouncementsView();
 };
 
 function renderNormatives(container) {
@@ -804,6 +863,7 @@ function renderMembersDirectory(container) {
     });
   }
 }
+window.renderMembersDirectory = renderMembersDirectory;
 
 function renderMemberCardsHtml(users, dogs, allBadges, isJef) {
   if (!users || users.length === 0) {
@@ -1715,6 +1775,9 @@ function checkJefaturaAccessAndRender() {
 
     <!-- Sub-Navegación de Jefatura -->
     <div class="subnav-tabs-row">
+      <button class="subnav-pill-btn jefatura-subnav ${currentJefaturaSubtab === 'anuncios' ? 'active' : ''}" data-subtab="anuncios">
+        📢 Tablón de Anuncios
+      </button>
       <button class="subnav-pill-btn jefatura-subnav ${currentJefaturaSubtab === 'informes' ? 'active' : ''}" data-subtab="informes">
         📑 Informes Semanales
       </button>
@@ -2843,6 +2906,7 @@ window.editAgentDogAssignment = function (userId) {
   showToast(`Asignación de binomio actualizada para ${user.name}`, 'success');
   renderJefaturaSubtab('agentes');
 };
+window.renderAgentsSection = renderAgentsSection;
 
 // -------------------------------------------------------------
 // SUBTAB 3: APARTADO DE K9 (CANES)
@@ -3484,7 +3548,8 @@ function renderJefaturaSubtab(subtab) {
   const container = document.getElementById('jefaturaSubtabContent');
   if (!container) return;
 
-  if (subtab === 'informes') renderReportsSection(container);
+  if (subtab === 'anuncios') renderAnnouncements(container);
+  else if (subtab === 'informes') renderReportsSection(container);
   else if (subtab === 'agentes') renderAgentsSection(container);
   else if (subtab === 'canes') renderDogsSection(container);
   else if (subtab === 'disciplinario') renderDisciplinarySection(container);
@@ -3492,6 +3557,7 @@ function renderJefaturaSubtab(subtab) {
   else if (subtab === 'permisos') renderPermissionsSection(container);
   else if (subtab === 'logs') renderLogsSection(container);
 }
+window.renderJefaturaSubtab = renderJefaturaSubtab;
 
 // -------------------------------------------------------------
 // SUBTAB 7: REGISTRO DE AUDITORÍA & LOGS (EXCLUSIVO JEFATURA)
@@ -3897,6 +3963,10 @@ function setupModals() {
   if (formAnn) {
     formAnn.addEventListener('submit', (e) => {
       e.preventDefault();
+      if (!window.K9Auth.isJefaturaMember()) {
+        showToast('⚠️ Permiso denegado: Solo Jefatura puede emitir comunicados', 'warning');
+        return;
+      }
       const user = window.K9Auth.getCurrentUser();
       const announcements = window.K9Store.getAnnouncements();
 
@@ -3909,7 +3979,7 @@ function setupModals() {
         type: rawPriority,
         imageUrl: imageUrl,
         date: new Date().toLocaleDateString('es-ES'),
-        author: `${user.rank} - ${user.name}`,
+        author: user ? `${user.rank || 'Mando'} - ${user.name || 'Jefatura'}` : 'Jefatura K9',
         pinned: !!document.getElementById('annPinnedInput').checked,
         content: document.getElementById('annContentInput').value
       };
@@ -3925,13 +3995,13 @@ function setupModals() {
       closeModal('modalNewAnnouncement');
       formAnn.reset();
       showToast('Comunicado oficial publicado con éxito', 'success');
-      if (window.K9Webhook) window.K9Webhook.onAnnouncementPublish(user, {
+      if (window.K9Webhook) window.K9Webhook.onAnnouncementPublish(user || { name: 'Jefatura K9', rank: 'Mando' }, {
         title: newAnn.title,
         category: newAnn.priority,
         pinned: newAnn.pinned,
         content: newAnn.content
       });
-      renderGeneralSubtab('anuncios');
+      refreshAnnouncementsView();
     });
   }
 
@@ -4220,12 +4290,16 @@ ON CONFLICT (id) DO NOTHING;
   if (formEditAnn) {
     formEditAnn.addEventListener('submit', (e) => {
       e.preventDefault();
+      if (!window.K9Auth.isJefaturaMember()) {
+        showToast('⚠️ Permiso denegado: Solo Jefatura puede editar comunicados', 'warning');
+        return;
+      }
       const id = document.getElementById('editAnnId').value;
       const announcements = window.K9Store.getAnnouncements();
       const ann = announcements.find(a => a.id === id);
       if (ann) {
         ann.title = (document.getElementById('editAnnTitle').value || '').toUpperCase();
-        ann.priority = document.getElementById('editAnnPriority').value;
+        ann.priority = (document.getElementById('editAnnPriority').value || 'OFICIAL').toUpperCase();
         ann.type = ann.priority;
         ann.imageUrl = (document.getElementById('editAnnImage').value || '').trim() || null;
         ann.pinned = !!document.getElementById('editAnnPinned').checked;
@@ -4234,7 +4308,7 @@ ON CONFLICT (id) DO NOTHING;
         if (window.K9CloudSync) window.K9CloudSync.push();
         closeModal('modalEditAnnouncement');
         showToast('Comunicado de jefatura actualizado correctamente', 'success');
-        renderGeneralSubtab('anuncios');
+        refreshAnnouncementsView();
       }
     });
   }
@@ -4751,6 +4825,7 @@ function updateLiveCounters() {
     countPatrolEl.textContent = `${totalHours}h`;
   }
 }
+window.updateLiveCounters = updateLiveCounters;
 
 function showToast(message, type = 'info') {
   let toastContainer = document.getElementById('tacticalToastContainer');
