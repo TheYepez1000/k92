@@ -25,6 +25,7 @@ const STORAGE_KEYS = {
   EVENTS: 'k9_data_events',
   NOTIFICATIONS: 'k9_data_notifications'
 };
+if (typeof window !== 'undefined') window.STORAGE_KEYS = STORAGE_KEYS;
 
 // Mensajes por defecto del chat de despacho con Jefatura
 const DEFAULT_CHAT_MESSAGES = [
@@ -768,8 +769,7 @@ class K9DataStore {
   getUsers(includeExpelled = false) {
     const users = this.get(STORAGE_KEYS.USERS) || [];
     if (includeExpelled) return users;
-    const expelled = this.getExpelledUserIds();
-    return users.filter(u => !u.isExpelled && !expelled.includes(u.id) && !expelled.includes(u.discordId));
+    return users.filter(u => !u.isExpelled && !this.isExpelled(u.id, u.discordId));
   }
 
   getDogs() {
@@ -829,21 +829,43 @@ class K9DataStore {
   }
 
   getCurrentUserId() {
-    return this.get(STORAGE_KEYS.CURRENT_USER) || null;
+    return this.get(STORAGE_KEYS.CURRENT_USER) || localStorage.getItem('k9_auth_discord_id') || null;
   }
 
   getCurrentUser() {
     const id = this.getCurrentUserId();
-    if (!id) return null;
-    const users = this.getUsers();
-    return users.find(u => u.id === id) || null;
+    const discordId = localStorage.getItem('k9_auth_discord_id');
+    if (!id && !discordId) return null;
+
+    const allUsers = this.getAllUsers();
+    // 1. Buscar por ID interno del sistema
+    let user = id ? allUsers.find(u => u.id === id) : null;
+    // 2. Si no se encuentra, buscar por Discord ID guardado
+    if (!user && (discordId || id)) {
+      const searchDiscordId = discordId || id;
+      user = allUsers.find(u => u.discordId === searchDiscordId);
+    }
+    // 3. Sincronizar identificadores si difieren para mantener consistencia
+    if (user) {
+      if (user.id && user.id !== id) {
+        this.save(STORAGE_KEYS.CURRENT_USER, user.id);
+      }
+      if (user.discordId && user.discordId !== discordId) {
+        localStorage.setItem('k9_auth_discord_id', user.discordId);
+      }
+    }
+    return user || null;
   }
 
-  setCurrentUser(id) {
+  setCurrentUser(id, discordId = null) {
     if (id) {
       this.save(STORAGE_KEYS.CURRENT_USER, id);
+      if (discordId) {
+        localStorage.setItem('k9_auth_discord_id', discordId);
+      }
     } else {
       localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+      localStorage.removeItem('k9_auth_discord_id');
     }
   }
 

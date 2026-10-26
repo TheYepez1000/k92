@@ -11,6 +11,29 @@ const SYNC_STORAGE_KEYS = {
   SYNC_STATUS: 'k9_cloud_status'
 };
 
+const STORAGE_KEYS = window.STORAGE_KEYS || {
+  CURRENT_USER: 'k9_current_user_id',
+  USERS: 'k9_data_users',
+  DOGS: 'k9_data_dogs',
+  REPORTS: 'k9_data_reports',
+  DISCIPLINARY: 'k9_data_disciplinary',
+  BADGES: 'k9_data_badges',
+  ANNOUNCEMENTS: 'k9_data_announcements',
+  NORMATIVES: 'k9_data_normatives',
+  MANUALS: 'k9_data_manuals',
+  DISCORD_CONFIG: 'k9_discord_config',
+  DOG_REQUESTS: 'k9_dog_requests',
+  AGENT_PRESETS: 'k9_agent_presets',
+  CHAT_MESSAGES: 'k9_chat_messages',
+  PROMOTIONS: 'k9_data_promotions',
+  LOGS: 'k9_data_logs',
+  EXPELLED_USERS: 'k9_expelled_users',
+  LAST_UPDATE: 'k9_last_local_update',
+  TASKS: 'k9_data_tasks',
+  EVENTS: 'k9_data_events',
+  NOTIFICATIONS: 'k9_data_notifications'
+};
+
 class K9CloudSyncManager {
   constructor() {
     this._inFlight = false;
@@ -100,14 +123,37 @@ class K9CloudSyncManager {
 
   // Enviar cambios locales a la nube
   async push() {
-    const endpoint = this.getEndpointUrl();
-    if (!endpoint) return;
-
     const payload = this.exportPayload();
     if (!payload) return;
 
+    let supabaseOk = false;
+    // 1. Prioridad: Supabase PostgreSQL (si está configurado)
+    if (window.K9Supabase && window.K9Supabase.isConfigured()) {
+      try {
+        this.setStatus('syncing');
+        supabaseOk = await window.K9Supabase.push(payload);
+        if (supabaseOk) {
+          this._lastRemoteHash = JSON.stringify(payload);
+          localStorage.setItem(SYNC_STORAGE_KEYS.LAST_SYNC, Date.now().toString());
+          this.setStatus('online');
+          console.log('[K9CloudSync] Datos sincronizados en Supabase PostgreSQL');
+        }
+      } catch (err) {
+        console.warn('[K9CloudSync] Error al subir a Supabase:', err);
+      }
+    }
+
+    // 2. Endpoint REST o Firebase complementario / fallback
+    const endpoint = this.getEndpointUrl();
+    if (!endpoint) {
+      if (!supabaseOk && (!window.K9Supabase || !window.K9Supabase.isConfigured())) {
+        this.setStatus('offline');
+      }
+      return;
+    }
+
     try {
-      this.setStatus('syncing');
+      if (!supabaseOk) this.setStatus('syncing');
       const isFirebase = endpoint.includes('firebaseio.com') || endpoint.endsWith('.json');
       const response = await fetch(endpoint, {
         method: isFirebase ? 'PUT' : 'POST',
@@ -122,21 +168,46 @@ class K9CloudSyncManager {
         this._lastRemoteHash = JSON.stringify(payload);
         localStorage.setItem(SYNC_STORAGE_KEYS.LAST_SYNC, Date.now().toString());
         this.setStatus('online');
-        console.log('[K9CloudSync] Datos sincronizados en la nube con éxito');
-      } else {
+        console.log('[K9CloudSync] Datos sincronizados en endpoint REST con éxito');
+      } else if (!supabaseOk) {
         this.setStatus('warning');
       }
     } catch (err) {
-      console.warn('[K9CloudSync] No se pudo enviar actualización a la nube:', err.message);
-      this.setStatus('offline');
+      if (!supabaseOk) {
+        console.warn('[K9CloudSync] No se pudo enviar actualización a la nube:', err.message);
+        this.setStatus('offline');
+      }
     }
   }
 
   // Descargar cambios más recientes de la nube
   async pull(force = false) {
     if (this._inFlight) return;
+
+    // 1. Prioridad: Consultar Supabase PostgreSQL
+    if (window.K9Supabase && window.K9Supabase.isConfigured()) {
+      this._inFlight = true;
+      try {
+        const remoteData = await window.K9Supabase.pull(force);
+        this._inFlight = false;
+        if (remoteData) {
+          this.setStatus('online');
+          return;
+        }
+      } catch (err) {
+        this._inFlight = false;
+        console.warn('[K9CloudSync] Fallo en pull de Supabase:', err);
+      }
+    }
+
+    // 2. Fallback: Endpoint REST / Firebase
     const endpoint = this.getEndpointUrl();
-    if (!endpoint) return;
+    if (!endpoint) {
+      if (window.K9Supabase && window.K9Supabase.isConfigured()) {
+        this.setStatus(window.K9Supabase.isConnected ? 'online' : 'offline');
+      }
+      return;
+    }
 
     this._inFlight = true;
     try {
@@ -176,9 +247,21 @@ class K9CloudSyncManager {
     if (!window.K9Store) return;
     let hasChanges = false;
 
-    // 0. Sincronizar agentes expulsados (refleja expulsiones y readmisiones)
+    // Obtener información del usuario autenticado en este navegador
+    const currentUid = window.K9Store.getCurrentUserId();
+    const currentDiscordId = localStorage.getItem('k9_auth_discord_id');
+    const localUsers = window.K9Store.getAllUsers ? window.K9Store.getAllUsers() : [];
+    const localCurrent = localUsers.find(u => (currentUid && u.id === currentUid) || (currentDiscordId && u.discordId === currentDiscordId));
+
+    // 0. Sincronizar agentes expulsados (NUNCA expulsar al usuario que acaba de iniciar sesión activamente)
     if (Array.isArray(remote.expelledUserIds)) {
-      window.K9Store.save(STORAGE_KEYS.EXPELLED_USERS, remote.expelledUserIds);
+      let cleanExpelled = [...remote.expelledUserIds];
+      if (localCurrent) {
+        cleanExpelled = cleanExpelled.filter(id => id !== localCurrent.id && id !== localCurrent.discordId);
+      }
+      // Inmunidad permanente para IDs de Jefatura Suprema
+      cleanExpelled = cleanExpelled.filter(id => id !== '578954458948698122' && id !== '760159743616090164');
+      window.K9Store.save(STORAGE_KEYS.EXPELLED_USERS, cleanExpelled);
     }
     const expelled = window.K9Store.getExpelledUserIds();
 
@@ -189,9 +272,50 @@ class K9CloudSyncManager {
       hasChanges = true;
     }
 
-    // 2. Directorio completo de usuarios (preservando estados)
+    // 2. Directorio de usuarios: FUSIÓN INTELIGENTE (jamás borrar ni desloguear al usuario actual)
     if (Array.isArray(remote.users)) {
-      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(remote.users));
+      const userMap = new Map();
+      remote.users.forEach(u => {
+        if (u && u.id) userMap.set(u.id, { ...u });
+      });
+
+      // Si tenemos un usuario local autenticado, garantizar que permanece en la lista con sesión activa
+      if (localCurrent && localCurrent.id) {
+        let remoteMatch = userMap.get(localCurrent.id);
+        if (!remoteMatch && localCurrent.discordId) {
+          remoteMatch = Array.from(userMap.values()).find(u => u.discordId && u.discordId === localCurrent.discordId);
+        }
+
+        if (remoteMatch) {
+          remoteMatch.isExpelled = false;
+          if (localCurrent.avatar) remoteMatch.avatar = localCurrent.avatar;
+          if (localCurrent.discordUsername) remoteMatch.discordUsername = localCurrent.discordUsername;
+          if (localCurrent.discordId) remoteMatch.discordId = localCurrent.discordId;
+          if (localCurrent.name) remoteMatch.name = localCurrent.name;
+          if (localCurrent.rank && localCurrent.rank !== '🚫 Expulsado de la Unidad') {
+            remoteMatch.rank = localCurrent.rank;
+          }
+          if (localCurrent.isJefatura) remoteMatch.isJefatura = true;
+          if (localCurrent.isVerified) remoteMatch.isVerified = true;
+          window.K9Store.setCurrentUser(remoteMatch.id, remoteMatch.discordId);
+          userMap.set(remoteMatch.id, remoteMatch);
+        } else {
+          // El usuario se acaba de autenticar y la nube aún no lo tenía
+          userMap.set(localCurrent.id, localCurrent);
+          this.schedulePush();
+        }
+      }
+
+      // Preservar cualquier otro usuario local que no esté en la nube todavía
+      localUsers.forEach(lu => {
+        if (lu && lu.id && !userMap.has(lu.id)) {
+          const matchDiscord = Array.from(userMap.values()).some(ru => ru.discordId && lu.discordId && ru.discordId === lu.discordId);
+          if (!matchDiscord) userMap.set(lu.id, lu);
+        }
+      });
+
+      const mergedUsers = Array.from(userMap.values());
+      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(mergedUsers));
       hasChanges = true;
     }
 
@@ -327,6 +451,11 @@ class K9CloudSyncManager {
   }
 
   updateIndicatorUI() {
+    if (window.K9Supabase && window.K9Supabase.isConfigured()) {
+      window.K9Supabase.updateIndicatorUI(this._status === 'online');
+      return;
+    }
+
     const dot = document.getElementById('cloudSyncDot');
     const label = document.getElementById('cloudSyncLabel');
     if (!dot) return;

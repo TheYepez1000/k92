@@ -3,9 +3,17 @@
  * Gestión de identidades policiales, Discord OAuth2 y verificación de permisos.
  */
 
+const AUTH_STORAGE_KEYS = window.STORAGE_KEYS || {
+  USERS: 'k9_data_users',
+  CURRENT_USER: 'k9_current_user_id',
+  AGENT_PRESETS: 'k9_agent_presets',
+  DISCORD_CONFIG: 'k9_discord_config'
+};
+
 class K9AuthManager {
   constructor() {
     this.currentUser = null;
+    this.isAuthenticating = false;
     this.init();
   }
 
@@ -50,7 +58,7 @@ class K9AuthManager {
 
   // Iniciar sesión / registrar usuario con identidad de Discord
   loginWithDiscordProfile(profileData) {
-    const allUsers = window.K9Store.getAllUsers ? window.K9Store.getAllUsers() : (window.K9Store.get(STORAGE_KEYS.USERS) || []);
+    const allUsers = window.K9Store.getAllUsers ? window.K9Store.getAllUsers() : (window.K9Store.get(AUTH_STORAGE_KEYS.USERS) || []);
     let matched = allUsers.find(u =>
       (profileData.discordId && u.discordId === profileData.discordId) ||
       (profileData.discordUsername && u.discordUsername &&
@@ -118,7 +126,7 @@ class K9AuthManager {
         interventionsTotal: grantJefatura ? 18 : 0
       };
       allUsers.push(matched);
-      window.K9Store.save(STORAGE_KEYS.USERS, allUsers);
+      window.K9Store.save(AUTH_STORAGE_KEYS.USERS, allUsers);
     } else {
       // Usuario ya registrado: si estaba dado de baja, se reactiva automáticamente
       matched.isExpelled = false;
@@ -146,10 +154,10 @@ class K9AuthManager {
       if (profileData.avatar) matched.avatar = profileData.avatar;
       if (profileData.discordUsername) matched.discordUsername = profileData.discordUsername;
       if (profileData.discordId) matched.discordId = profileData.discordId;
-      window.K9Store.save(STORAGE_KEYS.USERS, allUsers);
+      window.K9Store.save(AUTH_STORAGE_KEYS.USERS, allUsers);
     }
 
-    window.K9Store.setCurrentUser(matched.id);
+    window.K9Store.setCurrentUser(matched.id, matched.discordId);
     this.loadUser();
     if (window.K9CloudSync) window.K9CloudSync.push();
     if (window.K9Audio) window.K9Audio.playRadioChirp();
@@ -181,7 +189,7 @@ class K9AuthManager {
       found.permissions = ['*'];
       found.serviceStatus = 'En Activo / Mando';
       found.badges = ['badge_master', 'badge_veteran', 'badge_valor'];
-      window.K9Store.save(STORAGE_KEYS.USERS, users);
+      window.K9Store.save(AUTH_STORAGE_KEYS.USERS, users);
     }
     const presets = window.K9Store.getAgentPresets ? window.K9Store.getAgentPresets() : [];
     const cleanPresets = presets.filter(p => p.discordId !== user.discordId);
@@ -195,7 +203,7 @@ class K9AuthManager {
       serviceStatus: 'En Activo / Mando',
       createdAt: new Date().toLocaleDateString('es-ES')
     });
-    window.K9Store.save(STORAGE_KEYS.AGENT_PRESETS, cleanPresets);
+    window.K9Store.save(AUTH_STORAGE_KEYS.AGENT_PRESETS, cleanPresets);
     this.loadUser();
     return { ok: true, msg: '¡Acreditación de Jefatura K9 concedida exitosamente!' };
   }
@@ -203,6 +211,7 @@ class K9AuthManager {
   // Desconectar sesión de Discord
   logout() {
     window.K9Store.setCurrentUser(null);
+    localStorage.removeItem('k9_auth_discord_id');
     this.currentUser = null;
     if (window.K9Audio) window.K9Audio.playTacticalBeep(440, 0.1);
   }
@@ -224,7 +233,7 @@ class K9AuthManager {
       scope: 'identify'
     };
 
-    const saved = localStorage.getItem(STORAGE_KEYS.DISCORD_CONFIG);
+    const saved = localStorage.getItem(AUTH_STORAGE_KEYS.DISCORD_CONFIG);
     if (!saved) return defaultCfg;
 
     try {
@@ -248,7 +257,7 @@ class K9AuthManager {
       cfg.clientId = '1406448851153326131'; // Client ID fijo oficial
       if (cfg.redirectUri) cfg.redirectUri = cfg.redirectUri.trim();
     }
-    localStorage.setItem(STORAGE_KEYS.DISCORD_CONFIG, JSON.stringify(cfg));
+    localStorage.setItem(AUTH_STORAGE_KEYS.DISCORD_CONFIG, JSON.stringify(cfg));
   }
 
   // Generar URL para login real de Discord
@@ -285,9 +294,13 @@ class K9AuthManager {
       const params = new URLSearchParams(hash.substring(1));
       const token = params.get('access_token');
       if (token) {
-        console.log('Discord Token recibido vía OAuth2:', token);
-        // Limpiar hash de la URL sin recargar
-        window.history.replaceState(null, null, window.location.pathname + window.location.search);
+        console.log('Discord Token recibido vía OAuth2');
+        this.isAuthenticating = true;
+        try {
+          window.history.replaceState(null, null, window.location.pathname + window.location.search);
+        } catch (e) {
+          try { window.location.hash = ''; } catch (_) {}
+        }
         this.fetchDiscordProfile(token);
         return;
       }
@@ -299,7 +312,10 @@ class K9AuthManager {
     const error = searchParams.get('error') || (hashParams ? hashParams.get('error') : null);
     if (error) {
       console.warn('Discord OAuth2 cancelado o denegado:', error);
-      window.history.replaceState(null, null, window.location.pathname);
+      try {
+        window.history.replaceState(null, null, window.location.pathname);
+      } catch (_) {}
+      this.isAuthenticating = false;
       setTimeout(() => {
         if (typeof showToast === 'function') {
           showToast('Autenticación de Discord cancelada', 'warning');
@@ -310,6 +326,7 @@ class K9AuthManager {
 
   // Consultar perfil de Discord en vivo mediante token de Discord
   async fetchDiscordProfile(accessToken) {
+    this.isAuthenticating = true;
     try {
       if (typeof showToast === 'function') {
         showToast('Verificando cuenta con Discord OAuth2...', 'info');
@@ -338,6 +355,8 @@ class K9AuthManager {
           avatar: avatarUrl
         });
 
+        this.isAuthenticating = false;
+
         if (!user) {
           if (typeof setupAuthUI === 'function') setupAuthUI();
           if (typeof renderCurrentView === 'function') renderCurrentView();
@@ -356,16 +375,20 @@ class K9AuthManager {
         if (typeof renderCurrentView === 'function') renderCurrentView();
         if (typeof updateLiveCounters === 'function') updateLiveCounters();
       } else {
+        this.isAuthenticating = false;
         console.error('Error al consultar perfil de Discord:', response.status);
         if (typeof showToast === 'function') {
           showToast('No se pudo verificar el token de Discord. Intenta de nuevo.', 'warning');
         }
+        if (typeof setupAuthUI === 'function') setupAuthUI();
       }
     } catch (err) {
+      this.isAuthenticating = false;
       console.error('Error al obtener perfil de Discord:', err);
       if (typeof showToast === 'function') {
         showToast('Error de comunicación con la API de Discord', 'warning');
       }
+      if (typeof setupAuthUI === 'function') setupAuthUI();
     }
   }
 }

@@ -204,6 +204,18 @@ function setupAuthUI() {
   const heroActions = document.getElementById('heroActionsRow');
   const perfilLockBadge = document.getElementById('perfilLockBadge');
 
+  if (!user && window.K9Auth && window.K9Auth.isAuthenticating) {
+    if (authContainer) {
+      authContainer.innerHTML = `
+        <div style="display:flex; align-items:center; gap:0.5rem; color:var(--police-cyan); font-family:var(--font-tactical); font-size:0.8rem; padding:0.4rem 0.8rem; background:rgba(0,229,255,0.08); border-radius:20px; border:1px solid rgba(0,229,255,0.3);">
+          <span class="pulse-dot dot-online" style="background:#00e5ff; box-shadow:0 0 8px #00e5ff;"></span>
+          <span>AUTENTICANDO CON DISCORD...</span>
+        </div>
+      `;
+    }
+    return;
+  }
+
   renderGeneralSubnavTabs();
 
   if (perfilLockBadge) {
@@ -4042,6 +4054,151 @@ function setupModals() {
     });
   }
 
+  // -------------------------------------------------------------
+  // CONTROLES DE BASE DE DATOS SUPABASE (POSTGRESQL)
+  // -------------------------------------------------------------
+  const btnSaveSupabase = document.getElementById('btnSaveSupabase');
+  if (btnSaveSupabase) {
+    btnSaveSupabase.addEventListener('click', async () => {
+      const url = (document.getElementById('supabaseUrlInput').value || '').trim();
+      const key = (document.getElementById('supabaseKeyInput').value || '').trim();
+
+      if (!url || !key) {
+        showToast('⚠️ Introduce tanto la Project URL como la Anon Key de Supabase', 'warning');
+        return;
+      }
+
+      if (window.K9Supabase) {
+        window.K9Supabase.saveConfig(url, key);
+        showToast('💾 Conectando a Supabase PostgreSQL…', 'info');
+        if (window.K9Audio) window.K9Audio.playTacticalBeep(900, 0.1);
+
+        // Subir datos locales de inmediato si Supabase está vacía o recién conectada
+        setTimeout(async () => {
+          if (window.K9CloudSync) {
+            await window.K9CloudSync.push();
+          }
+          showToast('✅ Conexión con Supabase configurada y sincronizada', 'success');
+        }, 600);
+      }
+    });
+  }
+
+  const btnTestSupabase = document.getElementById('btnTestSupabase');
+  if (btnTestSupabase) {
+    btnTestSupabase.addEventListener('click', async () => {
+      const url = (document.getElementById('supabaseUrlInput').value || '').trim();
+      const key = (document.getElementById('supabaseKeyInput').value || '').trim();
+      const testRes = document.getElementById('supabaseTestResult');
+
+      if (!url || !key) {
+        showToast('⚠️ Introduce la Project URL y Anon Key para verificar', 'warning');
+        return;
+      }
+
+      if (testRes) {
+        testRes.style.display = 'block';
+        testRes.style.background = 'rgba(0, 229, 255, 0.1)';
+        testRes.style.border = '1px solid rgba(0, 229, 255, 0.3)';
+        testRes.style.color = '#00e5ff';
+        testRes.innerHTML = '⏳ Conectando con servidor PostgreSQL de Supabase…';
+      }
+
+      if (window.K9Supabase) {
+        const result = await window.K9Supabase.testConnection(url, key);
+        if (!testRes) return;
+
+        if (result.ok) {
+          testRes.style.background = 'rgba(0, 230, 118, 0.15)';
+          testRes.style.border = '1px solid #00e676';
+          testRes.style.color = '#00e676';
+          testRes.innerHTML = '✅ ' + result.message;
+          if (window.K9Audio) window.K9Audio.playTacticalBeep(1200, 0.15);
+          showToast('✅ Conexión exitosa con la base de datos', 'success');
+        } else if (result.tableMissing) {
+          testRes.style.background = 'rgba(255, 184, 0, 0.15)';
+          testRes.style.border = '1px solid #ffb800';
+          testRes.style.color = '#ffb800';
+          testRes.innerHTML = '⚠️ ' + result.message;
+          showToast('⚠️ Falta ejecutar el script SQL en Supabase', 'warning');
+        } else {
+          testRes.style.background = 'rgba(255, 82, 82, 0.15)';
+          testRes.style.border = '1px solid #ff5252';
+          testRes.style.color = '#ff5252';
+          testRes.innerHTML = '❌ Error de conexión: ' + result.message;
+          showToast('❌ Error conectando a Supabase', 'danger');
+        }
+      }
+    });
+  }
+
+  const btnMigrateSupabase = document.getElementById('btnMigrateSupabase');
+  if (btnMigrateSupabase) {
+    btnMigrateSupabase.addEventListener('click', async () => {
+      if (!window.K9Supabase || !window.K9Supabase.isConfigured()) {
+        showToast('⚠️ Configura y guarda primero las credenciales de Supabase', 'warning');
+        return;
+      }
+
+      showToast('📤 Subiendo todos los datos locales a Supabase PostgreSQL…', 'info');
+      const ok = await window.K9Supabase.push();
+      if (ok) {
+        if (window.K9Audio) window.K9Audio.playTacticalBeep(1400, 0.2);
+        showToast('✅ ¡Datos locales migrados con éxito a la base de datos en la nube!', 'success');
+      } else {
+        showToast('❌ No se pudieron subir los datos. Revisa la consola o las tablas de Supabase.', 'danger');
+      }
+    });
+  }
+
+  const btnCopySupabaseSQL = document.getElementById('btnCopySupabaseSQL');
+  if (btnCopySupabaseSQL) {
+    btnCopySupabaseSQL.addEventListener('click', () => {
+      const sqlSchema = `-- =============================================================================
+-- UNIDAD CANINA K9 - ESQUEMA DE BASE DE DATOS SUPABASE (POSTGRESQL)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.k9_app_state (
+    id TEXT PRIMARY KEY DEFAULT 'k9_global_state',
+    payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_by TEXT DEFAULT 'system'
+);
+
+ALTER TABLE public.k9_app_state ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Permitir lectura publica K9" ON public.k9_app_state;
+CREATE POLICY "Permitir lectura publica K9"
+ON public.k9_app_state FOR SELECT TO public USING (true);
+
+DROP POLICY IF EXISTS "Permitir insercion y actualizacion publica K9" ON public.k9_app_state;
+CREATE POLICY "Permitir insercion y actualizacion publica K9"
+ON public.k9_app_state FOR ALL TO public USING (true) WITH CHECK (true);
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' 
+    AND schemaname = 'public' 
+    AND tablename = 'k9_app_state'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.k9_app_state;
+  END IF;
+END $$;
+
+INSERT INTO public.k9_app_state (id, payload, updated_at, updated_by)
+VALUES ('k9_global_state', '{}'::jsonb, NOW(), 'initial_seed')
+ON CONFLICT (id) DO NOTHING;
+`;
+      navigator.clipboard.writeText(sqlSchema).then(() => {
+        if (window.K9Audio) window.K9Audio.playTacticalBeep(1000, 0.1);
+        showToast('📋 Script SQL copiado al portapapeles. Pégalo en SQL Editor de Supabase.', 'success');
+      }).catch(() => {
+        showToast('No se pudo copiar automáticamente. Puedes abrir el archivo supabase_schema.sql', 'warning');
+      });
+    });
+  }
+
   // Botón Confirmar Baja de Can K9 (modal táctico, sin confirm() nativo)
   const btnConfirmDog = document.getElementById('btnConfirmDeleteDogAction');
   if (btnConfirmDog) {
@@ -4489,10 +4646,22 @@ window.openModal = function (modalId) {
       if (clientInput) clientInput.value = cfg.clientId;
       if (redirectInput) redirectInput.value = cfg.redirectUri;
     }
-    if (modalId === 'modalCloudSync' && window.K9CloudSync) {
-      const endpointInput = document.getElementById('syncEndpointInput');
-      if (endpointInput) endpointInput.value = window.K9CloudSync.getEndpointUrl() || '';
-      window.K9CloudSync.updateIndicatorUI();
+    if (modalId === 'modalCloudSync') {
+      if (window.K9Supabase) {
+        const supConfig = window.K9Supabase.getConfig();
+        const urlInput = document.getElementById('supabaseUrlInput');
+        const keyInput = document.getElementById('supabaseKeyInput');
+        if (urlInput) urlInput.value = supConfig.url || '';
+        if (keyInput) keyInput.value = supConfig.key || '';
+        window.K9Supabase.updateIndicatorUI();
+      }
+      if (window.K9CloudSync) {
+        const endpointInput = document.getElementById('syncEndpointInput');
+        if (endpointInput) endpointInput.value = window.K9CloudSync.getEndpointUrl() || '';
+        window.K9CloudSync.updateIndicatorUI();
+      }
+      const testRes = document.getElementById('supabaseTestResult');
+      if (testRes) testRes.style.display = 'none';
     }
     if (modalId === 'modalNewDisciplinary') {
       const sel = document.getElementById('discAgentSelect');
