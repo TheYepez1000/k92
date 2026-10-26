@@ -2253,6 +2253,20 @@
 }
 
 /* ==========================================================================
+   INSIGNIA DE RANGO SUPREMO EXCLUSIVO: THEKID (ID: 578954458948698122)
+   ========================================================================== */
+.badge-thekid {
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.28), rgba(168, 85, 247, 0.28), rgba(0, 229, 255, 0.22)) !important;
+  border: 1px solid rgba(236, 72, 153, 0.85) !important;
+  color: #f472b6 !important;
+  box-shadow: 0 0 14px rgba(236, 72, 153, 0.45), inset 0 0 8px rgba(168, 85, 247, 0.25) !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  text-shadow: 0 0 8px rgba(236, 72, 153, 0.6) !important;
+}
+
+/* ==========================================================================
    INSIGNIA DE RANGO ESPECIAL: JEFATURA LSPD (STAFF)
    ========================================================================== */
 .badge-staff-lspd {
