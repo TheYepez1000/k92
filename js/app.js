@@ -24,6 +24,7 @@ function initApp() {
 let currentView = 'inicio';
 let currentJefaturaSubtab = 'informes';
 let currentGeneralSubtab = 'normativas';
+let currentProfileSubtab = 'ficha';
 
 function renderGeneralSubnavTabs() {
   const container = document.getElementById('generalSubnavRow');
@@ -32,23 +33,8 @@ function renderGeneralSubnavTabs() {
   const user = window.K9Auth.getCurrentUser();
 
   if (user) {
-    // Usuario autenticado con Discord: ve anuncios de jefatura, chat con mandos y todo el portal
+    // Usuario autenticado con Discord: ve normativas, manuales, canes y anuncios de jefatura
     container.innerHTML = `
-      <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'anuncios' ? 'active' : ''}" data-subtab="anuncios">
-        📢 Anuncios de Jefatura
-      </button>
-      <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'chat' ? 'active' : ''}" data-subtab="chat">
-        💬 Despacho con Jefatura
-      </button>
-      <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'miembros' ? 'active' : ''}" data-subtab="miembros">
-        👥 Miembros K9
-      </button>
-      <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'ascensos' ? 'active' : ''}" data-subtab="ascensos">
-        🎖️ Ascensos Oficiales
-      </button>
-      <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'condecoraciones' ? 'active' : ''}" data-subtab="condecoraciones">
-        🏅 Condecoraciones
-      </button>
       <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'normativas' ? 'active' : ''}" data-subtab="normativas">
         ⚖️ Normativas Oficiales
       </button>
@@ -58,27 +44,18 @@ function renderGeneralSubnavTabs() {
       <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'galeria' ? 'active' : ''}" data-subtab="galeria">
         🐕 Plantilla de Canes K9
       </button>
+      <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'anuncios' ? 'active' : ''}" data-subtab="anuncios">
+        📢 Anuncios de Jefatura
+      </button>
     `;
   } else {
-    // Usuario no autenticado: ve normativas, manuales, miembros, condecoraciones y canes
+    // Usuario no autenticado: ve normativas, manuales y canes
     if (currentGeneralSubtab === 'anuncios') {
       currentGeneralSubtab = 'normativas';
     }
     container.innerHTML = `
       <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'normativas' ? 'active' : ''}" data-subtab="normativas">
         ⚖️ Normativas Oficiales
-      </button>
-      <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'chat' ? 'active' : ''}" data-subtab="chat">
-        💬 Despacho con Jefatura
-      </button>
-      <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'miembros' ? 'active' : ''}" data-subtab="miembros">
-        👥 Miembros K9
-      </button>
-      <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'ascensos' ? 'active' : ''}" data-subtab="ascensos">
-        🎖️ Ascensos Oficiales
-      </button>
-      <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'condecoraciones' ? 'active' : ''}" data-subtab="condecoraciones">
-        🏅 Condecoraciones
       </button>
       <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'manuales' ? 'active' : ''}" data-subtab="manuales">
         📖 Manuales & Adiestramiento
@@ -114,9 +91,9 @@ window.switchGeneralSubtab = function (subtab) {
 };
 
 function setupNavigation() {
-  // Tabs principales
+  // Tabs principales del HUD superior
   document.querySelectorAll('.nav-tab-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+    btn.addEventListener('click', () => {
       const targetView = btn.dataset.view;
       if (window.K9Audio) window.K9Audio.playTacticalClick();
       switchMainView(targetView);
@@ -155,16 +132,28 @@ function switchMainView(viewName) {
     activeContainer.classList.add('active');
   }
 
-  // Renderizar la vista
-  if (viewName === 'inicio') {
+  // Renderizar la vista correspondiente
+  if (viewName === 'inicio' || viewName === 'normativas') {
+    renderGeneralSubnavTabs();
     renderGeneralSubtab(currentGeneralSubtab);
     updateLiveCounters();
+  } else if (viewName === 'miembros') {
+    const cont = document.getElementById('view-miembros');
+    if (cont) renderMembersDirectory(cont);
+  } else if (viewName === 'ascensos') {
+    const cont = document.getElementById('view-ascensos');
+    if (cont) renderPromotionsSection(cont);
+  } else if (viewName === 'condecoraciones') {
+    const cont = document.getElementById('view-condecoraciones');
+    if (cont) renderDecorationsSection(cont);
   } else if (viewName === 'perfil') {
     renderMemberProfile();
   } else if (viewName === 'jefatura') {
     checkJefaturaAccessAndRender();
   }
 }
+
+window.switchMainView = switchMainView;
 
 function renderCurrentView() {
   switchMainView(currentView);
@@ -1209,6 +1198,41 @@ function renderMemberProfile() {
     !d.isInternal
   );
 
+  if (currentProfileSubtab === 'despacho') {
+    container.innerHTML = `
+      <!-- Cabecera de la sección -->
+      <div class="section-header-block">
+        <div class="section-header-left">
+          <span class="section-pre-title">EXPEDIENTE DEL MIEMBRO OPERATIVO</span>
+          <h2 class="section-main-title">
+            <span>PORTAL DEL AGENTE</span>
+            <span style="font-size:0.95rem; color:var(--police-cyan); background:rgba(0,229,255,0.1); border:1px solid var(--border-tactical); padding:0.2rem 0.6rem; border-radius:20px;">[PLACA ${user.placa}]</span>
+          </h2>
+        </div>
+        <div class="section-header-actions">
+          <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="window.print()">
+            <span>🖨️</span> Imprimir Credencial
+          </button>
+        </div>
+      </div>
+
+      <!-- Sub-Navegación Interna de Mi Perfil -->
+      <div class="subnav-tabs-row" style="margin-bottom: 1.5rem;">
+        <button class="subnav-pill-btn" onclick="window.switchProfileSubtab('ficha')">
+          🪪 Mi Ficha Policial & Binomio
+        </button>
+        <button class="subnav-pill-btn active" onclick="window.switchProfileSubtab('despacho')">
+          💬 Despacho con Jefatura
+        </button>
+      </div>
+
+      <div id="profileDispatchContainer" style="margin-top: 1rem;"></div>
+    `;
+    const dispatchEl = document.getElementById('profileDispatchContainer');
+    if (dispatchEl) renderChatSection(dispatchEl);
+    return;
+  }
+
   container.innerHTML = `
     <!-- Cabecera de la sección -->
     <div class="section-header-block">
@@ -1224,6 +1248,16 @@ function renderMemberProfile() {
           <span>🖨️</span> Imprimir Credencial
         </button>
       </div>
+    </div>
+
+    <!-- Sub-Navegación Interna de Mi Perfil -->
+    <div class="subnav-tabs-row" style="margin-bottom: 1.5rem;">
+      <button class="subnav-pill-btn active" onclick="window.switchProfileSubtab('ficha')">
+        🪪 Mi Ficha Policial & Binomio
+      </button>
+      <button class="subnav-pill-btn" onclick="window.switchProfileSubtab('despacho')">
+        💬 Despacho con Jefatura
+      </button>
     </div>
 
     <!-- Grid Principal del Perfil -->
@@ -1457,6 +1491,12 @@ function renderMemberProfile() {
     });
   });
 }
+
+window.switchProfileSubtab = function (tab) {
+  currentProfileSubtab = tab;
+  if (window.K9Audio) window.K9Audio.playTacticalClick();
+  renderMemberProfile();
+};
 
 // ==========================================
 // VISTA DE JEFATURA (ADMIN COMMAND CENTER)
@@ -2484,10 +2524,12 @@ window.removeAgentFromRoster = function (userId) {
   overlay.addEventListener('click', (e) => { if (e.target === overlay) closeK(); });
 
   document.getElementById('confirmKick').addEventListener('click', () => {
-    // 1. Quitar rango y verificación del usuario
-    const idx = users.indexOf(user);
-    if (idx !== -1) users.splice(idx, 1); // Eliminar completamente de la lista
-    window.K9Store.save(STORAGE_KEYS.USERS, users);
+    // 0. Registrar permanentemente como expulsado (tombstone para que la sincronización en la nube nunca lo resucite)
+    window.K9Store.addExpelledUserId(user.id, user.discordId);
+
+    // 1. Quitar de la lista de usuarios
+    const remainingUsers = window.K9Store.getUsers().filter(u => u.id !== user.id && (!user.discordId || u.discordId !== user.discordId));
+    window.K9Store.save(STORAGE_KEYS.USERS, remainingUsers);
 
     // 2. Eliminar su preset para que no pueda recuperar el rango en el próximo login
     if (user.discordId) {
@@ -2505,6 +2547,17 @@ window.removeAgentFromRoster = function (userId) {
         dog.handlerName = 'Pendiente de Asignación';
         window.K9Store.save(STORAGE_KEYS.DOGS, dogs);
       }
+    }
+
+    // 4. Si el usuario actual es el expulsado, cerrar sesión
+    const curr = window.K9Store.getCurrentUser();
+    if (curr && (curr.id === user.id || (user.discordId && curr.discordId === user.discordId))) {
+      window.K9Store.setCurrentUser(null);
+    }
+
+    // 5. Sincronizar inmediatamente con la nube
+    if (window.K9CloudSync) {
+      window.K9CloudSync.push();
     }
 
     // 4. Log webhook

@@ -69,19 +69,20 @@ class K9CloudSyncManager {
     return {
       version: 2,
       updatedAt: Date.now(),
-      users: window.K9Store.get(STORAGE_KEYS.USERS) || [],
-      presets: window.K9Store.get(STORAGE_KEYS.AGENT_PRESETS) || [],
-      dogs: window.K9Store.get(STORAGE_KEYS.DOGS) || [],
-      dogRequests: window.K9Store.get(STORAGE_KEYS.DOG_REQUESTS) || [],
-      announcements: window.K9Store.get(STORAGE_KEYS.ANNOUNCEMENTS) || [],
-      disciplinary: window.K9Store.get(STORAGE_KEYS.DISCIPLINARY) || [],
-      reports: window.K9Store.get(STORAGE_KEYS.REPORTS) || [],
-      badges: window.K9Store.get(STORAGE_KEYS.BADGES) || [],
-      chatMessages: window.K9Store.get(STORAGE_KEYS.CHAT_MESSAGES) || [],
-      normatives: window.K9Store.get(STORAGE_KEYS.NORMATIVES) || [],
-      manuals: window.K9Store.get(STORAGE_KEYS.MANUALS) || [],
-      promotions: window.K9Store.get(STORAGE_KEYS.PROMOTIONS) || [],
-      logs: window.K9Store.get(STORAGE_KEYS.LOGS) || [],
+      users: window.K9Store.getUsers() || [],
+      presets: window.K9Store.getAgentPresets() || [],
+      dogs: window.K9Store.getDogs() || [],
+      dogRequests: window.K9Store.getDogRequests() || [],
+      announcements: window.K9Store.getAnnouncements() || [],
+      disciplinary: window.K9Store.getDisciplinary() || [],
+      reports: window.K9Store.getReports() || [],
+      badges: window.K9Store.getBadges() || [],
+      chatMessages: window.K9Store.getChatMessages() || [],
+      normatives: window.K9Store.getNormatives() || [],
+      manuals: window.K9Store.getManuals() || [],
+      promotions: window.K9Store.getPromotions() || [],
+      logs: window.K9Store.getLogs() || [],
+      expelledUserIds: window.K9Store.getExpelledUserIds() || [],
       webhookUrl: localStorage.getItem('k9_webhook_url') || null
     };
   }
@@ -91,7 +92,7 @@ class K9CloudSyncManager {
     if (this._pushTimer) clearTimeout(this._pushTimer);
     this._pushTimer = setTimeout(() => {
       this.push();
-    }, 600);
+    }, 350);
   }
 
   // Enviar cambios locales a la nube
@@ -104,8 +105,9 @@ class K9CloudSyncManager {
 
     try {
       this.setStatus('syncing');
+      const isFirebase = endpoint.includes('firebaseio.com') || endpoint.endsWith('.json');
       const response = await fetch(endpoint, {
-        method: 'POST',
+        method: isFirebase ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
@@ -171,60 +173,43 @@ class K9CloudSyncManager {
     if (!window.K9Store) return;
     let hasChanges = false;
 
-    // 1. Presets de Jefatura (Fusión por discordId)
+    // 0. Sincronizar agentes expulsados (Tombstones permanentes)
+    if (Array.isArray(remote.expelledUserIds) && remote.expelledUserIds.length > 0) {
+      remote.expelledUserIds.forEach(id => {
+        window.K9Store.addExpelledUserId(id);
+      });
+    }
+    const expelled = window.K9Store.getExpelledUserIds();
+
+    // 1. Presets de Jefatura
     if (Array.isArray(remote.presets)) {
-      const localPresets = window.K9Store.get(STORAGE_KEYS.AGENT_PRESETS) || [];
-      const presetMap = new Map();
-      localPresets.forEach(p => { if (p.discordId) presetMap.set(p.discordId, p); });
-      remote.presets.forEach(p => { if (p.discordId) presetMap.set(p.discordId, p); });
-      localStorage.setItem(STORAGE_KEYS.AGENT_PRESETS, JSON.stringify(Array.from(presetMap.values())));
+      const validPresets = remote.presets.filter(p => !expelled.includes(p.discordId));
+      localStorage.setItem(STORAGE_KEYS.AGENT_PRESETS, JSON.stringify(validPresets));
       hasChanges = true;
     }
 
-    // 2. Directorio de usuarios y rangos (Fusión sin perder a nadie que haya entrado con Discord)
-    if (Array.isArray(remote.users) && remote.users.length > 0) {
-      const localUsers = window.K9Store.getUsers();
-      const userMap = new Map();
-      localUsers.forEach(u => {
-        const key = u.discordId || u.id;
-        if (key) userMap.set(key, u);
-      });
-      remote.users.forEach(u => {
-        const key = u.discordId || u.id;
-        if (!key) return;
-        const prev = userMap.get(key);
-        if (prev) {
-          const merged = Object.assign({}, prev, u);
-          if (prev.isVerified && (!u.isVerified || u.rank === 'Sin Rango Asignado')) {
-            merged.rank = prev.rank;
-            merged.placa = prev.placa;
-            merged.isVerified = true;
-            merged.isJefatura = prev.isJefatura;
-            merged.permissions = prev.permissions;
-          }
-          userMap.set(key, merged);
-        } else {
-          userMap.set(key, u);
-        }
-      });
-      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(Array.from(userMap.values())));
+    // 2. Directorio de usuarios y rangos (Respetando expulsiones y evitando resucitar miembros)
+    if (Array.isArray(remote.users)) {
+      const validUsers = remote.users.filter(u => !expelled.includes(u.id) && !expelled.includes(u.discordId));
+      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(validUsers));
       hasChanges = true;
     }
 
     // 3. Solicitudes de canes (binomios)
     if (Array.isArray(remote.dogRequests)) {
-      const localReqs = window.K9Store.getDogRequests();
-      const reqMap = new Map();
-      localReqs.forEach(r => { if (r.id) reqMap.set(r.id, r); });
-      remote.dogRequests.forEach(r => { if (r.id) reqMap.set(r.id, r); });
-      localStorage.setItem(STORAGE_KEYS.DOG_REQUESTS, JSON.stringify(Array.from(reqMap.values())));
+      localStorage.setItem(STORAGE_KEYS.DOG_REQUESTS, JSON.stringify(remote.dogRequests));
       hasChanges = true;
     }
 
-    // 4. Canes K9 (Autoritativo desde la nube para no revivir bajas ni eliminaciones)
-    if (Array.isArray(remote.dogs)) {
+    // 4. Canes K9 (Si la nube tiene datos, los aplica; si está vacía, local nutre a la nube)
+    if (Array.isArray(remote.dogs) && remote.dogs.length > 0) {
       localStorage.setItem(STORAGE_KEYS.DOGS, JSON.stringify(remote.dogs));
       hasChanges = true;
+    } else {
+      const localDogs = window.K9Store.getDogs();
+      if (localDogs && localDogs.length > 0) {
+        this.schedulePush();
+      }
     }
 
     // 5. Comunicados oficiales
@@ -233,7 +218,7 @@ class K9CloudSyncManager {
       hasChanges = true;
     }
 
-    // 6. Expedientes disciplinarios (Autoritativo para respetar bajas y eliminaciones)
+    // 6. Expedientes disciplinarios
     if (Array.isArray(remote.disciplinary)) {
       localStorage.setItem(STORAGE_KEYS.DISCIPLINARY, JSON.stringify(remote.disciplinary));
       hasChanges = true;
@@ -251,22 +236,28 @@ class K9CloudSyncManager {
       window.dispatchEvent(new CustomEvent('k9_chat_updated', { detail: mergedChat }));
     }
 
-    // 8. Informes de patrulla (Autoritativo para respetar bajas y eliminaciones)
+    // 8. Informes de patrulla
     if (Array.isArray(remote.reports)) {
       localStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify(remote.reports));
       hasChanges = true;
     }
 
     // 9. Normativas Oficiales
-    if (Array.isArray(remote.normatives)) {
+    if (Array.isArray(remote.normatives) && remote.normatives.length > 0) {
       localStorage.setItem(STORAGE_KEYS.NORMATIVES, JSON.stringify(remote.normatives));
       hasChanges = true;
+    } else {
+      const localNorms = window.K9Store.getNormatives();
+      if (localNorms && localNorms.length > 0) this.schedulePush();
     }
 
     // 10. Manuales de Instrucción
-    if (Array.isArray(remote.manuals)) {
+    if (Array.isArray(remote.manuals) && remote.manuals.length > 0) {
       localStorage.setItem(STORAGE_KEYS.MANUALS, JSON.stringify(remote.manuals));
       hasChanges = true;
+    } else {
+      const localMans = window.K9Store.getManuals();
+      if (localMans && localMans.length > 0) this.schedulePush();
     }
 
     // 11. Ascensos Oficiales
@@ -275,16 +266,9 @@ class K9CloudSyncManager {
       hasChanges = true;
     }
 
-    // 12. Logs tácticos internos
+    // 12. Logs tácticos internos: Asignación directa autoritativa (permite purgar sin que resuciten)
     if (Array.isArray(remote.logs)) {
-      const localLogs = window.K9Store.getLogs();
-      const logMap = new Map();
-      localLogs.forEach(l => { if (l.id) logMap.set(l.id, l); });
-      remote.logs.forEach(l => { if (l.id) logMap.set(l.id, l); });
-      const mergedLogs = Array.from(logMap.values())
-        .sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0))
-        .slice(0, 150);
-      localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(mergedLogs));
+      localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(remote.logs));
       hasChanges = true;
     }
 

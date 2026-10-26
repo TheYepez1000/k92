@@ -250,15 +250,40 @@ h1, h2, h3, h4, h5, h6,
   50% { opacity: 0.4; transform: scale(0.8); }
 }
 
+/* ==========================================================================
+   MARCA DE AGUA / LOGO DE FONDO OFICIAL K9
+   ========================================================================== */
+.k9-background-watermark {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(720px, 85vw);
+  height: min(720px, 85vw);
+  background: radial-gradient(circle at center, rgba(0, 229, 255, 0.05) 0%, transparent 65%),
+              url('../assets/images/emblem.jpg') center/contain no-repeat;
+  opacity: 0.06;
+  filter: grayscale(20%) drop-shadow(0 0 60px rgba(0, 102, 255, 0.4));
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 50%;
+}
+
+.main-wrapper {
+  position: relative;
+  z-index: 1;
+}
+
 /* Navegación Principal */
 .nav-tabs {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  background: rgba(16, 24, 43, 0.6);
-  padding: 0.3rem;
+  gap: 0.35rem;
+  background: rgba(16, 24, 43, 0.7);
+  padding: 0.25rem 0.35rem;
   border-radius: 10px;
   border: 1px solid var(--border-subtle);
+  backdrop-filter: blur(8px);
 }
 
 .nav-tab-btn {
@@ -266,25 +291,26 @@ h1, h2, h3, h4, h5, h6,
   border: none;
   color: var(--text-muted);
   font-family: var(--font-tactical);
-  font-size: 0.85rem;
-  padding: 0.55rem 1rem;
+  font-size: 0.8rem;
+  padding: 0.45rem 0.75rem;
   border-radius: 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   transition: all var(--transition-fast);
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .nav-tab-btn:hover {
   color: #fff;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .nav-tab-btn.active {
   color: #fff;
-  background: linear-gradient(135deg, rgba(0, 102, 255, 0.4), rgba(0, 229, 255, 0.2));
+  background: linear-gradient(135deg, rgba(0, 102, 255, 0.45), rgba(0, 229, 255, 0.25));
   border: 1px solid var(--border-tactical);
   box-shadow: 0 0 15px rgba(0, 102, 255, 0.3);
 }

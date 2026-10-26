@@ -46,6 +46,13 @@ class K9AuthManager {
 
   // Iniciar sesión / registrar usuario con identidad de Discord
   loginWithDiscordProfile(profileData) {
+    if (window.K9Store && window.K9Store.isExpelled && window.K9Store.isExpelled(profileData.discordId, profileData.discordUsername)) {
+      if (typeof showToast === 'function') {
+        showToast('⚠️ Tu cuenta ha sido dada de baja o expulsada de la División K9.', 'error');
+      }
+      return null;
+    }
+
     const users = window.K9Store.getUsers();
     let matched = users.find(u =>
       (profileData.discordId && u.discordId === profileData.discordId) ||
