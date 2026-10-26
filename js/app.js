@@ -2963,6 +2963,7 @@ function renderDogsSection(container) {
     document.getElementById('dogsTableBody').innerHTML = renderDogsTableRows(filtered);
   });
 }
+window.renderDogsSection = renderDogsSection;
 
 function renderDogsTableRows(dogs) {
   if (!dogs || dogs.length === 0) return '';

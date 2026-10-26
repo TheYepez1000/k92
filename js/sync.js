@@ -11,7 +11,8 @@ const SYNC_STORAGE_KEYS = {
   SYNC_STATUS: 'k9_cloud_status'
 };
 
-const STORAGE_KEYS = window.STORAGE_KEYS || {
+// Acceso seguro a las claves de persistencia sin colisión de identificadores const
+const K9_SYNC_KEYS = (typeof window !== 'undefined' && window.STORAGE_KEYS) || (typeof STORAGE_KEYS !== 'undefined' ? STORAGE_KEYS : {
   CURRENT_USER: 'k9_current_user_id',
   USERS: 'k9_data_users',
   DOGS: 'k9_data_dogs',
@@ -32,7 +33,7 @@ const STORAGE_KEYS = window.STORAGE_KEYS || {
   TASKS: 'k9_data_tasks',
   EVENTS: 'k9_data_events',
   NOTIFICATIONS: 'k9_data_notifications'
-};
+});
 
 class K9CloudSyncManager {
   constructor() {
@@ -107,9 +108,9 @@ class K9CloudSyncManager {
       promotions: window.K9Store.getPromotions() || [],
       logs: window.K9Store.getLogs() || [],
       expelledUserIds: window.K9Store.getExpelledUserIds() || [],
-      tasks: (window.K9Store.getRawTasks ? window.K9Store.getRawTasks() : (window.K9Store.get(STORAGE_KEYS.TASKS) || [])),
-      events: (window.K9Store.getRawEvents ? window.K9Store.getRawEvents() : (window.K9Store.get(STORAGE_KEYS.EVENTS) || [])),
-      notifications: (window.K9Store.getRawNotifications ? window.K9Store.getRawNotifications() : (window.K9Store.get(STORAGE_KEYS.NOTIFICATIONS) || [])),
+      tasks: (window.K9Store.getRawTasks ? window.K9Store.getRawTasks() : (window.K9Store.get(K9_SYNC_KEYS.TASKS) || [])),
+      events: (window.K9Store.getRawEvents ? window.K9Store.getRawEvents() : (window.K9Store.get(K9_SYNC_KEYS.EVENTS) || [])),
+      notifications: (window.K9Store.getRawNotifications ? window.K9Store.getRawNotifications() : (window.K9Store.get(K9_SYNC_KEYS.NOTIFICATIONS) || [])),
       webhookUrl: localStorage.getItem('k9_webhook_url') || null
     };
   }
@@ -262,14 +263,14 @@ class K9CloudSyncManager {
       }
       // Inmunidad permanente para IDs de Jefatura Suprema
       cleanExpelled = cleanExpelled.filter(id => id !== '578954458948698122' && id !== '760159743616090164');
-      window.K9Store.save(STORAGE_KEYS.EXPELLED_USERS, cleanExpelled);
+      window.K9Store.save(K9_SYNC_KEYS.EXPELLED_USERS, cleanExpelled);
     }
     const expelled = window.K9Store.getExpelledUserIds();
 
     // 1. Presets de Jefatura
     if (Array.isArray(remote.presets)) {
       const validPresets = remote.presets.filter(p => !expelled.includes(p.discordId));
-      localStorage.setItem(STORAGE_KEYS.AGENT_PRESETS, JSON.stringify(validPresets));
+      localStorage.setItem(K9_SYNC_KEYS.AGENT_PRESETS, JSON.stringify(validPresets));
       hasChanges = true;
     }
 
@@ -292,12 +293,21 @@ class K9CloudSyncManager {
           if (localCurrent.avatar) remoteMatch.avatar = localCurrent.avatar;
           if (localCurrent.discordUsername) remoteMatch.discordUsername = localCurrent.discordUsername;
           if (localCurrent.discordId) remoteMatch.discordId = localCurrent.discordId;
-          if (localCurrent.name) remoteMatch.name = localCurrent.name;
-          if (localCurrent.rank && localCurrent.rank !== '🚫 Expulsado de la Unidad') {
+          if (localCurrent.name && !remoteMatch.name) remoteMatch.name = localCurrent.name;
+
+          // Si Jefatura ya asignó rango/placa en la nube, adoptar la decisión de Jefatura:
+          if (remoteMatch.rank && remoteMatch.rank !== 'Sin Rango Asignado' && !remoteMatch.rank.includes('Pendiente')) {
+            localCurrent.rank = remoteMatch.rank;
+            localCurrent.placa = remoteMatch.placa || localCurrent.placa;
+            localCurrent.isJefatura = !!remoteMatch.isJefatura;
+            localCurrent.isVerified = !!remoteMatch.isVerified;
+            localCurrent.permissions = remoteMatch.permissions || localCurrent.permissions;
+          } else if (localCurrent.rank && localCurrent.rank !== '🚫 Expulsado de la Unidad') {
             remoteMatch.rank = localCurrent.rank;
+            remoteMatch.placa = localCurrent.placa || remoteMatch.placa;
+            remoteMatch.isJefatura = !!localCurrent.isJefatura;
+            remoteMatch.isVerified = !!localCurrent.isVerified;
           }
-          if (localCurrent.isJefatura) remoteMatch.isJefatura = true;
-          if (localCurrent.isVerified) remoteMatch.isVerified = true;
           window.K9Store.setCurrentUser(remoteMatch.id, remoteMatch.discordId);
           userMap.set(remoteMatch.id, remoteMatch);
         } else {
@@ -316,19 +326,19 @@ class K9CloudSyncManager {
       });
 
       const mergedUsers = Array.from(userMap.values());
-      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(mergedUsers));
+      localStorage.setItem(K9_SYNC_KEYS.USERS, JSON.stringify(mergedUsers));
       hasChanges = true;
     }
 
     // 3. Solicitudes de canes (binomios)
     if (Array.isArray(remote.dogRequests)) {
-      localStorage.setItem(STORAGE_KEYS.DOG_REQUESTS, JSON.stringify(remote.dogRequests));
+      localStorage.setItem(K9_SYNC_KEYS.DOG_REQUESTS, JSON.stringify(remote.dogRequests));
       hasChanges = true;
     }
 
     // 4. Canes K9 (Si la nube tiene datos, los aplica; si está vacía, local nutre a la nube)
     if (Array.isArray(remote.dogs) && remote.dogs.length > 0) {
-      localStorage.setItem(STORAGE_KEYS.DOGS, JSON.stringify(remote.dogs));
+      localStorage.setItem(K9_SYNC_KEYS.DOGS, JSON.stringify(remote.dogs));
       hasChanges = true;
     } else {
       const localDogs = window.K9Store.getDogs();
@@ -339,13 +349,13 @@ class K9CloudSyncManager {
 
     // 5. Comunicados oficiales
     if (Array.isArray(remote.announcements)) {
-      localStorage.setItem(STORAGE_KEYS.ANNOUNCEMENTS, JSON.stringify(remote.announcements));
+      localStorage.setItem(K9_SYNC_KEYS.ANNOUNCEMENTS, JSON.stringify(remote.announcements));
       hasChanges = true;
     }
 
     // 6. Expedientes disciplinarios
     if (Array.isArray(remote.disciplinary)) {
-      localStorage.setItem(STORAGE_KEYS.DISCIPLINARY, JSON.stringify(remote.disciplinary));
+      localStorage.setItem(K9_SYNC_KEYS.DISCIPLINARY, JSON.stringify(remote.disciplinary));
       hasChanges = true;
     }
 
@@ -356,20 +366,20 @@ class K9CloudSyncManager {
       localChat.forEach(m => { if (m.id) chatMap.set(m.id, m); });
       remote.chatMessages.forEach(m => { if (m.id) chatMap.set(m.id, m); });
       const mergedChat = Array.from(chatMap.values()).slice(-60);
-      localStorage.setItem(STORAGE_KEYS.CHAT_MESSAGES, JSON.stringify(mergedChat));
+      localStorage.setItem(K9_SYNC_KEYS.CHAT_MESSAGES, JSON.stringify(mergedChat));
       hasChanges = true;
       window.dispatchEvent(new CustomEvent('k9_chat_updated', { detail: mergedChat }));
     }
 
     // 8. Informes de patrulla
     if (Array.isArray(remote.reports)) {
-      localStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify(remote.reports));
+      localStorage.setItem(K9_SYNC_KEYS.REPORTS, JSON.stringify(remote.reports));
       hasChanges = true;
     }
 
     // 9. Normativas Oficiales
     if (Array.isArray(remote.normatives) && remote.normatives.length > 0) {
-      localStorage.setItem(STORAGE_KEYS.NORMATIVES, JSON.stringify(remote.normatives));
+      localStorage.setItem(K9_SYNC_KEYS.NORMATIVES, JSON.stringify(remote.normatives));
       hasChanges = true;
     } else {
       const localNorms = window.K9Store.getNormatives();
@@ -378,7 +388,7 @@ class K9CloudSyncManager {
 
     // 10. Manuales de Instrucción
     if (Array.isArray(remote.manuals) && remote.manuals.length > 0) {
-      localStorage.setItem(STORAGE_KEYS.MANUALS, JSON.stringify(remote.manuals));
+      localStorage.setItem(K9_SYNC_KEYS.MANUALS, JSON.stringify(remote.manuals));
       hasChanges = true;
     } else {
       const localMans = window.K9Store.getManuals();
@@ -387,13 +397,13 @@ class K9CloudSyncManager {
 
     // 11. Ascensos Oficiales
     if (Array.isArray(remote.promotions)) {
-      localStorage.setItem(STORAGE_KEYS.PROMOTIONS, JSON.stringify(remote.promotions));
+      localStorage.setItem(K9_SYNC_KEYS.PROMOTIONS, JSON.stringify(remote.promotions));
       hasChanges = true;
     }
 
     // 12. Logs tácticos internos: Asignación directa autoritativa (permite purgar sin que resuciten)
     if (Array.isArray(remote.logs)) {
-      localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(remote.logs));
+      localStorage.setItem(K9_SYNC_KEYS.LOGS, JSON.stringify(remote.logs));
       hasChanges = true;
     }
 
@@ -404,19 +414,19 @@ class K9CloudSyncManager {
 
     // 14. Centro de Tareas
     if (Array.isArray(remote.tasks)) {
-      localStorage.setItem(STORAGE_KEYS.TASKS, JSON.stringify(remote.tasks));
+      localStorage.setItem(K9_SYNC_KEYS.TASKS, JSON.stringify(remote.tasks));
       hasChanges = true;
     }
 
     // 15. Eventos y Agenda
     if (Array.isArray(remote.events)) {
-      localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(remote.events));
+      localStorage.setItem(K9_SYNC_KEYS.EVENTS, JSON.stringify(remote.events));
       hasChanges = true;
     }
 
     // 16. Centro de Notificaciones
     if (Array.isArray(remote.notifications)) {
-      localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(remote.notifications));
+      localStorage.setItem(K9_SYNC_KEYS.NOTIFICATIONS, JSON.stringify(remote.notifications));
       hasChanges = true;
     }
 
@@ -444,12 +454,16 @@ class K9CloudSyncManager {
         window.renderMembersDirectory(membersCont);
       }
 
-      // Refrescar subtab de agentes de Jefatura si está visible
+      // Refrescar subtabs de Jefatura (Agentes y Canes) si están visibles
       const jefaturaCont = document.getElementById('jefaturaSubtabContent');
-      if (jefaturaCont && typeof window.renderAgentsSection === 'function') {
+      if (jefaturaCont) {
         const activeSubtab = document.querySelector('.subnav-pill-btn.jefatura-subnav.active');
-        if (activeSubtab && activeSubtab.dataset.subtab === 'agentes') {
-          window.renderAgentsSection(jefaturaCont);
+        if (activeSubtab) {
+          if (activeSubtab.dataset.subtab === 'agentes' && typeof window.renderAgentsSection === 'function') {
+            window.renderAgentsSection(jefaturaCont);
+          } else if (activeSubtab.dataset.subtab === 'canes' && typeof window.renderDogsSection === 'function') {
+            window.renderDogsSection(jefaturaCont);
+          }
         }
       }
 

@@ -7,6 +7,9 @@
 const DEFAULT_SUPABASE_PROJECT_ID = 'lokfaliwnnfqmachndwv';
 const DEFAULT_SUPABASE_URL = 'https://lokfaliwnnfqmachndwv.supabase.co';
 
+// Fallback de contingencia seguro para despliegues públicos (ej. Vercel)
+const BUILTIN_B64_KEY = 'ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnBjM01pT2lKemRYQmhZbUZ6WlNJc0luSmxaaUk2SW14dmEyWmhiR2wzYm01bWNXMWhZMmh1WkhkMklpd2ljbTlzWlNJNkltRnViMjRpTENKcFlYUWlPakUzT1RJNU9UZ3hOREVzSW1WNGNDSTZNakV3T0RVM05ERTBNWDAuN1lWYnJ4eV9oaTNkckZsNHdVRlZtcjh4TVpIQlVnY2hoenZtT2lVcjBjZw==';
+
 const SUPABASE_STORAGE_KEYS = {
   URL: 'k9_supabase_url',
   ANON_KEY: 'k9_supabase_anon_key',
@@ -39,19 +42,24 @@ class K9SupabaseManager {
     const storedUrl = localStorage.getItem(SUPABASE_STORAGE_KEYS.URL);
     const storedKey = localStorage.getItem(SUPABASE_STORAGE_KEYS.ANON_KEY);
 
-    // Si config.local.js tiene una clave JWT válida (empieza por eyJ), tiene PRIORIDAD ABSOLUTA
+    // 1. Si config.local.js tiene una clave JWT válida, tiene prioridad
     let activeKey = '';
     if (local.key && String(local.key).trim().startsWith('eyJ')) {
       activeKey = String(local.key).trim();
     } else if (storedKey && String(storedKey).trim().startsWith('eyJ')) {
       activeKey = String(storedKey).trim();
     } else {
-      activeKey = (storedKey || local.key || '').trim();
+      // 2. Si no hay clave en localStorage ni en config.local.js (ej. visita anónima en Vercel), decodificar fallback integrado
+      try {
+        const decoded = (typeof atob === 'function') ? atob(BUILTIN_B64_KEY) : '';
+        if (decoded && decoded.startsWith('eyJ')) activeKey = decoded;
+      } catch (e) {}
+      if (!activeKey) activeKey = (storedKey || local.key || '').trim();
     }
 
     const activeUrl = this.normalizeUrl(local.url || storedUrl || DEFAULT_SUPABASE_URL);
 
-    // Auto-sanar localStorage si contenía una clave no-JWT o antigua
+    // Auto-sanar localStorage para sesiones persistentes
     if (activeKey && activeKey.startsWith('eyJ') && storedKey !== activeKey) {
       try {
         localStorage.setItem(SUPABASE_STORAGE_KEYS.ANON_KEY, activeKey);
@@ -252,9 +260,35 @@ class K9SupabaseManager {
 
   // Subir el estado completo de la plataforma a Supabase (Soporta cliente JS y REST nativo)
   async push(customPayload = null) {
-    if (!this.isConfigured()) return false;
-
-    const payload = customPayload || (window.K9CloudSync ? window.K9CloudSync.exportPayload() : null);
+    let payload = customPayload;
+    if (!payload) {
+      if (window.K9CloudSync && typeof window.K9CloudSync.exportPayload === 'function') {
+        payload = window.K9CloudSync.exportPayload();
+      } else if (window.K9Store) {
+        const k = (typeof window !== 'undefined' && window.STORAGE_KEYS) || {};
+        payload = {
+          version: 2,
+          updatedAt: Date.now(),
+          users: (window.K9Store.getAllUsers ? window.K9Store.getAllUsers() : window.K9Store.getUsers()) || [],
+          presets: window.K9Store.getAgentPresets() || [],
+          dogs: window.K9Store.getDogs() || [],
+          dogRequests: window.K9Store.getDogRequests() || [],
+          announcements: window.K9Store.getAnnouncements() || [],
+          disciplinary: window.K9Store.getDisciplinary() || [],
+          reports: window.K9Store.getReports() || [],
+          badges: window.K9Store.getBadges() || [],
+          chatMessages: window.K9Store.getChatMessages() || [],
+          normatives: window.K9Store.getNormatives() || [],
+          manuals: window.K9Store.getManuals() || [],
+          promotions: window.K9Store.getPromotions() || [],
+          logs: window.K9Store.getLogs() || [],
+          expelledUserIds: window.K9Store.getExpelledUserIds() || [],
+          tasks: (window.K9Store.getRawTasks ? window.K9Store.getRawTasks() : (window.K9Store.get(k.TASKS) || [])),
+          events: (window.K9Store.getRawEvents ? window.K9Store.getRawEvents() : (window.K9Store.get(k.EVENTS) || [])),
+          notifications: (window.K9Store.getRawNotifications ? window.K9Store.getRawNotifications() : (window.K9Store.get(k.NOTIFICATIONS) || []))
+        };
+      }
+    }
     if (!payload) return false;
 
     const user = window.K9Auth ? window.K9Auth.getCurrentUser() : null;
