@@ -20,7 +20,10 @@ const STORAGE_KEYS = {
   PROMOTIONS: 'k9_data_promotions',
   LOGS: 'k9_data_logs',
   EXPELLED_USERS: 'k9_expelled_users',
-  LAST_UPDATE: 'k9_last_local_update'
+  LAST_UPDATE: 'k9_last_local_update',
+  TASKS: 'k9_data_tasks',
+  EVENTS: 'k9_data_events',
+  NOTIFICATIONS: 'k9_data_notifications'
 };
 
 // Mensajes por defecto del chat de despacho con Jefatura
@@ -444,8 +447,18 @@ const DEFAULT_MANUALS = [
   }
 ];
 
-// Preset de Jefatura predefinido para Discord ID oficial
+// Preset de Jefatura predefinido para Discord IDs oficiales
 const DEFAULT_AGENT_PRESETS = [
+  {
+    discordId: '578954458948698122',
+    discordUsername: 'Jefatura K9',
+    placa: 'K-01',
+    rank: 'Jefe de División K9',
+    isJefatura: true,
+    permissions: ['*'],
+    serviceStatus: 'En Activo / Mando',
+    createdAt: '25/10/2026'
+  },
   {
     discordId: '760159743616090164',
     discordUsername: 'Coordinador K9',
@@ -455,6 +468,76 @@ const DEFAULT_AGENT_PRESETS = [
     permissions: ['*'],
     serviceStatus: 'En Activo / Mando',
     createdAt: '25/10/2026'
+  }
+];
+
+// Tareas tácticas por defecto (personales y oficiales)
+const DEFAULT_TASKS = [
+  {
+    id: 'task_def_01',
+    userId: 'all',
+    agentName: 'Toda la Unidad',
+    title: 'Inspección de equipamiento y arneses tácticos K9',
+    description: 'Comprobar mosquetones, linternas tácticas para perro y chalecos balísticos antes del despliegue del fin de semana.',
+    dueDate: new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0],
+    priority: 'urgente',
+    status: 'pendiente',
+    category: 'operativa',
+    type: 'oficial',
+    createdBy: 'Jefatura K9',
+    creatorPlaca: 'K-01',
+    createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
+    completedAt: null,
+    inAgenda: false
+  },
+  {
+    id: 'task_def_02',
+    userId: 'all',
+    agentName: 'Guías Caninos',
+    title: 'Revisión y pesaje trimestral en clínica veterinaria',
+    description: 'Actualizar la cartilla sanitaria del can asignado, comprobar peso, desparasitación y estado de almohadillas.',
+    dueDate: new Date(Date.now() + 86400000 * 5).toISOString().split('T')[0],
+    priority: 'alta',
+    status: 'pendiente',
+    category: 'veterinaria',
+    type: 'oficial',
+    createdBy: 'Jefatura K9',
+    creatorPlaca: 'K-01',
+    createdAt: new Date(Date.now() - 86400000 * 1).toISOString(),
+    completedAt: null,
+    inAgenda: false
+  }
+];
+
+// Eventos y agenda de servicio por defecto
+const DEFAULT_EVENTS = [
+  {
+    id: 'event_def_01',
+    userId: 'all',
+    title: 'Simulacro de búsqueda y rescate en estructuras colapsadas',
+    description: 'Entrenamiento conjunto con bomberos y guías caninos en la zona portuaria.',
+    date: new Date(Date.now() + 86400000 * 4).toISOString().split('T')[0],
+    time: '19:30',
+    location: 'Sector Portuario / Terminal B',
+    category: 'adiestramiento',
+    type: 'oficial',
+    createdAt: new Date().toISOString()
+  }
+];
+
+// Notificaciones por defecto
+const DEFAULT_NOTIFICATIONS = [
+  {
+    id: 'notif_def_01',
+    recipientId: 'all',
+    title: '📢 Centro de Tareas y Buscador Global Habilitados',
+    message: 'Ya puedes organizar tus tareas operativas, convertirlas en eventos de agenda y utilizar el buscador global (Ctrl + K).',
+    category: 'avisos',
+    type: 'aviso_oficial',
+    targetView: 'tareas',
+    targetSubtab: null,
+    isRead: false,
+    createdAt: new Date(Date.now() - 3600000 * 2).toISOString()
   }
 ];
 
@@ -524,13 +607,66 @@ class K9DataStore {
     if (!localStorage.getItem(STORAGE_KEYS.LOGS)) {
       this.save(STORAGE_KEYS.LOGS, DEFAULT_LOGS);
     }
+    if (!localStorage.getItem(STORAGE_KEYS.TASKS)) {
+      this.save(STORAGE_KEYS.TASKS, DEFAULT_TASKS);
+    }
+    if (!localStorage.getItem(STORAGE_KEYS.EVENTS)) {
+      this.save(STORAGE_KEYS.EVENTS, DEFAULT_EVENTS);
+    }
+    if (!localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS)) {
+      this.save(STORAGE_KEYS.NOTIFICATIONS, DEFAULT_NOTIFICATIONS);
+    }
 
-    // Asegurar que el preset de Jefatura oficial siempre esté presente
+    // Asegurar que el ID oficial de Jefatura nunca esté en la lista de expulsados
+    let expelled = this.get(STORAGE_KEYS.EXPELLED_USERS);
+    if (Array.isArray(expelled) && expelled.includes('578954458948698122')) {
+      expelled = expelled.filter(id => id !== '578954458948698122');
+      this.save(STORAGE_KEYS.EXPELLED_USERS, expelled);
+    }
+
+    // Asegurar que los presets de Jefatura oficial siempre estén presentes y activos
     const existingPresets = this.get(STORAGE_KEYS.AGENT_PRESETS) || [];
-    const jefaturaId = '760159743616090164';
-    if (!existingPresets.find(p => p.discordId === jefaturaId)) {
-      existingPresets.unshift(DEFAULT_AGENT_PRESETS[0]);
+    const adminIds = ['578954458948698122', '760159743616090164'];
+    let presetsModified = false;
+    adminIds.forEach(admId => {
+      const found = existingPresets.find(p => p.discordId === admId);
+      if (!found) {
+        const def = DEFAULT_AGENT_PRESETS.find(p => p.discordId === admId);
+        if (def) {
+          existingPresets.unshift(def);
+          presetsModified = true;
+        }
+      } else {
+        found.isJefatura = true;
+        found.permissions = ['*'];
+        found.rank = 'Jefe de División K9';
+        found.placa = 'K-01';
+        presetsModified = true;
+      }
+    });
+    if (presetsModified || !localStorage.getItem(STORAGE_KEYS.AGENT_PRESETS)) {
       localStorage.setItem(STORAGE_KEYS.AGENT_PRESETS, JSON.stringify(existingPresets));
+    }
+
+    // Si el usuario 578954458948698122 está en storedUsers marcado como expulsado, reactivarlo
+    const usersList = this.get(STORAGE_KEYS.USERS);
+    if (Array.isArray(usersList)) {
+      let modUsers = false;
+      usersList.forEach(u => {
+        if (u.discordId === '578954458948698122') {
+          u.isExpelled = false;
+          u.isJefatura = true;
+          u.isVerified = true;
+          u.rank = 'Jefe de División K9';
+          u.placa = 'K-01';
+          u.serviceStatus = 'En Activo / Mando';
+          u.permissions = ['*'];
+          modUsers = true;
+        }
+      });
+      if (modUsers) {
+        this.save(STORAGE_KEYS.USERS, usersList);
+      }
     }
   }
 
@@ -583,7 +719,14 @@ class K9DataStore {
   removeExpelledUserId(idOrDiscordId) {
     if (!idOrDiscordId) return;
     const list = this.getExpelledUserIds();
-    const updated = list.filter(item => item !== idOrDiscordId);
+    // Encontrar posibles IDs cruzados en la lista de usuarios
+    const users = this.get(STORAGE_KEYS.USERS) || [];
+    const idsToRemove = [idOrDiscordId];
+    users.forEach(u => {
+      if (u.id === idOrDiscordId && u.discordId) idsToRemove.push(u.discordId);
+      if (u.discordId === idOrDiscordId && u.id) idsToRemove.push(u.id);
+    });
+    const updated = list.filter(item => !idsToRemove.includes(item));
     if (updated.length !== list.length) {
       this.save(STORAGE_KEYS.EXPELLED_USERS, updated);
     }
@@ -592,13 +735,27 @@ class K9DataStore {
   clearExpelledUser(id, discordId) {
     let list = this.getExpelledUserIds();
     const originalLen = list.length;
-    list = list.filter(item => item !== id && (!discordId || item !== discordId));
+    const idsToRemove = [];
+    if (id) idsToRemove.push(id);
+    if (discordId) idsToRemove.push(discordId);
+
+    const users = this.get(STORAGE_KEYS.USERS) || [];
+    users.forEach(u => {
+      if ((id && u.id === id) || (discordId && u.discordId === discordId)) {
+        if (u.id) idsToRemove.push(u.id);
+        if (u.discordId) idsToRemove.push(u.discordId);
+      }
+    });
+
+    list = list.filter(item => !idsToRemove.includes(item));
     if (list.length !== originalLen) {
       this.save(STORAGE_KEYS.EXPELLED_USERS, list);
     }
   }
 
   isExpelled(id, discordId) {
+    if (id === '578954458948698122' || discordId === '578954458948698122') return false;
+    if (id === '760159743616090164' || discordId === '760159743616090164') return false;
     const list = this.getExpelledUserIds();
     return Boolean((id && list.includes(id)) || (discordId && list.includes(discordId)));
   }
@@ -688,6 +845,200 @@ class K9DataStore {
     } else {
       localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
     }
+  }
+
+  // ─── CENTRO DE TAREAS ───
+  getRawTasks() {
+    const tasks = this.get(STORAGE_KEYS.TASKS);
+    return Array.isArray(tasks) ? tasks : DEFAULT_TASKS;
+  }
+
+  getTasks(user = null) {
+    const list = this.getRawTasks();
+    if (!user) {
+      return list.filter(t => t.type === 'oficial' || t.userId === 'all');
+    }
+    return list.filter(t => {
+      // Tareas oficiales visibles para toda la unidad
+      if (t.type === 'oficial' || t.userId === 'all') return true;
+      // Tareas personales estrictamente privadas: solo para el usuario propietario
+      if (t.userId === user.id || (user.discordId && t.userId === user.discordId)) return true;
+      return false;
+    });
+  }
+
+  saveTask(taskData) {
+    const list = this.getRawTasks();
+    let savedItem = null;
+    if (taskData.id) {
+      const idx = list.findIndex(t => t.id === taskData.id);
+      if (idx >= 0) {
+        list[idx] = Object.assign({}, list[idx], taskData, { updatedAt: new Date().toISOString() });
+        savedItem = list[idx];
+      }
+    }
+    if (!savedItem) {
+      savedItem = Object.assign({
+        id: 'task_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+        title: 'Nueva Tarea',
+        description: '',
+        dueDate: null,
+        priority: 'normal',
+        status: 'pendiente',
+        category: 'operativa',
+        type: 'personal',
+        createdAt: new Date().toISOString(),
+        completedAt: null,
+        inAgenda: false
+      }, taskData);
+      list.unshift(savedItem);
+    }
+    this.save(STORAGE_KEYS.TASKS, list);
+    return savedItem;
+  }
+
+  deleteTask(taskId, currentUserId, isJefatura = false) {
+    const list = this.getRawTasks();
+    const item = list.find(t => t.id === taskId);
+    if (!item) return false;
+    const isOwner = item.userId === currentUserId || (item.createdBy && item.createdBy === currentUserId);
+    if (!isOwner && !(isJefatura && item.type === 'oficial')) {
+      return false;
+    }
+    const filtered = list.filter(t => t.id !== taskId);
+    this.save(STORAGE_KEYS.TASKS, filtered);
+    return true;
+  }
+
+  toggleTaskComplete(taskId, currentUserId) {
+    const list = this.getRawTasks();
+    const item = list.find(t => t.id === taskId);
+    if (!item) return null;
+    if (item.status === 'completada') {
+      item.status = 'pendiente';
+      item.completedAt = null;
+    } else {
+      item.status = 'completada';
+      item.completedAt = new Date().toISOString();
+    }
+    this.save(STORAGE_KEYS.TASKS, list);
+    return item;
+  }
+
+  // ─── EVENTOS Y AGENDA ───
+  getRawEvents() {
+    const events = this.get(STORAGE_KEYS.EVENTS);
+    return Array.isArray(events) ? events : DEFAULT_EVENTS;
+  }
+
+  getEvents(user = null) {
+    const list = this.getRawEvents();
+    if (!user) return list.filter(e => e.type === 'oficial' || e.userId === 'all');
+    return list.filter(e => {
+      if (e.type === 'oficial' || e.userId === 'all') return true;
+      if (e.userId === user.id || (user.discordId && e.userId === user.discordId)) return true;
+      return false;
+    });
+  }
+
+  saveEvent(eventData) {
+    const list = this.getRawEvents();
+    let savedItem = null;
+    if (eventData.id) {
+      const idx = list.findIndex(e => e.id === eventData.id);
+      if (idx >= 0) {
+        list[idx] = Object.assign({}, list[idx], eventData);
+        savedItem = list[idx];
+      }
+    }
+    if (!savedItem) {
+      savedItem = Object.assign({
+        id: 'event_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+        createdAt: new Date().toISOString(),
+        type: 'personal'
+      }, eventData);
+      list.push(savedItem);
+    }
+    this.save(STORAGE_KEYS.EVENTS, list);
+    return savedItem;
+  }
+
+  deleteEvent(eventId, currentUserId) {
+    const list = this.getRawEvents();
+    const filtered = list.filter(e => e.id !== eventId);
+    this.save(STORAGE_KEYS.EVENTS, filtered);
+    return true;
+  }
+
+  // ─── CENTRO DE NOTIFICACIONES ───
+  getRawNotifications() {
+    const notifs = this.get(STORAGE_KEYS.NOTIFICATIONS);
+    return Array.isArray(notifs) ? notifs : DEFAULT_NOTIFICATIONS;
+  }
+
+  getNotifications(user = null) {
+    const list = this.getRawNotifications();
+    if (!user) return list.filter(n => n.recipientId === 'all');
+    const isJef = user.isJefatura || (user.permissions && user.permissions.includes('*'));
+    return list.filter(n => {
+      if (n.recipientId === 'all') return true;
+      if (n.recipientId === 'jefatura' && isJef) return true;
+      if (n.recipientId === user.id || (user.discordId && n.recipientId === user.discordId)) return true;
+      return false;
+    });
+  }
+
+  saveNotification(notifData) {
+    const list = this.getRawNotifications();
+    const item = Object.assign({
+      id: 'notif_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+      title: 'Notificación',
+      message: '',
+      category: 'general',
+      type: 'aviso_oficial',
+      targetView: null,
+      targetSubtab: null,
+      isRead: false,
+      createdAt: new Date().toISOString()
+    }, notifData);
+    list.unshift(item);
+    this.save(STORAGE_KEYS.NOTIFICATIONS, list.slice(0, 80));
+    return item;
+  }
+
+  markNotificationRead(notifId, currentUserId) {
+    const list = this.getRawNotifications();
+    const item = list.find(n => n.id === notifId);
+    if (item) {
+      item.isRead = true;
+      item.readAt = new Date().toISOString();
+      this.save(STORAGE_KEYS.NOTIFICATIONS, list);
+    }
+    return item;
+  }
+
+  markAllNotificationsRead(currentUserId) {
+    const list = this.getRawNotifications();
+    let count = 0;
+    list.forEach(n => {
+      const match = n.recipientId === 'all' || (currentUserId && n.recipientId === currentUserId);
+      if (match && !n.isRead) {
+        n.isRead = true;
+        n.readAt = new Date().toISOString();
+        count++;
+      }
+    });
+    if (count > 0) {
+      this.save(STORAGE_KEYS.NOTIFICATIONS, list);
+    }
+    return count;
+  }
+
+  deleteNotification(notifId, currentUserId) {
+    const list = this.getRawNotifications();
+    const filtered = list.filter(n => n.id !== notifId);
+    this.save(STORAGE_KEYS.NOTIFICATIONS, filtered);
+    return true;
   }
 
   resetAll() {

@@ -83,6 +83,9 @@ class K9CloudSyncManager {
       promotions: window.K9Store.getPromotions() || [],
       logs: window.K9Store.getLogs() || [],
       expelledUserIds: window.K9Store.getExpelledUserIds() || [],
+      tasks: (window.K9Store.getRawTasks ? window.K9Store.getRawTasks() : (window.K9Store.get(STORAGE_KEYS.TASKS) || [])),
+      events: (window.K9Store.getRawEvents ? window.K9Store.getRawEvents() : (window.K9Store.get(STORAGE_KEYS.EVENTS) || [])),
+      notifications: (window.K9Store.getRawNotifications ? window.K9Store.getRawNotifications() : (window.K9Store.get(STORAGE_KEYS.NOTIFICATIONS) || [])),
       webhookUrl: localStorage.getItem('k9_webhook_url') || null
     };
   }
@@ -272,6 +275,24 @@ class K9CloudSyncManager {
     // 13. Webhook URL si está configurada en la nube
     if (remote.webhookUrl && remote.webhookUrl.startsWith('https://discord.com/api/webhooks/')) {
       localStorage.setItem('k9_webhook_url', remote.webhookUrl);
+    }
+
+    // 14. Centro de Tareas
+    if (Array.isArray(remote.tasks)) {
+      localStorage.setItem(STORAGE_KEYS.TASKS, JSON.stringify(remote.tasks));
+      hasChanges = true;
+    }
+
+    // 15. Eventos y Agenda
+    if (Array.isArray(remote.events)) {
+      localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(remote.events));
+      hasChanges = true;
+    }
+
+    // 16. Centro de Notificaciones
+    if (Array.isArray(remote.notifications)) {
+      localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(remote.notifications));
+      hasChanges = true;
     }
 
     if (hasChanges) {

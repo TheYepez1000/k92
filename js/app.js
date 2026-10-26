@@ -12,6 +12,8 @@ function initApp() {
   setupAudioListeners();
   setupAuthUI();
   setupModals();
+  setupNotificationsUI();
+  setupGlobalSearch();
   renderCurrentView();
   updateLiveCounters();
   // Log de visita al portal (solo para visitantes anónimos)
@@ -137,6 +139,9 @@ function switchMainView(viewName) {
     renderGeneralSubnavTabs();
     renderGeneralSubtab(currentGeneralSubtab);
     updateLiveCounters();
+    if (typeof renderHomeTaskSummaryWidget === 'function') {
+      renderHomeTaskSummaryWidget();
+    }
   } else if (viewName === 'miembros') {
     const cont = document.getElementById('view-miembros');
     if (cont) renderMembersDirectory(cont);
@@ -146,6 +151,11 @@ function switchMainView(viewName) {
   } else if (viewName === 'condecoraciones') {
     const cont = document.getElementById('view-condecoraciones');
     if (cont) renderDecorationsSection(cont);
+  } else if (viewName === 'tareas') {
+    const cont = document.getElementById('view-tareas');
+    if (cont && typeof renderTasksCenter === 'function') {
+      renderTasksCenter(cont);
+    }
   } else if (viewName === 'perfil') {
     renderMemberProfile();
   } else if (viewName === 'jefatura') {
@@ -918,6 +928,47 @@ window._confirmDeleteMember = function () {
   }
 };
 
+window.reenterService = function (userId) {
+  const users = window.K9Store.getUsers();
+  const u = users.find(x => x.id === userId) || window.K9Auth.getCurrentUser();
+  if (!u) return;
+
+  u.isExpelled = false;
+  u.serviceStatus = 'En Activo';
+  u.isVerified = true;
+
+  if (u.discordId === '578954458948698122' || u.discordId === '760159743616090164') {
+    u.rank = 'Jefe de División K9';
+    u.placa = 'K-01';
+    u.isJefatura = true;
+    u.permissions = ['*'];
+    u.serviceStatus = 'En Activo / Mando';
+  } else if (u.rank === '🚫 Expulsado de la Unidad' || !u.rank || u.rank === 'Sin Rango Asignado') {
+    u.rank = u.previousRank || 'Oficial Guía Canino';
+    u.placa = (u.placa && u.placa !== 'EXPULSADO') ? u.placa : 'K-99';
+  }
+
+  if (window.K9Store.clearExpelledUser) {
+    window.K9Store.clearExpelledUser(u.id, u.discordId);
+  }
+  if (window.K9Store.removeExpelledUserId) {
+    window.K9Store.removeExpelledUserId(u.discordId);
+    if (u.id) window.K9Store.removeExpelledUserId(u.id);
+  }
+
+  // Si no estaba en users (fue borrado de la lista), volver a insertarlo
+  if (!users.some(x => x.id === u.id)) {
+    users.push(u);
+  }
+
+  window.K9Store.save(STORAGE_KEYS.USERS, users);
+  window.K9Store.setCurrentUser(u.id);
+  if (window.K9CloudSync) window.K9CloudSync.push();
+  showToast('Expediente reactivado. Acceso operativo restablecido.', 'success');
+  renderMemberProfile();
+  setupAuthUI();
+};
+
 function renderPromotionsSection(container) {
   const promotions = window.K9Store.getPromotions();
   const isJef = window.K9Auth.isJefaturaMember();
@@ -1145,6 +1196,34 @@ function renderMemberProfile() {
     return;
   }
 
+  // Si el usuario es el Administrador / Jefatura (578954458948698122 o 760159743616090164), asegurar acceso permanente sin bloqueo
+  if (user && (user.discordId === '578954458948698122' || user.discordId === '760159743616090164')) {
+    user.isExpelled = false;
+    user.isJefatura = true;
+    user.isVerified = true;
+    if (user.rank === '🚫 Expulsado de la Unidad' || !user.rank || user.rank === 'Sin Rango Asignado') {
+      user.rank = 'Jefe de División K9';
+      user.placa = 'K-01';
+      user.serviceStatus = 'En Activo / Mando';
+      user.permissions = ['*'];
+    }
+    if (window.K9Store && window.K9Store.clearExpelledUser) {
+      window.K9Store.clearExpelledUser(user.id, user.discordId);
+    }
+    const allU = window.K9Store.getUsers();
+    const uMatch = allU.find(x => x.id === user.id || x.discordId === user.discordId);
+    if (uMatch) {
+      uMatch.isExpelled = false;
+      uMatch.isJefatura = true;
+      uMatch.isVerified = true;
+      uMatch.rank = 'Jefe de División K9';
+      uMatch.placa = 'K-01';
+      uMatch.serviceStatus = 'En Activo / Mando';
+      uMatch.permissions = ['*'];
+      window.K9Store.save(STORAGE_KEYS.USERS, allU);
+    }
+  }
+
   // Si el agente está expulsado de la unidad
   if (user.isExpelled || (window.K9Store && window.K9Store.isExpelled && window.K9Store.isExpelled(user.id, user.discordId))) {
     container.innerHTML = `
@@ -1156,21 +1235,21 @@ function renderMemberProfile() {
         </p>
         <p style="color:var(--text-muted); font-size:0.86rem; line-height:1.6; margin-bottom:1.5rem;">
           Tu ficha y placa operativa han sido <strong style="color:#ff5252;">dadas de baja de la Unidad K9 por decisión de Jefatura</strong>.<br>
-          No dispones de acceso operativo a binomios, expedientes ni al despacho de mandos.
+          Al volver a iniciar sesión o pulsar el botón de reingreso, tu expediente volverá a activarse automáticamente.
         </p>
         <div style="background:rgba(0,0,0,0.4); border:1px dashed rgba(255,59,48,0.4); border-radius:8px; padding:1.2rem; margin-bottom:1.5rem; text-align:center;">
           <div style="font-size:0.72rem; color:var(--text-subtle); letter-spacing:0.08em; margin-bottom:0.4rem;">IDENTIFICADOR DISCORD DEL EXPEDIENTE:</div>
           <code style="font-family:var(--font-mono); font-size:1.15rem; color:#ff8080; font-weight:700; background:rgba(255,59,48,0.1); padding:0.3rem 0.8rem; border-radius:6px; letter-spacing:0.05em;">${user.discordId || '—'}</code>
           <p style="font-size:0.75rem; color:var(--text-muted); margin:0.5rem 0 0;">
-            Si la Jefatura aprueba tu readmisión, tu expediente volverá a activarse automáticamente y podrás volver a operar.
+            Pulsa el botón inferior para reactivar tu ficha y entrar de nuevo al servicio.
           </p>
         </div>
         <div style="display:flex; justify-content:center; gap:0.75rem; flex-wrap:wrap;">
-          <button class="btn-tactical btn-tactical-primary btn-tactical-sm" onclick="switchGeneralSubtab('normativas')">
-            ⚖️ Ver Normativas Oficiales
+          <button class="btn-tactical btn-tactical-primary btn-tactical-sm" onclick="window.reenterService('${user.id}')">
+            🔄 Reactivar Ficha & Entrar al Servicio
           </button>
-          <button class="btn-tactical btn-tactical-gold btn-tactical-sm" onclick="switchGeneralSubtab('galeria')">
-            🐕 Galería de Canes K9
+          <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="switchGeneralSubtab('normativas')">
+            ⚖️ Ver Normativas
           </button>
         </div>
       </div>
@@ -4438,6 +4517,25 @@ window.openModal = function (modalId) {
         if (currentVal) badgeSel.value = currentVal;
       }
     }
+    if (modalId === 'modalGlobalSearch') {
+      setTimeout(() => {
+        const inp = document.getElementById('globalSearchInput');
+        if (inp) {
+          inp.focus();
+          inp.select();
+        }
+      }, 60);
+      if (typeof window.executeGlobalSearch === 'function') {
+        window.executeGlobalSearch();
+      }
+    }
+    if (modalId === 'modalTaskForm') {
+      const u = window.K9Auth.getCurrentUser();
+      const wrap = document.getElementById('taskOfficialCheckboxWrap');
+      if (wrap) {
+        wrap.style.display = (u && u.isJefatura) ? 'block' : 'none';
+      }
+    }
     modal.classList.add('show');
     if (window.K9Audio) window.K9Audio.playTacticalClick();
   }
@@ -4560,3 +4658,1382 @@ window.exportDataDossier = function () {
   URL.revokeObjectURL(url);
   showToast('Expediente completo descargado en JSON', 'success');
 };
+
+// ==========================================================================
+// UTILIDADES COMUNES
+// ==========================================================================
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+// ==========================================================================
+// 1. CENTRO DE TAREAS OPERATIVAS & AGENDA K9
+// ==========================================================================
+let taskFilterPriority = 'todas';
+let taskFilterStatus = 'todas';
+let taskFilterCategory = 'todas';
+let taskSortBy = 'dueDate_asc';
+
+function isTaskOverdue(task) {
+  if (!task || !task.dueDate) return false;
+  if (task.status === 'completada' || task.status === 'cancelada') return false;
+  return new Date(task.dueDate).getTime() < Date.now();
+}
+
+function renderTasksCenter(container) {
+  if (!container) return;
+  const user = window.K9Auth.getCurrentUser();
+  const allTasks = window.K9Store.getTasks(user);
+
+  // Estadísticas globales para las tarjetas resumen
+  const totalCount = allTasks.length;
+  const pendingCount = allTasks.filter(t => t.status === 'pendiente').length;
+  const inProgressCount = allTasks.filter(t => t.status === 'en_progreso').length;
+  const completedCount = allTasks.filter(t => t.status === 'completada').length;
+  const overdueCount = allTasks.filter(t => isTaskOverdue(t)).length;
+
+  // Filtrado
+  let filtered = allTasks.filter(task => {
+    // Filtro por prioridad
+    if (taskFilterPriority !== 'todas' && task.priority !== taskFilterPriority) return false;
+    // Filtro por estado
+    if (taskFilterStatus === 'vencidas') {
+      if (!isTaskOverdue(task)) return false;
+    } else if (taskFilterStatus !== 'todas') {
+      if (task.status !== taskFilterStatus) return false;
+    }
+    // Filtro por categoría
+    if (taskFilterCategory !== 'todas') {
+      const cat = (task.category || 'General').toLowerCase();
+      if (cat !== taskFilterCategory.toLowerCase()) return false;
+    }
+    return true;
+  });
+
+  // Ordenación
+  filtered.sort((a, b) => {
+    if (taskSortBy === 'dueDate_asc') {
+      if (!a.dueDate && !b.dueDate) return 0;
+      if (!a.dueDate) return 1;
+      if (!b.dueDate) return -1;
+      return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+    }
+    if (taskSortBy === 'dueDate_desc') {
+      if (!a.dueDate && !b.dueDate) return 0;
+      if (!a.dueDate) return 1;
+      if (!b.dueDate) return -1;
+      return new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime();
+    }
+    if (taskSortBy === 'priority_desc') {
+      const pWeights = { urgente: 4, alta: 3, normal: 2, baja: 1 };
+      return (pWeights[b.priority] || 0) - (pWeights[a.priority] || 0);
+    }
+    if (taskSortBy === 'created_desc') {
+      return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+    }
+    return 0;
+  });
+
+  // Render HTML
+  container.innerHTML = `
+    <div class="tasks-center-wrapper" style="padding: 1.5rem 0;">
+      
+      <!-- Encabezado Táctico del Centro de Tareas -->
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1.25rem; margin-bottom:1.75rem;">
+        <div>
+          <div style="display:inline-flex; align-items:center; gap:0.5rem; background:rgba(0,229,255,0.1); border:1px solid rgba(0,229,255,0.3); padding:0.25rem 0.75rem; border-radius:20px; font-size:0.75rem; color:var(--police-cyan); font-family:var(--font-headline); letter-spacing:0.08em; margin-bottom:0.6rem;">
+            <span>📋</span> GESTIÓN OPERATIVA PERSONAL Y OFICIAL
+          </div>
+          <h2 style="font-family:var(--font-headline); font-size:2rem; color:#fff; letter-spacing:0.05em; margin:0 0 0.4rem 0;">
+            CENTRO DE TAREAS K9
+          </h2>
+          <p style="color:var(--text-muted); font-size:0.9rem; max-width:680px; margin:0;">
+            Espacio confidencial para la planificación de tareas de patrulla, adiestramiento, revisiones caninas y directrices oficiales de Jefatura.
+          </p>
+        </div>
+        <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+          <button class="btn-tactical btn-tactical-primary" onclick="window.openNewTaskModal()">
+            <span>➕</span> Nueva Tarea
+          </button>
+          <button class="btn-tactical btn-tactical-outline" onclick="window.openAgendaModal()">
+            <span>📅</span> Ver Agenda Operativa
+          </button>
+        </div>
+      </div>
+
+      ${!user ? `
+        <div style="background:rgba(255,184,0,0.08); border:1px solid var(--border-gold); border-radius:12px; padding:1.25rem 1.5rem; margin-bottom:2rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
+          <div style="display:flex; align-items:center; gap:1rem;">
+            <span style="font-size:1.8rem;">🔒</span>
+            <div>
+              <div style="color:var(--tactical-gold); font-family:var(--font-tactical); font-size:1rem; font-weight:700;">ACCESO PRIVADO RESTRINGIDO</div>
+              <div style="color:var(--text-muted); font-size:0.85rem;">Inicia sesión con Discord para gestionar tus tareas personales privadas, sincronizadas con tu cuenta policial.</div>
+            </div>
+          </div>
+          <button class="btn-tactical btn-tactical-gold btn-tactical-sm" onclick="window.K9Auth.initiateDiscordOAuth()">
+            <span>✦</span> Identificarse con Discord
+          </button>
+        </div>
+      ` : ''}
+
+      <!-- Grid de Métricas y Resumen de Estado -->
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:1rem; margin-bottom:2rem;">
+        <div class="hero-stat-card" style="cursor:pointer;" onclick="window.setTaskFilterStatus('todas')">
+          <div class="hero-stat-value" style="color:#fff;">${totalCount}</div>
+          <div class="hero-stat-label">Total de Tareas</div>
+        </div>
+        <div class="hero-stat-card" style="cursor:pointer;" onclick="window.setTaskFilterStatus('pendiente')">
+          <div class="hero-stat-value" style="color:var(--police-cyan);">${pendingCount}</div>
+          <div class="hero-stat-label">Pendientes</div>
+        </div>
+        <div class="hero-stat-card stat-gold" style="cursor:pointer;" onclick="window.setTaskFilterStatus('en_progreso')">
+          <div class="hero-stat-value" style="color:var(--tactical-gold);">${inProgressCount}</div>
+          <div class="hero-stat-label">En Progreso</div>
+        </div>
+        <div class="hero-stat-card" style="cursor:pointer; border-color:${overdueCount > 0 ? 'var(--tactical-red)' : 'var(--border-subtle)'}; background:${overdueCount > 0 ? 'rgba(255,42,95,0.08)' : 'rgba(16,24,43,0.7)'};" onclick="window.setTaskFilterStatus('vencidas')">
+          <div class="hero-stat-value" style="color:${overdueCount > 0 ? 'var(--tactical-red)' : 'var(--text-muted)'};">${overdueCount}</div>
+          <div class="hero-stat-label">${overdueCount > 0 ? '⚠️ Tareas Vencidas' : 'Tareas Vencidas'}</div>
+        </div>
+        <div class="hero-stat-card" style="cursor:pointer;" onclick="window.setTaskFilterStatus('completada')">
+          <div class="hero-stat-value" style="color:var(--tactical-green);">${completedCount}</div>
+          <div class="hero-stat-label">Completadas</div>
+        </div>
+      </div>
+
+      <!-- Barra de Filtros, Categorías y Ordenación -->
+      <div style="background:rgba(16,24,43,0.85); border:1px solid var(--border-subtle); border-radius:12px; padding:1rem 1.25rem; margin-bottom:1.5rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
+        
+        <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+          <!-- Filtro Estado -->
+          <div style="display:flex; align-items:center; gap:0.4rem;">
+            <label style="font-size:0.75rem; color:var(--text-subtle); font-family:var(--font-headline);">ESTADO:</label>
+            <select class="tactical-input" style="padding:0.3rem 0.6rem; font-size:0.8rem; width:auto; border-radius:6px;" onchange="window.setTaskFilterStatus(this.value)">
+              <option value="todas" ${taskFilterStatus === 'todas' ? 'selected' : ''}>Todos los Estados</option>
+              <option value="pendiente" ${taskFilterStatus === 'pendiente' ? 'selected' : ''}>Pendientes</option>
+              <option value="en_progreso" ${taskFilterStatus === 'en_progreso' ? 'selected' : ''}>En Progreso</option>
+              <option value="vencidas" ${taskFilterStatus === 'vencidas' ? 'selected' : ''}>⚠️ Vencidas</option>
+              <option value="completada" ${taskFilterStatus === 'completada' ? 'selected' : ''}>Completadas</option>
+              <option value="cancelada" ${taskFilterStatus === 'cancelada' ? 'selected' : ''}>Canceladas</option>
+            </select>
+          </div>
+
+          <!-- Filtro Prioridad -->
+          <div style="display:flex; align-items:center; gap:0.4rem;">
+            <label style="font-size:0.75rem; color:var(--text-subtle); font-family:var(--font-headline);">PRIORIDAD:</label>
+            <select class="tactical-input" style="padding:0.3rem 0.6rem; font-size:0.8rem; width:auto; border-radius:6px;" onchange="window.setTaskFilterPriority(this.value)">
+              <option value="todas" ${taskFilterPriority === 'todas' ? 'selected' : ''}>Todas</option>
+              <option value="urgente" ${taskFilterPriority === 'urgente' ? 'selected' : ''}>🚨 Urgente</option>
+              <option value="alta" ${taskFilterPriority === 'alta' ? 'selected' : ''}>⚡ Alta</option>
+              <option value="normal" ${taskFilterPriority === 'normal' ? 'selected' : ''}>Normal</option>
+              <option value="baja" ${taskFilterPriority === 'baja' ? 'selected' : ''}>Baja</option>
+            </select>
+          </div>
+
+          <!-- Filtro Categoría -->
+          <div style="display:flex; align-items:center; gap:0.4rem;">
+            <label style="font-size:0.75rem; color:var(--text-subtle); font-family:var(--font-headline);">CATEGORÍA:</label>
+            <select class="tactical-input" style="padding:0.3rem 0.6rem; font-size:0.8rem; width:auto; border-radius:6px;" onchange="window.setTaskFilterCategory(this.value)">
+              <option value="todas" ${taskFilterCategory === 'todas' ? 'selected' : ''}>Todas las Categorías</option>
+              <option value="general" ${taskFilterCategory === 'general' ? 'selected' : ''}>General</option>
+              <option value="patrulla" ${taskFilterCategory === 'patrulla' ? 'selected' : ''}>Patrulla K9</option>
+              <option value="adiestramiento" ${taskFilterCategory === 'adiestramiento' ? 'selected' : ''}>Adiestramiento</option>
+              <option value="veterinaria" ${taskFilterCategory === 'veterinaria' ? 'selected' : ''}>Veterinaria / Canes</option>
+              <option value="administrativo" ${taskFilterCategory === 'administrativo' ? 'selected' : ''}>Administrativo</option>
+              <option value="oficial" ${taskFilterCategory === 'oficial' ? 'selected' : ''}>Oficial / Jefatura</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Ordenación -->
+        <div style="display:flex; align-items:center; gap:0.4rem;">
+          <label style="font-size:0.75rem; color:var(--text-subtle); font-family:var(--font-headline);">ORDENAR POR:</label>
+          <select class="tactical-input" style="padding:0.3rem 0.6rem; font-size:0.8rem; width:auto; border-radius:6px;" onchange="window.setTaskSortBy(this.value)">
+            <option value="dueDate_asc" ${taskSortBy === 'dueDate_asc' ? 'selected' : ''}>Fecha Límite (Más Próxima)</option>
+            <option value="dueDate_desc" ${taskSortBy === 'dueDate_desc' ? 'selected' : ''}>Fecha Límite (Más Lejana)</option>
+            <option value="priority_desc" ${taskSortBy === 'priority_desc' ? 'selected' : ''}>Mayor Prioridad</option>
+            <option value="created_desc" ${taskSortBy === 'created_desc' ? 'selected' : ''}>Más Recientes</option>
+          </select>
+        </div>
+
+      </div>
+
+      <!-- Listado de Tarjetas de Tareas -->
+      <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(340px, 1fr)); gap:1.25rem;">
+        ${filtered.length === 0 ? `
+          <div style="grid-column: 1 / -1; text-align:center; padding:3.5rem 1.5rem; background:rgba(16,24,43,0.4); border:1px dashed var(--border-subtle); border-radius:12px;">
+            <div style="font-size:2.8rem; margin-bottom:0.75rem; opacity:0.6;">📋</div>
+            <h3 style="font-family:var(--font-headline); font-size:1.15rem; color:#fff; margin-bottom:0.4rem;">NO HAY TAREAS QUE COINCIDAN</h3>
+            <p style="color:var(--text-muted); font-size:0.85rem; max-width:440px; margin:0 auto 1.25rem auto;">
+              No se han encontrado tareas con los filtros actuales. Puedes ajustar los criterios o crear una nueva tarea operativa.
+            </p>
+            <button class="btn-tactical btn-tactical-primary btn-tactical-sm" onclick="window.openNewTaskModal()">
+              <span>➕</span> Registrar Nueva Tarea
+            </button>
+          </div>
+        ` : filtered.map(t => {
+          const isDone = t.status === 'completada';
+          const overdue = isTaskOverdue(t);
+          const isOfficial = t.type === 'oficial' || t.isOfficial;
+          const priorityClass = t.priority || 'normal';
+          const priorityLabel = t.priority ? t.priority.toUpperCase() : 'NORMAL';
+          const statusClass = overdue ? 'vencida' : (t.status || 'pendiente');
+          const statusLabel = overdue ? 'VENCIDA' : (t.status ? t.status.replace('_', ' ').toUpperCase() : 'PENDIENTE');
+
+          const dueFormatted = t.dueDate ? new Date(t.dueDate).toLocaleString('es-ES', {
+            day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+          }) : 'Sin fecha límite';
+
+          const createdFormatted = t.createdAt ? new Date(t.createdAt).toLocaleDateString('es-ES', {
+            day: '2-digit', month: 'short', year: 'numeric'
+          }) : '—';
+
+          const completedFormatted = t.completedAt ? new Date(t.completedAt).toLocaleString('es-ES', {
+            day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+          }) : null;
+
+          return `
+            <div class="task-card priority-${priorityClass} ${overdue ? 'is-overdue' : ''}" id="taskCard_${t.id}" style="background:linear-gradient(135deg, rgba(16,24,43,0.92), rgba(9,14,27,0.95)); border:1px solid ${overdue ? 'var(--tactical-red)' : 'var(--border-subtle)'}; border-left:4px solid ${priorityClass === 'urgente' ? 'var(--tactical-red)' : priorityClass === 'alta' ? 'var(--tactical-amber)' : priorityClass === 'normal' ? 'var(--police-cyan)' : 'var(--text-muted)'}; border-radius:10px; padding:1.25rem; display:flex; flex-direction:column; justify-content:space-between; gap:0.9rem; transition:transform 0.2s, box-shadow 0.2s;">
+              
+              <div>
+                <!-- Fila Superior: Badges de Prioridad, Estado y Oficialidad -->
+                <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;">
+                  <div style="display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap;">
+                    <span class="task-priority-tag ${priorityClass}">${priorityLabel}</span>
+                    <span class="task-category-tag" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:4px; font-size:0.68rem; padding:0.1rem 0.45rem; color:var(--text-muted); text-transform:uppercase;">${t.category || 'General'}</span>
+                    ${isOfficial ? `
+                      <span style="background:rgba(255,184,0,0.15); border:1px solid var(--border-gold); color:var(--tactical-gold); border-radius:4px; font-size:0.68rem; padding:0.1rem 0.45rem; font-weight:700;">👑 OFICIAL</span>
+                    ` : ''}
+                  </div>
+                  <span class="task-status-tag ${statusClass}">${statusLabel}</span>
+                </div>
+
+                <!-- Título con Checkbox de Completar -->
+                <div style="display:flex; align-items:flex-start; gap:0.65rem; margin-bottom:0.5rem;">
+                  <input type="checkbox" ${isDone ? 'checked' : ''} style="cursor:pointer; width:18px; height:18px; accent-color:var(--tactical-green); margin-top:0.25rem; flex-shrink:0;" title="Marcar como completada" onchange="window.toggleTaskCompleteAction('${t.id}')">
+                  <div class="task-card-title ${isDone ? 'completed-title' : ''}" style="margin:0; font-size:1.05rem; font-family:var(--font-headline); color:${isDone ? 'var(--text-muted)' : '#fff'}; letter-spacing:0.02em;">
+                    ${escapeHtml(t.title)}
+                  </div>
+                </div>
+
+                <!-- Descripción -->
+                ${t.description ? `
+                  <p class="task-card-desc" style="margin:0 0 0.75rem 0; font-size:0.82rem; color:var(--text-muted); line-height:1.45; white-space:pre-line;">
+                    ${escapeHtml(t.description)}
+                  </p>
+                ` : ''}
+
+                <!-- Fechas: Límite, Creación y Finalización -->
+                <div class="task-dates-box" style="background:rgba(0,0,0,0.35); border:1px solid rgba(255,255,255,0.05); border-radius:6px; padding:0.55rem 0.75rem; font-size:0.74rem; display:flex; flex-direction:column; gap:0.25rem;">
+                  <div class="task-date-row ${overdue ? 'due-urgent' : ''}" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="color:var(--text-subtle);">Límite:</span>
+                    <span style="font-weight:600; color:${overdue ? 'var(--tactical-red)' : '#fff'};">${dueFormatted}</span>
+                  </div>
+                  <div class="task-date-row" style="display:flex; justify-content:space-between; align-items:center; color:var(--text-subtle);">
+                    <span>Creada:</span>
+                    <span>${createdFormatted}</span>
+                  </div>
+                  ${completedFormatted ? `
+                    <div class="task-date-row" style="display:flex; justify-content:space-between; align-items:center; color:var(--tactical-green);">
+                      <span>Finalizada:</span>
+                      <span>${completedFormatted}</span>
+                    </div>
+                  ` : ''}
+                </div>
+              </div>
+
+              <!-- Botones de Acción de la Tarea -->
+              <div class="task-card-actions" style="display:flex; align-items:center; justify-content:space-between; padding-top:0.75rem; border-top:1px solid rgba(255,255,255,0.07); flex-wrap:wrap; gap:0.4rem;">
+                <button class="btn-tactical ${isDone ? 'btn-tactical-outline' : 'btn-tactical-primary'} btn-tactical-sm" style="padding:0.25rem 0.55rem; font-size:0.75rem;" onclick="window.toggleTaskCompleteAction('${t.id}')">
+                  ${isDone ? '↩ Reabrir' : '✓ Completar'}
+                </button>
+                <div style="display:flex; align-items:center; gap:0.35rem;">
+                  <button class="btn-tactical btn-tactical-outline btn-tactical-sm" style="padding:0.25rem 0.55rem; font-size:0.75rem;" title="Convertir en evento de agenda" onclick="window.openConvertToEventModal('${t.id}')">
+                    📅 Agendar
+                  </button>
+                  <button class="btn-tactical btn-tactical-outline btn-tactical-sm" style="padding:0.25rem 0.55rem; font-size:0.75rem;" title="Editar tarea" onclick="window.editTask('${t.id}')">
+                    ✏️
+                  </button>
+                  <button class="btn-tactical btn-tactical-danger btn-tactical-sm" style="padding:0.25rem 0.55rem; font-size:0.75rem;" title="Eliminar tarea" onclick="window.deleteTaskItem('${t.id}')">
+                    🗑️
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          `;
+        }).join('')}
+      </div>
+
+    </div>
+  `;
+}
+
+// Controladores de Filtros y Orden de Tareas
+window.setTaskFilterStatus = function (status) {
+  taskFilterStatus = status;
+  const cont = document.getElementById('view-tareas');
+  if (cont) renderTasksCenter(cont);
+};
+
+window.setTaskFilterPriority = function (priority) {
+  taskFilterPriority = priority;
+  const cont = document.getElementById('view-tareas');
+  if (cont) renderTasksCenter(cont);
+};
+
+window.setTaskFilterCategory = function (category) {
+  taskFilterCategory = category;
+  const cont = document.getElementById('view-tareas');
+  if (cont) renderTasksCenter(cont);
+};
+
+window.setTaskSortBy = function (sortBy) {
+  taskSortBy = sortBy;
+  const cont = document.getElementById('view-tareas');
+  if (cont) renderTasksCenter(cont);
+};
+
+// Modal de Creación / Edición de Tareas
+window.openNewTaskModal = function () {
+  const form = document.getElementById('taskForm');
+  if (form) form.reset();
+  const idInput = document.getElementById('taskFormId');
+  if (idInput) idInput.value = '';
+  const titleEl = document.getElementById('modalTaskTitle');
+  if (titleEl) titleEl.innerHTML = '<span>📋</span> NUEVA TAREA OPERATIVA';
+
+  const user = window.K9Auth.getCurrentUser();
+  const officialWrap = document.getElementById('taskOfficialCheckboxWrap');
+  if (officialWrap) {
+    officialWrap.style.display = (user && user.isJefatura) ? 'block' : 'none';
+  }
+  const isOfficialInput = document.getElementById('taskIsOfficialInput');
+  if (isOfficialInput) isOfficialInput.checked = false;
+
+  openModal('modalTaskForm');
+};
+
+window.editTask = function (taskId) {
+  const tasks = window.K9Store.getRawTasks();
+  const task = tasks.find(t => t.id === taskId);
+  if (!task) return;
+
+  const idInput = document.getElementById('taskFormId');
+  const titleInput = document.getElementById('taskTitleInput');
+  const descInput = document.getElementById('taskDescInput');
+  const catInput = document.getElementById('taskCategoryInput');
+  const prioInput = document.getElementById('taskPriorityInput');
+  const statusInput = document.getElementById('taskStatusInput');
+  const dueInput = document.getElementById('taskDueDateInput');
+  const officialInput = document.getElementById('taskIsOfficialInput');
+
+  if (idInput) idInput.value = task.id;
+  if (titleInput) titleInput.value = task.title || '';
+  if (descInput) descInput.value = task.description || '';
+  if (catInput) catInput.value = task.category || 'General';
+  if (prioInput) prioInput.value = task.priority || 'normal';
+  if (statusInput) statusInput.value = task.status || 'pendiente';
+  if (dueInput) {
+    dueInput.value = task.dueDate ? task.dueDate.substring(0, 16) : '';
+  }
+  if (officialInput) {
+    officialInput.checked = !!(task.isOfficial || task.type === 'oficial');
+  }
+
+  const titleEl = document.getElementById('modalTaskTitle');
+  if (titleEl) titleEl.innerHTML = '<span>✏️</span> EDITAR TAREA OPERATIVA';
+
+  const user = window.K9Auth.getCurrentUser();
+  const officialWrap = document.getElementById('taskOfficialCheckboxWrap');
+  if (officialWrap) {
+    officialWrap.style.display = (user && user.isJefatura) ? 'block' : 'none';
+  }
+
+  openModal('modalTaskForm');
+};
+
+window.handleTaskFormSubmit = function (e) {
+  e.preventDefault();
+  const user = window.K9Auth.getCurrentUser();
+  const taskId = document.getElementById('taskFormId')?.value;
+  const title = document.getElementById('taskTitleInput')?.value.trim();
+  const description = document.getElementById('taskDescInput')?.value.trim();
+  const category = document.getElementById('taskCategoryInput')?.value;
+  const priority = document.getElementById('taskPriorityInput')?.value;
+  const status = document.getElementById('taskStatusInput')?.value;
+  const dueDateVal = document.getElementById('taskDueDateInput')?.value;
+  const isOfficial = !!document.getElementById('taskIsOfficialInput')?.checked;
+
+  if (!title) {
+    showToast('El título de la tarea es obligatorio', 'warning');
+    return;
+  }
+
+  const taskData = {
+    title: title,
+    description: description,
+    category: category,
+    priority: priority,
+    status: status,
+    dueDate: dueDateVal ? new Date(dueDateVal).toISOString() : null,
+    type: isOfficial ? 'oficial' : 'personal',
+    isOfficial: isOfficial,
+    userId: user ? user.id : 'guest',
+    userName: user ? user.name : 'Agente',
+    userPlaca: user ? user.placa : 'K9'
+  };
+
+  if (taskId) {
+    taskData.id = taskId;
+  }
+
+  if (status === 'completada') {
+    taskData.completedAt = new Date().toISOString();
+  } else {
+    taskData.completedAt = null;
+  }
+
+  window.K9Store.saveTask(taskData);
+  if (window.K9CloudSync) window.K9CloudSync.push();
+
+  closeModal('modalTaskForm');
+  showToast(taskId ? 'Tarea operativa actualizada' : 'Nueva tarea creada exitosamente', 'success');
+
+  // Evaluar notificaciones por si la tarea vence pronto
+  evaluateAndGenerateNotifications();
+
+  // Re-render
+  const cont = document.getElementById('view-tareas');
+  if (cont) renderTasksCenter(cont);
+  renderHomeTaskSummaryWidget();
+};
+
+window.deleteTaskItem = function (taskId) {
+  if (!confirm('¿Confirmas que deseas eliminar esta tarea de tu registro?')) return;
+  const user = window.K9Auth.getCurrentUser();
+  const ok = window.K9Store.deleteTask(taskId, user ? user.id : 'guest', user ? user.isJefatura : false);
+  if (ok) {
+    if (window.K9CloudSync) window.K9CloudSync.push();
+    showToast('Tarea eliminada correctamente', 'info');
+    const cont = document.getElementById('view-tareas');
+    if (cont) renderTasksCenter(cont);
+    renderHomeTaskSummaryWidget();
+    evaluateAndGenerateNotifications();
+  } else {
+    showToast('No tienes permisos para eliminar esta tarea', 'warning');
+  }
+};
+
+window.toggleTaskCompleteAction = function (taskId) {
+  const user = window.K9Auth.getCurrentUser();
+  const updated = window.K9Store.toggleTaskComplete(taskId, user ? user.id : 'guest');
+  if (updated) {
+    if (window.K9CloudSync) window.K9CloudSync.push();
+    if (window.K9Audio) window.K9Audio.playTacticalClick();
+    showToast(updated.status === 'completada' ? 'Tarea marcada como completada ✓' : 'Tarea reabierta a estado pendiente', 'success');
+    const cont = document.getElementById('view-tareas');
+    if (cont) renderTasksCenter(cont);
+    renderHomeTaskSummaryWidget();
+    evaluateAndGenerateNotifications();
+  }
+};
+
+// Conversión de Tarea a Evento de Agenda
+window.openConvertToEventModal = function (taskId) {
+  const tasks = window.K9Store.getRawTasks();
+  const task = tasks.find(t => t.id === taskId);
+  if (!task) return;
+
+  const idInp = document.getElementById('eventFormTaskId');
+  const titleInp = document.getElementById('eventTitleInput');
+  const dateInp = document.getElementById('eventDateInput');
+  const notesInp = document.getElementById('eventNotesInput');
+
+  if (idInp) idInp.value = task.id;
+  if (titleInp) titleInp.value = '📋 ' + task.title;
+  if (dateInp) {
+    if (task.dueDate) {
+      dateInp.value = task.dueDate.substring(0, 16);
+    } else {
+      // Por defecto mañana a las 10:00
+      const d = new Date();
+      d.setDate(d.getDate() + 1);
+      d.setHours(10, 0, 0, 0);
+      dateInp.value = d.toISOString().substring(0, 16);
+    }
+  }
+  if (notesInp) notesInp.value = task.description || '';
+
+  openModal('modalEventForm');
+};
+
+window.handleEventFormSubmit = function (e) {
+  e.preventDefault();
+  const user = window.K9Auth.getCurrentUser();
+  const taskId = document.getElementById('eventFormTaskId')?.value;
+  const title = document.getElementById('eventTitleInput')?.value.trim();
+  const dateVal = document.getElementById('eventDateInput')?.value;
+  const location = document.getElementById('eventLocationInput')?.value.trim();
+  const notes = document.getElementById('eventNotesInput')?.value.trim();
+
+  if (!title || !dateVal) {
+    showToast('El título y la fecha son obligatorios', 'warning');
+    return;
+  }
+
+  const newEvent = {
+    title: title,
+    date: new Date(dateVal).toISOString(),
+    location: location || 'Caniles Centrales K9',
+    description: notes,
+    category: 'agenda',
+    type: 'personal',
+    userId: user ? user.id : 'guest',
+    userName: user ? user.name : 'Agente',
+    taskId: taskId || null
+  };
+
+  window.K9Store.saveEvent(newEvent);
+
+  if (taskId) {
+    const rawTasks = window.K9Store.getRawTasks();
+    const t = rawTasks.find(item => item.id === taskId);
+    if (t) {
+      t.inAgenda = true;
+      window.K9Store.save(STORAGE_KEYS.TASKS, rawTasks);
+    }
+  }
+
+  if (window.K9CloudSync) window.K9CloudSync.push();
+
+  closeModal('modalEventForm');
+  showToast('Evento programado en la agenda operativa K9', 'success');
+
+  evaluateAndGenerateNotifications();
+};
+
+window.openAgendaModal = function () {
+  const user = window.K9Auth.getCurrentUser();
+  const events = window.K9Store.getEvents(user);
+
+  let html = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
+      <h3 style="font-family:var(--font-headline); font-size:1.25rem; color:#fff; margin:0;">
+        📅 AGENDA & CONVOCATORIAS OPERATIVAS K9
+      </h3>
+      <button class="btn-tactical btn-tactical-gold btn-tactical-sm" onclick="window.openConvertToEventModal('')">
+        ➕ Nuevo Evento
+      </button>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:0.75rem; max-height:420px; overflow-y:auto;">
+      ${events.length === 0 ? `
+        <div style="text-align:center; padding:2.5rem 1rem; color:var(--text-muted); font-size:0.85rem;">
+          No hay eventos o convocatorias programadas en la agenda.
+        </div>
+      ` : events.map(ev => {
+        const evDate = new Date(ev.date).toLocaleString('es-ES', {
+          weekday: 'short', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+        return `
+          <div style="background:rgba(0,0,0,0.35); border:1px solid var(--border-subtle); border-left:3px solid var(--tactical-gold); border-radius:8px; padding:0.85rem 1rem; display:flex; justify-content:space-between; align-items:center; gap:1rem;">
+            <div>
+              <div style="font-family:var(--font-headline); font-size:0.95rem; color:#fff; margin-bottom:0.2rem;">${escapeHtml(ev.title)}</div>
+              <div style="font-size:0.75rem; color:var(--tactical-gold); margin-bottom:0.2rem;">🕒 ${evDate} • 📍 ${escapeHtml(ev.location || 'Base K9')}</div>
+              ${ev.description ? `<div style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(ev.description)}</div>` : ''}
+            </div>
+            <button class="btn-tactical btn-tactical-danger btn-tactical-sm" style="padding:0.2rem 0.5rem; font-size:0.75rem;" onclick="window.deleteAgendaEventItem('${ev.id}')">
+              🗑️
+            </button>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+
+  // Render dentro de un modal
+  let agendaModal = document.getElementById('modalTacticalAgenda');
+  if (!agendaModal) {
+    agendaModal = document.createElement('div');
+    agendaModal.id = 'modalTacticalAgenda';
+    agendaModal.className = 'tactical-modal-overlay';
+    agendaModal.innerHTML = `
+      <div class="tactical-modal-card" style="max-width:620px;">
+        <div class="modal-header-tactical">
+          <div class="modal-title-tactical"><span>📅</span> AGENDA DE LA UNIDAD K9</div>
+          <button type="button" class="modal-close-btn" onclick="closeModal('modalTacticalAgenda')">✕</button>
+        </div>
+        <div class="modal-body-tactical" id="agendaModalBody" style="padding:1.5rem;"></div>
+      </div>
+    `;
+    document.body.appendChild(agendaModal);
+    agendaModal.addEventListener('click', (e) => {
+      if (e.target === agendaModal || e.target.classList.contains('modal-close-btn')) {
+        closeModal('modalTacticalAgenda');
+      }
+    });
+  }
+
+  document.getElementById('agendaModalBody').innerHTML = html;
+  openModal('modalTacticalAgenda');
+};
+
+window.deleteAgendaEventItem = function (eventId) {
+  const user = window.K9Auth.getCurrentUser();
+  window.K9Store.deleteEvent(eventId, user ? user.id : 'guest');
+  if (window.K9CloudSync) window.K9CloudSync.push();
+  showToast('Evento retirado de la agenda', 'info');
+  window.openAgendaModal();
+  evaluateAndGenerateNotifications();
+};
+
+// Resumen de Tareas en Inicio (Home Widget)
+function renderHomeTaskSummaryWidget() {
+  const container = document.getElementById('homeTaskSummaryWidget');
+  if (!container) return;
+
+  const user = window.K9Auth.getCurrentUser();
+  const allTasks = window.K9Store.getTasks(user);
+
+  const pendingTasks = allTasks.filter(t => t.status === 'pendiente' || t.status === 'en_progreso');
+  const overdueCount = allTasks.filter(t => isTaskOverdue(t)).length;
+  const pendingCount = allTasks.filter(t => t.status === 'pendiente').length;
+  const inProgressCount = allTasks.filter(t => t.status === 'en_progreso').length;
+
+  // Ordenar tareas pendientes por urgencia y fecha límite
+  pendingTasks.sort((a, b) => {
+    const aOverdue = isTaskOverdue(a);
+    const bOverdue = isTaskOverdue(b);
+    if (aOverdue && !bOverdue) return -1;
+    if (!aOverdue && bOverdue) return 1;
+    const pWeights = { urgente: 4, alta: 3, normal: 2, baja: 1 };
+    return (pWeights[b.priority] || 0) - (pWeights[a.priority] || 0);
+  });
+
+  const top3 = pendingTasks.slice(0, 3);
+
+  container.innerHTML = `
+    <div class="home-task-widget-card">
+      <div class="home-task-widget-top">
+        <div class="home-task-widget-title">
+          <span>📋</span> CENTRO DE TAREAS OPERATIVAS K9
+        </div>
+        <div class="home-task-widget-counters">
+          <span class="home-task-counter-pill" style="background:rgba(0,229,255,0.12); border:1px solid rgba(0,229,255,0.3); color:var(--police-cyan);">
+            ${pendingCount} Pendientes
+          </span>
+          <span class="home-task-counter-pill" style="background:rgba(255,184,0,0.12); border:1px solid rgba(255,184,0,0.3); color:var(--tactical-gold);">
+            ${inProgressCount} En Progreso
+          </span>
+          ${overdueCount > 0 ? `
+            <span class="home-task-counter-pill" style="background:rgba(255,42,95,0.2); border:1px solid var(--tactical-red); color:#ff8099;">
+              ⚠️ ${overdueCount} Vencidas
+            </span>
+          ` : ''}
+          <button class="btn-tactical btn-tactical-primary btn-tactical-sm" style="padding:0.3rem 0.75rem;" onclick="switchMainView('tareas')">
+            Ver Centro de Tareas →
+          </button>
+        </div>
+      </div>
+
+      ${top3.length === 0 ? `
+        <div style="font-size:0.85rem; color:var(--text-muted); display:flex; align-items:center; gap:0.6rem;">
+          <span style="color:var(--tactical-green); font-size:1.1rem;">✓</span>
+          <span>Todo al día. No tienes tareas operativas pendientes de cumplimiento en este momento.</span>
+        </div>
+      ` : `
+        <div class="home-task-list-mini">
+          ${top3.map(t => {
+            const overdue = isTaskOverdue(t);
+            const dueFormatted = t.dueDate ? new Date(t.dueDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) : 'Sin límite';
+            return `
+              <div class="home-task-item-mini" onclick="switchMainView('tareas')" title="Ir a Centro de Tareas">
+                <div style="display:flex; align-items:center; gap:0.55rem; min-width:0;">
+                  <span style="width:8px; height:8px; border-radius:50%; background:${t.priority === 'urgente' ? 'var(--tactical-red)' : t.priority === 'alta' ? 'var(--tactical-gold)' : 'var(--police-cyan)'}; flex-shrink:0;"></span>
+                  <div style="font-size:0.85rem; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:600;">
+                    ${escapeHtml(t.title)}
+                  </div>
+                </div>
+                <div style="display:flex; align-items:center; gap:0.4rem; flex-shrink:0;">
+                  <span style="font-size:0.72rem; color:${overdue ? 'var(--tactical-red)' : 'var(--text-muted)'}; font-weight:${overdue ? '700' : '400'};">
+                    ${overdue ? '⚠️ Vencida' : dueFormatted}
+                  </span>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `}
+    </div>
+  `;
+}
+
+// ==========================================================================
+// 2. CENTRO DE NOTIFICACIONES TÁCTICO
+// ==========================================================================
+let notifActiveFilter = 'todas';
+
+function setupNotificationsUI() {
+  const bellBtn = document.getElementById('notificationBellBtn');
+  const panel = document.getElementById('notificationDropdownPanel');
+  const markAllBtn = document.getElementById('notifMarkAllReadBtn');
+  const clearReadBtn = document.getElementById('notifClearReadBtn');
+
+  if (bellBtn && panel) {
+    bellBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isVisible = panel.style.display === 'flex';
+      panel.style.display = isVisible ? 'none' : 'flex';
+      if (!isVisible) {
+        renderNotificationsList();
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!panel.contains(e.target) && !bellBtn.contains(e.target)) {
+        panel.style.display = 'none';
+      }
+    });
+  }
+
+  if (markAllBtn) {
+    markAllBtn.addEventListener('click', () => {
+      const user = window.K9Auth.getCurrentUser();
+      window.K9Store.markAllNotificationsRead(user ? user.id : null);
+      if (window.K9CloudSync) window.K9CloudSync.push();
+      renderNotificationsList();
+      updateNotificationBadgeUI();
+      showToast('Todas las notificaciones marcadas como leídas', 'info');
+    });
+  }
+
+  if (clearReadBtn) {
+    clearReadBtn.addEventListener('click', () => {
+      const user = window.K9Auth.getCurrentUser();
+      const notifs = window.K9Store.getNotifications(user);
+      notifs.filter(n => n.isRead).forEach(n => {
+        window.K9Store.deleteNotification(n.id, user ? user.id : null);
+      });
+      if (window.K9CloudSync) window.K9CloudSync.push();
+      renderNotificationsList();
+      updateNotificationBadgeUI();
+      showToast('Notificaciones leídas eliminadas', 'info');
+    });
+  }
+
+  // Chips de filtro
+  document.querySelectorAll('.notif-filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.notif-filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      notifActiveFilter = chip.dataset.filter || 'todas';
+      renderNotificationsList();
+    });
+  });
+
+  // Evaluación inicial y actualización periódica fiable (cada 60 segundos)
+  evaluateAndGenerateNotifications();
+  updateNotificationBadgeUI();
+  setInterval(() => {
+    evaluateAndGenerateNotifications();
+    updateNotificationBadgeUI();
+  }, 60000);
+}
+
+function evaluateAndGenerateNotifications() {
+  const user = window.K9Auth.getCurrentUser();
+  if (!user) return;
+
+  const now = Date.now();
+  const tasks = window.K9Store.getTasks(user);
+  const events = window.K9Store.getEvents(user);
+  const announcements = window.K9Store.getAnnouncements();
+  const existingNotifs = window.K9Store.getRawNotifications();
+
+  // 1. Tareas próximas a vencer o vencidas
+  tasks.forEach(t => {
+    if (!t.dueDate || t.status === 'completada' || t.status === 'cancelada') return;
+    const dueTime = new Date(t.dueDate).getTime();
+    const diffHours = (dueTime - now) / (1000 * 60 * 60);
+
+    // Tarea vencida
+    if (diffHours <= 0) {
+      const sourceId = `task_overdue_${t.id}`;
+      const exists = existingNotifs.some(n => n.sourceId === sourceId);
+      if (!exists) {
+        window.K9Store.saveNotification({
+          sourceId: sourceId,
+          recipientId: user.id,
+          title: '⚠️ Tarea Operativa Vencida',
+          message: `La tarea "${t.title}" ha superado su fecha límite (${new Date(t.dueDate).toLocaleDateString('es-ES')}).`,
+          category: 'tareas',
+          type: 'tarea_vencida',
+          targetView: 'tareas',
+          isRead: false
+        });
+      }
+    }
+    // Tarea próxima a vencer (< 48h)
+    else if (diffHours > 0 && diffHours <= 48) {
+      const sourceId = `task_due_soon_${t.id}_${Math.floor(diffHours / 24)}`;
+      const exists = existingNotifs.some(n => n.sourceId === sourceId);
+      if (!exists) {
+        const hoursRounded = Math.max(1, Math.ceil(diffHours));
+        window.K9Store.saveNotification({
+          sourceId: sourceId,
+          recipientId: user.id,
+          title: '📋 Tarea Próxima a Vencer',
+          message: `La tarea "${t.title}" vence en menos de ${hoursRounded} horas.`,
+          category: 'tareas',
+          type: 'tarea_proxima',
+          targetView: 'tareas',
+          isRead: false
+        });
+      }
+    }
+  });
+
+  // 2. Eventos de la agenda operativa (< 24h)
+  events.forEach(ev => {
+    if (!ev.date) return;
+    const evTime = new Date(ev.date).getTime();
+    const diffHours = (evTime - now) / (1000 * 60 * 60);
+    if (diffHours > 0 && diffHours <= 24) {
+      const sourceId = `event_soon_${ev.id}`;
+      const exists = existingNotifs.some(n => n.sourceId === sourceId);
+      if (!exists) {
+        window.K9Store.saveNotification({
+          sourceId: sourceId,
+          recipientId: user.id,
+          title: '📅 Recordatorio de Agenda K9',
+          message: `Convocatoria "${ev.title}" programada para hoy/mañana a las ${new Date(ev.date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} en ${ev.location || 'Base K9'}.`,
+          category: 'agenda',
+          type: 'evento_proximo',
+          targetView: 'tareas',
+          isRead: false
+        });
+      }
+    }
+  });
+
+  // 3. Avisos Oficiales de Jefatura (últimos 7 días)
+  announcements.forEach(ann => {
+    const annDate = new Date(ann.date || ann.createdAt || 0).getTime();
+    const diffDays = (now - annDate) / (1000 * 60 * 60 * 24);
+    if (diffDays <= 7) {
+      const sourceId = `ann_notif_${ann.id}`;
+      const exists = existingNotifs.some(n => n.sourceId === sourceId);
+      if (!exists) {
+        window.K9Store.saveNotification({
+          sourceId: sourceId,
+          recipientId: 'all',
+          title: '📢 ' + (ann.title || 'Aviso Oficial de Jefatura'),
+          message: (ann.content || '').substring(0, 120) + '...',
+          category: 'avisos',
+          type: 'aviso_oficial',
+          targetView: 'inicio',
+          targetSubtab: 'anuncios',
+          isRead: false
+        });
+      }
+    }
+  });
+
+  updateNotificationBadgeUI();
+}
+
+function updateNotificationBadgeUI() {
+  const user = window.K9Auth.getCurrentUser();
+  const notifs = window.K9Store.getNotifications(user);
+  const unreadCount = notifs.filter(n => !n.isRead).length;
+
+  const badgeEl = document.getElementById('notificationBadge');
+  const headerCountEl = document.getElementById('notifHeaderCount');
+  const navBadgeEl = document.getElementById('navTasksBadge');
+
+  if (badgeEl) {
+    if (unreadCount > 0) {
+      badgeEl.textContent = unreadCount > 99 ? '99+' : unreadCount;
+      badgeEl.style.display = 'flex';
+    } else {
+      badgeEl.style.display = 'none';
+    }
+  }
+
+  if (headerCountEl) {
+    headerCountEl.textContent = `${unreadCount} sin leer`;
+  }
+
+  // Actualizar también badge de tareas pendientes en el nav
+  if (navBadgeEl) {
+    const tasks = window.K9Store.getTasks(user);
+    const activeTasks = tasks.filter(t => t.status === 'pendiente' || isTaskOverdue(t)).length;
+    if (activeTasks > 0) {
+      navBadgeEl.textContent = activeTasks;
+      navBadgeEl.style.display = 'inline-block';
+    } else {
+      navBadgeEl.style.display = 'none';
+    }
+  }
+}
+
+function renderNotificationsList() {
+  const container = document.getElementById('notifItemsList');
+  if (!container) return;
+
+  const user = window.K9Auth.getCurrentUser();
+  const allNotifs = window.K9Store.getNotifications(user);
+
+  let filtered = allNotifs.filter(n => {
+    if (notifActiveFilter === 'unread') return !n.isRead;
+    if (notifActiveFilter === 'tareas') return n.category === 'tareas';
+    if (notifActiveFilter === 'agenda') return n.category === 'agenda';
+    if (notifActiveFilter === 'formacion') return n.category === 'formacion';
+    if (notifActiveFilter === 'avisos') return n.category === 'avisos';
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; padding:2.5rem 1rem; color:var(--text-muted); font-size:0.85rem;">
+        <span style="font-size:1.8rem; display:block; margin-bottom:0.4rem; opacity:0.6;">🔔</span>
+        No hay notificaciones ${notifActiveFilter !== 'todas' ? 'en esta categoría' : 'disponibles'}.
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = filtered.map(n => {
+    const icon = n.type === 'tarea_vencida' ? '⚠️' :
+                 n.type === 'tarea_proxima' ? '📋' :
+                 n.type === 'evento_proximo' ? '📅' :
+                 n.type === 'formacion' ? '🎓' :
+                 n.type === 'certificacion' ? '🏅' :
+                 n.type === 'evaluacion' ? '📝' : '📢';
+
+    const timeAgo = formatTimeAgo(n.createdAt);
+
+    return `
+      <div class="notif-item-card ${n.isRead ? 'read' : 'unread'}" onclick="window.handleNotificationClick('${n.id}')">
+        <div class="notif-icon-bubble">
+          ${icon}
+        </div>
+        <div class="notif-content-block">
+          <div class="notif-title-row">
+            <span class="notif-item-title">${escapeHtml(n.title)}</span>
+            <span class="notif-item-time">${timeAgo}</span>
+          </div>
+          <div class="notif-item-msg">${escapeHtml(n.message)}</div>
+          <div class="notif-item-meta">
+            <span class="notif-cat-badge">${n.category || 'General'}</span>
+            ${n.isRead ? `<span style="font-size:0.68rem; color:var(--text-subtle);">Leída</span>` : `<span style="font-size:0.68rem; color:var(--police-cyan); font-weight:600;">Nueva</span>`}
+            <button class="notif-delete-btn" title="Eliminar notificación" onclick="event.stopPropagation(); window.deleteNotificationItem('${n.id}')">
+              ✕
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+window.handleNotificationClick = function (notifId) {
+  const user = window.K9Auth.getCurrentUser();
+  const notif = window.K9Store.markNotificationRead(notifId, user ? user.id : null);
+  updateNotificationBadgeUI();
+  renderNotificationsList();
+
+  const panel = document.getElementById('notificationDropdownPanel');
+  if (panel) panel.style.display = 'none';
+
+  if (!notif) return;
+
+  // Navegación a la sección correspondiente
+  if (notif.targetView === 'tareas') {
+    switchMainView('tareas');
+  } else if (notif.targetView === 'inicio' && notif.targetSubtab) {
+    switchGeneralSubtab(notif.targetSubtab);
+  } else if (notif.targetView) {
+    switchMainView(notif.targetView);
+  }
+};
+
+window.deleteNotificationItem = function (notifId) {
+  const user = window.K9Auth.getCurrentUser();
+  window.K9Store.deleteNotification(notifId, user ? user.id : null);
+  updateNotificationBadgeUI();
+  renderNotificationsList();
+};
+
+function formatTimeAgo(dateStr) {
+  if (!dateStr) return '';
+  const diffMs = Date.now() - new Date(dateStr).getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  if (diffMins < 1) return 'Ahora';
+  if (diffMins < 60) return `Hace ${diffMins}m`;
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `Hace ${diffHours}h`;
+  const diffDays = Math.floor(diffHours / 24);
+  return `Hace ${diffDays}d`;
+}
+
+// ==========================================================================
+// 3. BUSCADOR GLOBAL SPOTLIGHT K9
+// ==========================================================================
+let globalSearchActiveCategory = 'todos';
+let globalSearchResults = [];
+let globalSearchActiveIndex = -1;
+
+function setupGlobalSearch() {
+  const triggerBtn = document.getElementById('globalSearchTriggerBtn');
+  const input = document.getElementById('globalSearchInput');
+
+  if (triggerBtn) {
+    triggerBtn.addEventListener('click', () => {
+      openModal('modalGlobalSearch');
+    });
+  }
+
+  // Atajos de teclado: Ctrl+K / Cmd+K
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+      e.preventDefault();
+      openModal('modalGlobalSearch');
+    }
+  });
+
+  // Filtros de categoría dentro del modal
+  document.querySelectorAll('.search-cat-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.search-cat-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      globalSearchActiveCategory = btn.dataset.cat || 'todos';
+      executeGlobalSearch();
+    });
+  });
+
+  if (input) {
+    let debounceTimer = null;
+    input.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        executeGlobalSearch();
+      }, 120);
+    });
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        navigateSearchResults(1);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        navigateSearchResults(-1);
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        activateCurrentSearchResult();
+      } else if (e.key === 'Escape') {
+        closeModal('modalGlobalSearch');
+      }
+    });
+  }
+}
+
+function cleanStringForSearch(str) {
+  if (!str) return '';
+  return str.toString()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function executeGlobalSearch() {
+  const input = document.getElementById('globalSearchInput');
+  const queryRaw = input ? input.value : '';
+  const query = cleanStringForSearch(queryRaw);
+  const user = window.K9Auth.getCurrentUser();
+  const isJefatura = user ? (user.isJefatura || (user.permissions && user.permissions.includes('*'))) : false;
+
+  const results = [];
+
+  // Helper de coincidencia
+  const match = (text) => cleanStringForSearch(text).includes(query);
+
+  // 1. MIEMBROS DE LA UNIDAD
+  if (globalSearchActiveCategory === 'todos' || globalSearchActiveCategory === 'miembros') {
+    const users = window.K9Store.getUsers();
+    users.forEach(u => {
+      if (!query || match(u.name) || match(u.placa) || match(u.rank)) {
+        results.push({
+          id: 'user_' + u.id,
+          group: 'Miembros de la Unidad',
+          icon: '👥',
+          title: `${u.name} [Placa ${u.placa}]`,
+          description: `Rango: ${u.rank} • Estado: ${u.status || 'Activo'}`,
+          category: 'Miembros',
+          action: () => {
+            switchMainView('miembros');
+            closeModal('modalGlobalSearch');
+          }
+        });
+      }
+    });
+  }
+
+  // 2. PLANTILLA DE CANES OPERATIVOS
+  if (globalSearchActiveCategory === 'todos' || globalSearchActiveCategory === 'canes') {
+    const dogs = window.K9Store.getDogs();
+    dogs.forEach(d => {
+      if (!query || match(d.name) || match(d.breed) || match(d.specialty) || match(d.handler)) {
+        results.push({
+          id: 'dog_' + d.id,
+          group: 'Plantilla de Canes K9',
+          icon: '🐕',
+          title: `Can Operativo ${d.name} (${d.breed})`,
+          description: `Especialidad: ${d.specialty || 'Intervención'} • Guía Asignado: ${d.handler || 'Sin asignar'}`,
+          category: 'Canes',
+          action: () => {
+            switchGeneralSubtab('galeria');
+            closeModal('modalGlobalSearch');
+          }
+        });
+      }
+    });
+  }
+
+  // 3. ESPECIALIDADES Y CONDECORACIONES
+  if (globalSearchActiveCategory === 'todos' || globalSearchActiveCategory === 'formacion') {
+    const badges = window.K9Store.getBadges();
+    badges.forEach(b => {
+      if (!query || match(b.name) || match(b.desc) || match(b.category)) {
+        results.push({
+          id: 'badge_' + b.id,
+          group: 'Insignias y Especialidades',
+          icon: '🎖️',
+          title: b.name,
+          description: `${b.category}: ${b.desc.substring(0, 90)}...`,
+          category: 'Distinciones',
+          action: () => {
+            switchMainView('condecoraciones');
+            closeModal('modalGlobalSearch');
+          }
+        });
+      }
+    });
+  }
+
+  // 4. NORMATIVAS Y PROCEDIMIENTOS
+  if (globalSearchActiveCategory === 'todos' || globalSearchActiveCategory === 'normativas') {
+    const normatives = window.K9Store.getNormatives();
+    normatives.forEach(n => {
+      const artMatches = (n.articles || []).filter(a => match(a.title) || match(a.content));
+      if (!query || match(n.title) || match(n.category) || artMatches.length > 0) {
+        results.push({
+          id: 'norm_' + n.id,
+          group: 'Normativas y Procedimientos',
+          icon: '⚖️',
+          title: n.title,
+          description: artMatches.length > 0 ? `Coincidencia en: ${artMatches[0].title}` : (n.description || n.category),
+          category: 'Reglamento',
+          action: () => {
+            switchGeneralSubtab('normativas');
+            closeModal('modalGlobalSearch');
+          }
+        });
+      }
+    });
+  }
+
+  // 5. MANUALES Y MATERIALES FORMATIVOS
+  if (globalSearchActiveCategory === 'todos' || globalSearchActiveCategory === 'formacion') {
+    const manuals = window.K9Store.getManuals();
+    manuals.forEach(m => {
+      if (!query || match(m.title) || match(m.category) || match(m.description)) {
+        results.push({
+          id: 'manual_' + m.id,
+          group: 'Manuales y Formación',
+          icon: '📖',
+          title: m.title,
+          description: `${m.category}: ${(m.description || '').substring(0, 90)}...`,
+          category: 'Formación',
+          action: () => {
+            switchGeneralSubtab('manuales');
+            closeModal('modalGlobalSearch');
+          }
+        });
+      }
+    });
+  }
+
+  // 6. TAREAS Y AGENDA PROPIA
+  if (globalSearchActiveCategory === 'todos' || globalSearchActiveCategory === 'tareas') {
+    const tasks = window.K9Store.getTasks(user);
+    tasks.forEach(t => {
+      if (!query || match(t.title) || match(t.description) || match(t.category)) {
+        results.push({
+          id: 'task_' + t.id,
+          group: 'Tareas y Agenda Operativa',
+          icon: '📋',
+          title: t.title,
+          description: `Estado: ${t.status} • Prioridad: ${t.priority} • ${t.category}`,
+          category: 'Tareas',
+          action: () => {
+            switchMainView('tareas');
+            closeModal('modalGlobalSearch');
+          }
+        });
+      }
+    });
+  }
+
+  // 7. ANUNCIOS OFICIALES (accesibles para el usuario)
+  if (globalSearchActiveCategory === 'todos' || globalSearchActiveCategory === 'anuncios') {
+    const announcements = window.K9Store.getAnnouncements();
+    announcements.forEach(a => {
+      if (!query || match(a.title) || match(a.content) || match(a.author)) {
+        results.push({
+          id: 'ann_' + a.id,
+          group: 'Anuncios Oficiales',
+          icon: '📢',
+          title: a.title,
+          description: (a.content || '').substring(0, 100) + '...',
+          category: 'Avisos',
+          action: () => {
+            switchGeneralSubtab('anuncios');
+            closeModal('modalGlobalSearch');
+          }
+        });
+      }
+    });
+  }
+
+  // 8. EVALUACIONES / DISCIPLINARIO (solo si es Jefatura o del propio usuario)
+  if (user) {
+    const disciplinary = window.K9Store.getDisciplinary();
+    disciplinary.forEach(d => {
+      const isTarget = d.agentId === user.id || (user.placa && d.agentPlaca === user.placa);
+      if (isJefatura || isTarget) {
+        if (!query || match(d.reason) || match(d.severity) || match(d.sanction)) {
+          results.push({
+            id: 'disc_' + d.id,
+            group: 'Evaluaciones y Resoluciones',
+            icon: '📜',
+            title: `Expediente: ${d.reason.substring(0, 50)}`,
+            description: `Gravedad: ${d.severity} • Sanción: ${d.sanction || 'En resolución'}`,
+            category: 'Expediente',
+            action: () => {
+              if (isJefatura) {
+                switchMainView('jefatura');
+              } else {
+                switchMainView('perfil');
+              }
+              closeModal('modalGlobalSearch');
+            }
+          });
+        }
+      }
+    });
+  }
+
+  globalSearchResults = results.slice(0, 40); // Limitar a los 40 más relevantes
+  globalSearchActiveIndex = globalSearchResults.length > 0 ? 0 : -1;
+  renderGlobalSearchResults(query);
+}
+
+window.executeGlobalSearch = executeGlobalSearch;
+
+function renderGlobalSearchResults(query) {
+  const container = document.getElementById('globalSearchResultsList');
+  if (!container) return;
+
+  if (globalSearchResults.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; padding:3rem 1.5rem; color:var(--text-muted);">
+        <span style="font-size:2.5rem; display:block; margin-bottom:0.6rem; opacity:0.5;">🔍</span>
+        <div style="font-family:var(--font-headline); font-size:1.1rem; color:#fff; margin-bottom:0.35rem;">
+          NO SE ENCONTRARON RESULTADOS
+        </div>
+        <div style="font-size:0.85rem; max-width:380px; margin:0 auto;">
+          No hay coincidencias para "<strong>${escapeHtml(query)}</strong>". Revisa la ortografía o prueba con otro término.
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  // Agrupar resultados por grupo
+  const grouped = {};
+  globalSearchResults.forEach((item, index) => {
+    if (!grouped[item.group]) grouped[item.group] = [];
+    grouped[item.group].push({ ...item, globalIndex: index });
+  });
+
+  let html = '';
+  for (const groupName in grouped) {
+    const items = grouped[groupName];
+    html += `
+      <div class="search-result-group">
+        <div class="search-group-header">
+          <span>${groupName}</span>
+          <span style="font-size:0.68rem; opacity:0.7;">${items.length}</span>
+        </div>
+        ${items.map(item => `
+          <div class="search-result-item ${item.globalIndex === globalSearchActiveIndex ? 'active-search-item' : ''}" id="searchItem_${item.globalIndex}" onclick="window.activateSearchResultIndex(${item.globalIndex})">
+            <div class="search-item-icon">
+              ${item.icon}
+            </div>
+            <div style="flex:1; min-width:0;">
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:0.5rem; margin-bottom:0.15rem;">
+                <span class="search-item-title" style="font-size:0.88rem; font-weight:600; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                  ${escapeHtml(item.title)}
+                </span>
+                <span class="search-item-badge" style="background:rgba(255,255,255,0.06); font-size:0.65rem; padding:0.1rem 0.35rem; border-radius:4px; color:var(--text-muted); text-transform:uppercase;">
+                  ${item.category}
+                </span>
+              </div>
+              <div class="search-item-desc" style="font-size:0.76rem; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                ${escapeHtml(item.description)}
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  container.innerHTML = html;
+}
+
+function navigateSearchResults(direction) {
+  if (globalSearchResults.length === 0) return;
+  globalSearchActiveIndex = (globalSearchActiveIndex + direction + globalSearchResults.length) % globalSearchResults.length;
+
+  document.querySelectorAll('.search-result-item').forEach((el, idx) => {
+    el.classList.toggle('active-search-item', idx === globalSearchActiveIndex);
+  });
+
+  const activeEl = document.getElementById(`searchItem_${globalSearchActiveIndex}`);
+  if (activeEl) {
+    activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+}
+
+function activateCurrentSearchResult() {
+  if (globalSearchActiveIndex >= 0 && globalSearchActiveIndex < globalSearchResults.length) {
+    window.activateSearchResultIndex(globalSearchActiveIndex);
+  }
+}
+
+window.activateSearchResultIndex = function (index) {
+  const item = globalSearchResults[index];
+  if (item && typeof item.action === 'function') {
+    if (window.K9Audio) window.K9Audio.playTacticalClick();
+    item.action();
+  }
+};
+

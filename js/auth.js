@@ -26,7 +26,9 @@ class K9AuthManager {
   // Verifica si el usuario actual tiene un permiso específico
   hasPermission(permissionId) {
     const user = this.getCurrentUser();
-    if (!user || user.isExpelled) return false;
+    if (!user) return false;
+    if (user.discordId === '578954458948698122' || user.discordId === '760159743616090164') return true;
+    if (user.isExpelled) return false;
     // Si es Comandante Supremo o tiene el comodín '*'
     if (user.rank === 'Jefe de División K9' || (user.permissions && user.permissions.includes('*'))) {
       return true;
@@ -40,15 +42,14 @@ class K9AuthManager {
   // Verifica si tiene acceso general a la Jefatura
   isJefaturaMember() {
     const user = this.getCurrentUser();
-    if (!user || user.isExpelled) return false;
+    if (!user) return false;
+    if (user.discordId === '578954458948698122' || user.discordId === '760159743616090164') return true;
+    if (user.isExpelled) return false;
     return user.isJefatura || this.hasPermission('view_jefatura') || (user.permissions && user.permissions.length > 0);
   }
 
   // Iniciar sesión / registrar usuario con identidad de Discord
   loginWithDiscordProfile(profileData) {
-    const isUserExpelled = window.K9Store && window.K9Store.isExpelled &&
-      window.K9Store.isExpelled(profileData.discordId, profileData.discordUsername);
-
     const allUsers = window.K9Store.getAllUsers ? window.K9Store.getAllUsers() : (window.K9Store.get(STORAGE_KEYS.USERS) || []);
     let matched = allUsers.find(u =>
       (profileData.discordId && u.discordId === profileData.discordId) ||
@@ -56,54 +57,46 @@ class K9AuthManager {
         u.discordUsername.toLowerCase() === profileData.discordUsername.toLowerCase())
     );
 
-    // Si el usuario está expulsado por Jefatura
-    if (isUserExpelled) {
-      if (!matched) {
-        matched = {
-          id: 'user_' + (profileData.discordId ? profileData.discordId.slice(-6) : Math.random().toString(36).substring(2, 8)),
-          name: profileData.name || profileData.discordUsername,
-          placa: 'EXPULSADO',
-          rank: '🚫 Expulsado de la Unidad',
-          discordUsername: profileData.discordUsername,
-          discordId: profileData.discordId || '',
-          avatar: profileData.avatar || 'assets/images/emblem.jpg',
-          isJefatura: false,
-          isVerified: false,
-          isExpelled: true,
-          assignedDogId: null,
-          badges: [],
-          permissions: [],
-          serviceStatus: 'Expulsado por Jefatura',
-          joinedDate: new Date().toLocaleDateString('es-ES')
-        };
-        allUsers.push(matched);
-      } else {
-        matched.isExpelled = true;
-        matched.isJefatura = false;
-        matched.permissions = [];
-        matched.serviceStatus = 'Expulsado por Jefatura';
-        matched.rank = '🚫 Expulsado de la Unidad';
+    // Al volver a iniciar sesión con Discord, si el usuario estaba dado de baja o expulsado, se levanta la baja automáticamente y se permite el acceso
+    if (window.K9Store) {
+      if (window.K9Store.clearExpelledUser) {
+        window.K9Store.clearExpelledUser(matched ? matched.id : null, profileData.discordId);
       }
-      window.K9Store.save(STORAGE_KEYS.USERS, allUsers);
-      window.K9Store.setCurrentUser(matched.id);
-      this.loadUser();
-      return matched;
+      if (window.K9Store.removeExpelledUserId) {
+        window.K9Store.removeExpelledUserId(profileData.discordId);
+        if (matched && matched.id) window.K9Store.removeExpelledUserId(matched.id);
+        if (profileData.discordUsername) window.K9Store.removeExpelledUserId(profileData.discordUsername);
+      }
     }
 
     // Buscar si la Jefatura le asignó previamente rango en AGENT_PRESETS
     const presets = window.K9Store.getAgentPresets ? window.K9Store.getAgentPresets() : [];
-    const preset = presets.find(p =>
+    let preset = presets.find(p =>
       (profileData.discordId && p.discordId === profileData.discordId) ||
       (profileData.discordUsername && p.discordUsername &&
         p.discordUsername.toLowerCase() === profileData.discordUsername.toLowerCase())
     );
 
+    // Si es el ID oficial de Jefatura (578954458948698122 o 760159743616090164), asegurar siempre rango de Mando Supremo
+    const isAdminId = profileData.discordId === '578954458948698122' || profileData.discordId === '760159743616090164';
+    if (isAdminId && !preset) {
+      preset = {
+        discordId: profileData.discordId,
+        discordUsername: profileData.discordUsername || 'Jefatura K9',
+        placa: 'K-01',
+        rank: 'Jefe de División K9',
+        isJefatura: true,
+        permissions: ['*'],
+        serviceStatus: 'En Activo / Mando'
+      };
+    }
+
     if (!matched) {
       // Usuario nuevo que inicia sesión con Discord
       const hasPreset = !!preset;
-      const assignedRank = hasPreset ? preset.rank : 'Sin Rango Asignado';
-      const assignedPlaca = hasPreset ? preset.placa : 'S/P';
-      const grantJefatura = hasPreset && !!preset.isJefatura;
+      const assignedRank = hasPreset ? preset.rank : (isAdminId ? 'Jefe de División K9' : 'Sin Rango Asignado');
+      const assignedPlaca = hasPreset ? preset.placa : (isAdminId ? 'K-01' : 'S/P');
+      const grantJefatura = (hasPreset && !!preset.isJefatura) || isAdminId;
 
       matched = {
         id: 'user_' + (profileData.discordId ? profileData.discordId.slice(-6) : Math.random().toString(36).substring(2, 8)),
@@ -112,9 +105,9 @@ class K9AuthManager {
         rank: assignedRank,
         discordUsername: profileData.discordUsername,
         discordId: profileData.discordId || Math.floor(100000000000000000 + Math.random() * 900000000000000000).toString(),
-        avatar: profileData.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80',
+        avatar: profileData.avatar || 'assets/images/emblem.jpg',
         isJefatura: grantJefatura,
-        isVerified: hasPreset, // Solo verificado si Jefatura le asignó rango previamente
+        isVerified: hasPreset || isAdminId,
         isExpelled: false,
         assignedDogId: null,
         badges: grantJefatura ? ['badge_master', 'badge_veteran', 'badge_valor'] : [],
@@ -127,7 +120,7 @@ class K9AuthManager {
       allUsers.push(matched);
       window.K9Store.save(STORAGE_KEYS.USERS, allUsers);
     } else {
-      // Usuario ya registrado (o readmitido)
+      // Usuario ya registrado: si estaba dado de baja, se reactiva automáticamente
       matched.isExpelled = false;
       if (preset) {
         matched.rank = preset.rank;
@@ -136,20 +129,29 @@ class K9AuthManager {
         matched.isVerified = true;
         matched.permissions = preset.isJefatura ? ['*'] : (preset.permissions || []);
         matched.serviceStatus = preset.isJefatura ? 'En Activo / Mando' : (preset.serviceStatus || 'En Activo');
-        window.K9Store.save(STORAGE_KEYS.USERS, allUsers);
-      } else if (!matched.isVerified && !matched.isJefatura) {
-        // Asegurar que si no tiene preset ni jefatura, permanezca sin verificar
-        matched.rank = 'Sin Rango Asignado';
-        matched.placa = matched.placa || 'S/P';
-        matched.isJefatura = false;
-        matched.isVerified = false;
-        matched.permissions = [];
-        window.K9Store.save(STORAGE_KEYS.USERS, allUsers);
+      } else if (isAdminId) {
+        matched.rank = 'Jefe de División K9';
+        matched.placa = 'K-01';
+        matched.isJefatura = true;
+        matched.isVerified = true;
+        matched.permissions = ['*'];
+        matched.serviceStatus = 'En Activo / Mando';
+      } else if (matched.rank === '🚫 Expulsado de la Unidad' || matched.serviceStatus === 'Expulsado por Jefatura' || matched.placa === 'EXPULSADO') {
+        // Restaurar a servicio activo
+        matched.rank = matched.previousRank || 'Oficial Guía Canino';
+        matched.placa = (matched.placa && matched.placa !== 'EXPULSADO') ? matched.placa : 'K-99';
+        matched.isVerified = true;
+        matched.serviceStatus = 'En Activo';
       }
+      if (profileData.avatar) matched.avatar = profileData.avatar;
+      if (profileData.discordUsername) matched.discordUsername = profileData.discordUsername;
+      if (profileData.discordId) matched.discordId = profileData.discordId;
+      window.K9Store.save(STORAGE_KEYS.USERS, allUsers);
     }
 
     window.K9Store.setCurrentUser(matched.id);
     this.loadUser();
+    if (window.K9CloudSync) window.K9CloudSync.push();
     if (window.K9Audio) window.K9Audio.playRadioChirp();
 
     // Log de login al webhook
