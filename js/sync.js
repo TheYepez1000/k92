@@ -285,6 +285,16 @@ class K9CloudSyncManager {
       const localUsers = window.K9Store.getAllUsers ? window.K9Store.getAllUsers() : [];
       const localCurrent = localUsers.find(u => (currentUid && u.id === currentUid) || (currentDiscordId && u.discordId === currentDiscordId));
 
+      const setIfChanged = (key, data) => {
+        if (data === undefined || data === null) return false;
+        const serialized = JSON.stringify(data);
+        if (localStorage.getItem(key) !== serialized) {
+          localStorage.setItem(key, serialized);
+          return true;
+        }
+        return false;
+      };
+
       // 0. Sincronizar agentes expulsados (NUNCA expulsar al usuario que acaba de iniciar sesión activamente)
       if (Array.isArray(remote.expelledUserIds)) {
         let cleanExpelled = [...remote.expelledUserIds];
@@ -293,15 +303,14 @@ class K9CloudSyncManager {
         }
         // Inmunidad permanente para IDs de Jefatura Suprema
         cleanExpelled = cleanExpelled.filter(id => id !== '578954458948698122' && id !== '760159743616090164');
-        localStorage.setItem(K9_SYNC_KEYS.EXPELLED_USERS, JSON.stringify(cleanExpelled));
+        if (setIfChanged(K9_SYNC_KEYS.EXPELLED_USERS, cleanExpelled)) hasChanges = true;
       }
       const expelled = window.K9Store.getExpelledUserIds();
 
       // 1. Presets de Jefatura
       if (Array.isArray(remote.presets)) {
         const validPresets = remote.presets.filter(p => !expelled.includes(p.discordId));
-        localStorage.setItem(K9_SYNC_KEYS.AGENT_PRESETS, JSON.stringify(validPresets));
-        hasChanges = true;
+        if (setIfChanged(K9_SYNC_KEYS.AGENT_PRESETS, validPresets)) hasChanges = true;
       }
 
       // 2. Directorio de usuarios: FUSIÓN INTELIGENTE (jamás borrar ni desloguear al usuario actual)
@@ -355,32 +364,27 @@ class K9CloudSyncManager {
         });
 
         const mergedUsers = Array.from(userMap.values());
-        localStorage.setItem(K9_SYNC_KEYS.USERS, JSON.stringify(mergedUsers));
-        hasChanges = true;
+        if (setIfChanged(K9_SYNC_KEYS.USERS, mergedUsers)) hasChanges = true;
       }
 
       // 3. Solicitudes de canes (binomios)
       if (Array.isArray(remote.dogRequests)) {
-        localStorage.setItem(K9_SYNC_KEYS.DOG_REQUESTS, JSON.stringify(remote.dogRequests));
-        hasChanges = true;
+        if (setIfChanged(K9_SYNC_KEYS.DOG_REQUESTS, remote.dogRequests)) hasChanges = true;
       }
 
       // 4. Canes K9
       if (Array.isArray(remote.dogs) && remote.dogs.length > 0) {
-        localStorage.setItem(K9_SYNC_KEYS.DOGS, JSON.stringify(remote.dogs));
-        hasChanges = true;
+        if (setIfChanged(K9_SYNC_KEYS.DOGS, remote.dogs)) hasChanges = true;
       }
 
       // 5. Comunicados oficiales
       if (Array.isArray(remote.announcements)) {
-        localStorage.setItem(K9_SYNC_KEYS.ANNOUNCEMENTS, JSON.stringify(remote.announcements));
-        hasChanges = true;
+        if (setIfChanged(K9_SYNC_KEYS.ANNOUNCEMENTS, remote.announcements)) hasChanges = true;
       }
 
       // 6. Expedientes disciplinarios
       if (Array.isArray(remote.disciplinary)) {
-        localStorage.setItem(K9_SYNC_KEYS.DISCIPLINARY, JSON.stringify(remote.disciplinary));
-        hasChanges = true;
+        if (setIfChanged(K9_SYNC_KEYS.DISCIPLINARY, remote.disciplinary)) hasChanges = true;
       }
 
       // 7. Chat de Despacho con Jefatura
@@ -390,109 +394,88 @@ class K9CloudSyncManager {
         localChat.forEach(m => { if (m.id) chatMap.set(m.id, m); });
         remote.chatMessages.forEach(m => { if (m.id) chatMap.set(m.id, m); });
         const mergedChat = Array.from(chatMap.values()).slice(-60);
-        localStorage.setItem(K9_SYNC_KEYS.CHAT_MESSAGES, JSON.stringify(mergedChat));
-        hasChanges = true;
-        window.dispatchEvent(new CustomEvent('k9_chat_updated', { detail: mergedChat }));
+        if (setIfChanged(K9_SYNC_KEYS.CHAT_MESSAGES, mergedChat)) {
+          hasChanges = true;
+          window.dispatchEvent(new CustomEvent('k9_chat_updated', { detail: mergedChat }));
+        }
       }
 
       // 8. Informes de patrulla
       if (Array.isArray(remote.reports)) {
-        localStorage.setItem(K9_SYNC_KEYS.REPORTS, JSON.stringify(remote.reports));
-        hasChanges = true;
+        if (setIfChanged(K9_SYNC_KEYS.REPORTS, remote.reports)) hasChanges = true;
       }
 
       // 9. Normativas Oficiales
       if (Array.isArray(remote.normatives) && remote.normatives.length > 0) {
-        localStorage.setItem(K9_SYNC_KEYS.NORMATIVES, JSON.stringify(remote.normatives));
-        hasChanges = true;
+        if (setIfChanged(K9_SYNC_KEYS.NORMATIVES, remote.normatives)) hasChanges = true;
       }
 
       // 10. Manuales de Instrucción
       if (Array.isArray(remote.manuals) && remote.manuals.length > 0) {
-        localStorage.setItem(K9_SYNC_KEYS.MANUALS, JSON.stringify(remote.manuals));
-        hasChanges = true;
+        if (setIfChanged(K9_SYNC_KEYS.MANUALS, remote.manuals)) hasChanges = true;
       }
 
       // 11. Ascensos Oficiales
       if (Array.isArray(remote.promotions)) {
-        localStorage.setItem(K9_SYNC_KEYS.PROMOTIONS, JSON.stringify(remote.promotions));
-        hasChanges = true;
+        if (setIfChanged(K9_SYNC_KEYS.PROMOTIONS, remote.promotions)) hasChanges = true;
       }
 
       // 12. Logs tácticos internos
       if (Array.isArray(remote.logs)) {
-        localStorage.setItem(K9_SYNC_KEYS.LOGS, JSON.stringify(remote.logs));
-        hasChanges = true;
+        if (setIfChanged(K9_SYNC_KEYS.LOGS, remote.logs)) hasChanges = true;
       }
 
       // 13. Webhook URL si está configurada en la nube
       if (remote.webhookUrl && remote.webhookUrl.startsWith('https://discord.com/api/webhooks/')) {
-        localStorage.setItem('k9_webhook_url', remote.webhookUrl);
+        if (localStorage.getItem('k9_webhook_url') !== remote.webhookUrl) {
+          localStorage.setItem('k9_webhook_url', remote.webhookUrl);
+        }
       }
 
       // 14. Centro de Tareas
       if (Array.isArray(remote.tasks)) {
-        localStorage.setItem(K9_SYNC_KEYS.TASKS, JSON.stringify(remote.tasks));
-        hasChanges = true;
+        if (setIfChanged(K9_SYNC_KEYS.TASKS, remote.tasks)) hasChanges = true;
       }
 
       // 15. Eventos y Agenda
       if (Array.isArray(remote.events)) {
-        localStorage.setItem(K9_SYNC_KEYS.EVENTS, JSON.stringify(remote.events));
-        hasChanges = true;
+        if (setIfChanged(K9_SYNC_KEYS.EVENTS, remote.events)) hasChanges = true;
       }
 
       // 16. Centro de Notificaciones
       if (Array.isArray(remote.notifications)) {
-        localStorage.setItem(K9_SYNC_KEYS.NOTIFICATIONS, JSON.stringify(remote.notifications));
-        hasChanges = true;
+        if (setIfChanged(K9_SYNC_KEYS.NOTIFICATIONS, remote.notifications)) hasChanges = true;
       }
 
       // 17. Código de Vestimenta & Uniformidad K9
       if (Array.isArray(remote.uniforms) && remote.uniforms.length > 0) {
-        localStorage.setItem(K9_SYNC_KEYS.UNIFORMS, JSON.stringify(remote.uniforms));
-        hasChanges = true;
+        if (setIfChanged(K9_SYNC_KEYS.UNIFORMS, remote.uniforms)) hasChanges = true;
       }
 
       if (hasChanges) {
-        // Si el usuario actual está logueado, sincronizar su rango si Jefatura lo cambió remotamente
-        if (window.K9Auth) {
-          const currentUser = window.K9Auth.getCurrentUser();
-          if (currentUser) {
-            const freshUsers = window.K9Store.getUsers();
-            const fresh = freshUsers.find(u => u.id === currentUser.id);
-            if (fresh) {
-              window.K9Auth.loadUser();
+        // Diferir y unificar refrescos de UI con requestAnimationFrame para 0 lag y 0 tirones
+        if (this._uiRefreshRaf) cancelAnimationFrame(this._uiRefreshRaf);
+        this._uiRefreshRaf = requestAnimationFrame(() => {
+          // Si el usuario actual está logueado, sincronizar su rango si Jefatura lo cambió remotamente
+          if (window.K9Auth) {
+            const currentUser = window.K9Auth.getCurrentUser();
+            if (currentUser) {
+              const freshUsers = window.K9Store.getUsers();
+              const fresh = freshUsers.find(u => u.id === currentUser.id);
+              if (fresh) {
+                window.K9Auth.loadUser();
+              }
             }
           }
-        }
 
-        // Refrescar vistas activas en tiempo real
-        if (typeof window.setupAuthUI === 'function') window.setupAuthUI();
-        if (typeof window.renderCurrentView === 'function') window.renderCurrentView();
-        if (typeof window.updateLiveCounters === 'function') window.updateLiveCounters();
+          // Refrescar vistas activas en tiempo real
+          if (typeof window.setupAuthUI === 'function') window.setupAuthUI();
+          if (typeof window.renderCurrentView === 'function') window.renderCurrentView();
+          if (typeof window.updateLiveCounters === 'function') window.updateLiveCounters();
 
-        // Refrescar directorio de miembros si el elemento está presente
-        const membersCont = document.getElementById('view-miembros');
-        if (membersCont && typeof window.renderMembersDirectory === 'function') {
-          window.renderMembersDirectory(membersCont);
-        }
-
-        // Refrescar subtabs de Jefatura (Agentes y Canes) si están visibles
-        const jefaturaCont = document.getElementById('jefaturaSubtabContent');
-        if (jefaturaCont) {
-          const activeSubtab = document.querySelector('.subnav-pill-btn.jefatura-subnav.active');
-          if (activeSubtab) {
-            if (activeSubtab.dataset.subtab === 'agentes' && typeof window.renderAgentsSection === 'function') {
-              window.renderAgentsSection(jefaturaCont);
-            } else if (activeSubtab.dataset.subtab === 'canes' && typeof window.renderDogsSection === 'function') {
-              window.renderDogsSection(jefaturaCont);
-            }
-          }
-        }
-
-        // Disparar evento para componentes
-        window.dispatchEvent(new CustomEvent('k9:cloud-sync', { detail: remote }));
+          // Disparar evento para componentes
+          window.dispatchEvent(new CustomEvent('k9:cloud-sync', { detail: remote }));
+        });
       }
     } finally {
       this._isApplyingRemote = false;

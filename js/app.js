@@ -154,17 +154,15 @@ function renderCurrentView() {
 }
 window.renderCurrentView = renderCurrentView;
 
-// Re-renderizar vistas automáticamente cuando la nube sincroniza nuevos datos
+// Re-renderizar subpaneles activos únicamente si es necesario cuando la nube sincroniza nuevos datos
 window.addEventListener('k9:cloud-sync', () => {
-  if (typeof setupAuthUI === 'function') setupAuthUI();
-  if (typeof updateLiveCounters === 'function') updateLiveCounters();
-  const membersCont = document.getElementById('view-miembros');
-  if (membersCont && typeof renderMembersDirectory === 'function') {
-    renderMembersDirectory(membersCont);
-  }
   const jefaturaCont = document.getElementById('jefaturaSubtabContent');
-  if (jefaturaCont && typeof currentJefaturaSubtab !== 'undefined' && currentJefaturaSubtab === 'agentes') {
-    if (typeof renderAgentsSection === 'function') renderAgentsSection(jefaturaCont);
+  if (jefaturaCont && currentView === 'jefatura') {
+    if (currentJefaturaSubtab === 'agentes' && typeof renderAgentsSection === 'function') {
+      renderAgentsSection(jefaturaCont);
+    } else if (currentJefaturaSubtab === 'canes' && typeof renderDogsSection === 'function') {
+      renderDogsSection(jefaturaCont);
+    }
   }
 });
 
@@ -186,12 +184,13 @@ function setupAudioListeners() {
     });
   }
 
-  // Sonido al interactuar con botones tácticos
+  // Sonido ultra-ligero y pasivo al interactuar con botones tácticos (solo si está habilitado)
   document.addEventListener('click', (e) => {
+    if (!window.K9Audio || !window.K9Audio.enabled) return;
     if (e.target.closest('.btn-tactical, .nav-tab-btn, .subnav-pill-btn')) {
-      if (window.K9Audio) window.K9Audio.playTacticalClick();
+      window.K9Audio.playTacticalClick();
     }
-  });
+  }, { passive: true });
 }
 
 // ==========================================
@@ -862,14 +861,19 @@ function renderMembersDirectory(container) {
 
   const searchInput = document.getElementById('searchMembersInput');
   if (searchInput) {
+    let debounceTimer = null;
     searchInput.addEventListener('input', (e) => {
-      const q = e.target.value.toLowerCase();
-      const filtered = users.filter(u =>
-        (u.name || '').toLowerCase().includes(q) ||
-        (u.placa || '').toLowerCase().includes(q) ||
-        (u.rank || '').toLowerCase().includes(q)
-      );
-      document.getElementById('membersGridBody').innerHTML = renderMemberCardsHtml(filtered, dogs, badges, isJef);
+      clearTimeout(debounceTimer);
+      const val = e.target.value;
+      debounceTimer = setTimeout(() => {
+        const q = val.toLowerCase().trim();
+        const filtered = users.filter(u =>
+          (u.name || '').toLowerCase().includes(q) ||
+          (u.placa || '').toLowerCase().includes(q) ||
+          (u.rank || '').toLowerCase().includes(q)
+        );
+        document.getElementById('membersGridBody').innerHTML = renderMemberCardsHtml(filtered, dogs, badges, isJef);
+      }, 140);
     });
   }
 }
@@ -886,7 +890,7 @@ function renderMemberCardsHtml(users, dogs, allBadges, isJef) {
     return `
       <div class="member-tactical-card">
         <div class="member-card-header">
-          <img src="${u.avatar || 'assets/images/emblem.jpg'}" class="member-card-avatar" alt="${u.name}" onerror="this.src='assets/images/emblem.jpg'">
+          <img src="${u.avatar || 'assets/images/emblem.jpg'}" class="member-card-avatar" alt="${u.name}" loading="lazy" decoding="async" onerror="this.src='assets/images/emblem.jpg'">
           <div class="member-card-info">
             <span class="member-card-placa">PLACA #${u.placa || 'PENDIENTE'}</span>
             <h4 class="font-gobold">${u.name}</h4>
@@ -896,7 +900,7 @@ function renderMemberCardsHtml(users, dogs, allBadges, isJef) {
 
         <div class="member-dog-assignment">
           ${assignedDog ? `
-            <img src="${assignedDog.photo || 'assets/images/k9_rex.jpg'}" class="member-dog-thumb" alt="${assignedDog.name}" onerror="this.src='assets/images/emblem.jpg'">
+            <img src="${assignedDog.photo || 'assets/images/k9_rex.jpg'}" class="member-dog-thumb" alt="${assignedDog.name}" loading="lazy" decoding="async" onerror="this.src='assets/images/emblem.jpg'">
             <div>
               <div style="font-size:0.72rem; color:var(--text-muted);">BINOMIO CANINO ASIGNADO</div>
               <strong style="color:#fff; font-size:0.95rem; font-family:var(--font-tactical);">${assignedDog.name}</strong>
@@ -916,7 +920,7 @@ function renderMemberCardsHtml(users, dogs, allBadges, isJef) {
           <div style="font-size:0.72rem; color:var(--tactical-gold); letter-spacing:0.06em; margin-bottom:0.4rem; font-weight:700;">CONDECORACIONES (${userBadges.length}):</div>
           <div class="member-badges-row">
             ${userBadges.length > 0 ? userBadges.map(b => `
-              <img src="${b.image || 'assets/images/medal_valor.jpg'}" class="member-badge-chip" title="${b.name} (${b.category})" alt="${b.name}" onclick="window.inspectBadgeModal('${b.id}', '${u.name}')">
+              <img src="${b.image || 'assets/images/medal_valor.jpg'}" class="member-badge-chip" title="${b.name} (${b.category})" alt="${b.name}" loading="lazy" decoding="async" onclick="window.inspectBadgeModal('${b.id}', '${u.name}')">
             `).join('') : '<span style="font-size:0.78rem; color:var(--text-subtle);">Sin condecoraciones otorgadas</span>'}
           </div>
         </div>
@@ -1875,15 +1879,23 @@ function renderReportsSection(container) {
     openModal('modalNewReport');
   });
 
-  document.getElementById('searchReportsInput').addEventListener('input', (e) => {
-    const q = e.target.value.toLowerCase();
-    const filtered = reports.filter(r =>
-      r.agentName.toLowerCase().includes(q) ||
-      r.week.toLowerCase().includes(q) ||
-      r.status.toLowerCase().includes(q)
-    );
-    document.getElementById('reportsTableBody').innerHTML = renderReportsTableRows(filtered);
-  });
+  const searchRepInput = document.getElementById('searchReportsInput');
+  if (searchRepInput) {
+    let repDebounce = null;
+    searchRepInput.addEventListener('input', (e) => {
+      clearTimeout(repDebounce);
+      const val = e.target.value;
+      repDebounce = setTimeout(() => {
+        const q = val.toLowerCase().trim();
+        const filtered = reports.filter(r =>
+          r.agentName.toLowerCase().includes(q) ||
+          r.week.toLowerCase().includes(q) ||
+          r.status.toLowerCase().includes(q)
+        );
+        document.getElementById('reportsTableBody').innerHTML = renderReportsTableRows(filtered);
+      }, 130);
+    });
+  }
 }
 
 function renderReportsTableRows(reports) {
@@ -2446,17 +2458,22 @@ function renderAgentsSection(container) {
     });
   }
 
-  // Buscador de agentes
+  // Buscador de agentes con debouncing suave
   const searchInput = document.getElementById('searchAgentsInput');
   if (searchInput) {
+    let agentDebounce = null;
     searchInput.addEventListener('input', (e) => {
-      const q = e.target.value.toLowerCase();
-      const filtered = allUsers.filter(u =>
-        (u.name || '').toLowerCase().includes(q) ||
-        (u.placa || '').toLowerCase().includes(q) ||
-        (u.rank || '').toLowerCase().includes(q)
-      );
-      document.getElementById('agentsTableBody').innerHTML = renderAgentsTableRows(filtered, dogs);
+      clearTimeout(agentDebounce);
+      const val = e.target.value;
+      agentDebounce = setTimeout(() => {
+        const q = val.toLowerCase().trim();
+        const filtered = allUsers.filter(u =>
+          (u.name || '').toLowerCase().includes(q) ||
+          (u.placa || '').toLowerCase().includes(q) ||
+          (u.rank || '').toLowerCase().includes(q)
+        );
+        document.getElementById('agentsTableBody').innerHTML = renderAgentsTableRows(filtered, dogs);
+      }, 130);
     });
   }
 }
@@ -2968,15 +2985,23 @@ function renderDogsSection(container) {
     openModal('modalNewDog');
   });
 
-  document.getElementById('searchDogsInput').addEventListener('input', (e) => {
-    const q = e.target.value.toLowerCase();
-    const filtered = dogs.filter(d =>
-      d.name.toLowerCase().includes(q) ||
-      d.tag.toLowerCase().includes(q) ||
-      d.specialty.toLowerCase().includes(q)
-    );
-    document.getElementById('dogsTableBody').innerHTML = renderDogsTableRows(filtered);
-  });
+  const searchDInput = document.getElementById('searchDogsInput');
+  if (searchDInput) {
+    let dogDebounce = null;
+    searchDInput.addEventListener('input', (e) => {
+      clearTimeout(dogDebounce);
+      const val = e.target.value;
+      dogDebounce = setTimeout(() => {
+        const q = val.toLowerCase().trim();
+        const filtered = dogs.filter(d =>
+          d.name.toLowerCase().includes(q) ||
+          d.tag.toLowerCase().includes(q) ||
+          d.specialty.toLowerCase().includes(q)
+        );
+        document.getElementById('dogsTableBody').innerHTML = renderDogsTableRows(filtered);
+      }, 130);
+    });
+  }
 }
 window.renderDogsSection = renderDogsSection;
 
@@ -2986,7 +3011,7 @@ function renderDogsTableRows(dogs) {
     <tr>
       <td>
         <div style="display:flex; align-items:center; gap:0.75rem;">
-          <img src="${d.photo}" style="width:40px; height:40px; border-radius:8px; object-fit:cover; border:1px solid var(--border-tactical);" alt="${d.name}">
+          <img src="${d.photo}" style="width:40px; height:40px; border-radius:8px; object-fit:cover; border:1px solid var(--border-tactical);" alt="${d.name}" loading="lazy" decoding="async" onerror="this.src='assets/images/emblem.jpg'">
           <div>
             <strong style="color:#fff; font-family:var(--font-tactical); font-size:1rem;">${d.name}</strong>
             <div style="font-family:var(--font-headline); font-size:0.75rem; color:var(--police-cyan);">${d.tag}</div>
@@ -6586,7 +6611,7 @@ function renderSingleUniformCard(u, isJef) {
       <div class="vestimenta-img-wrap" onclick="openImageLightbox('${safeImg}', '${escapeHtml(u.title)}')" style="
         position: relative; height: 230px; overflow: hidden; background: #000; cursor: pointer;
       " title="Haz clic para ampliar la fotografía">
-        <img src="${safeImg}" alt="${escapeHtml(u.title)}" onerror="this.src='assets/images/k9_patrol_officers.jpg'" style="
+        <img src="${safeImg}" alt="${escapeHtml(u.title)}" loading="lazy" decoding="async" onerror="this.src='assets/images/k9_patrol_officers.jpg'" style="
           width: 100%; height: 100%; object-fit: cover; object-position: center 30%;
           transition: transform 0.4s ease;
         " class="vestimenta-img">
