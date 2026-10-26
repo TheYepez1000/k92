@@ -39,7 +39,7 @@
     <div class="top-hud-container">
 
       <!-- Marca y Emblema de la Unidad K9 -->
-      <div class="brand-wrapper" onclick="switchMainView('inicio')" title="Ir a Inicio de la Unidad K9">
+      <div class="brand-wrapper" onclick="switchMainView('inicio')" data-tooltip="Inicio · Unidad K9 LSPD">
         <div class="brand-emblem-wrap">
           <img src="assets/images/emblem.jpg" alt="Emblema Oficial K9" class="brand-emblem-img">
         </div>
@@ -52,48 +52,90 @@
         </div>
       </div>
 
-      <!-- Pestañas de Navegación Principal Unificadas -->
+      <div class="top-hud-divider" aria-hidden="true"></div>
+
+      <!-- Pestañas de Navegación Principal Unificadas (Iconos con Tooltip) -->
       <nav class="nav-tabs" aria-label="Navegación principal">
-        <button class="nav-tab-btn active" data-view="inicio" id="navBtnInicio"
-          title="Normativa Oficial y Plantilla de Canes">
+        <button class="nav-tab-btn active" data-view="inicio" id="navBtnInicio" data-tooltip="Normativa Oficial">
           <span class="nav-icon">⚖️</span>
           <span class="nav-label">Normativa</span>
         </button>
-        <button class="nav-tab-btn" data-view="miembros" id="navBtnMiembros" title="Directorio Oficial de Miembros K9">
+        <button class="nav-tab-btn" data-view="miembros" id="navBtnMiembros" data-tooltip="Directorio de Miembros">
           <span class="nav-icon">👥</span>
           <span class="nav-label">Miembros</span>
         </button>
-        <button class="nav-tab-btn" data-view="ascensos" id="navBtnAscensos"
-          title="Tablón Oficial de Ascensos de Jefatura">
+        <button class="nav-tab-btn" data-view="ascensos" id="navBtnAscensos" data-tooltip="Tablón de Ascensos">
           <span class="nav-icon">🎖️</span>
           <span class="nav-label">Ascensos</span>
         </button>
-        <button class="nav-tab-btn" data-view="condecoraciones" id="navBtnCondecoraciones"
-          title="Condecoraciones & Distinciones Policiales">
+        <button class="nav-tab-btn" data-view="condecoraciones" id="navBtnCondecoraciones" data-tooltip="Condecoraciones & Medallas">
           <span class="nav-icon">🏅</span>
           <span class="nav-label">Condecoraciones</span>
         </button>
-        <button class="nav-tab-btn" data-view="perfil" id="navBtnPerfil"
-          title="Expediente Personal & Despacho con Jefatura">
+        <button class="nav-tab-btn" data-view="tareas" id="navBtnTareas" data-tooltip="Centro de Tareas">
+          <span class="nav-icon">📋</span>
+          <span class="nav-label">Tareas</span>
+          <span class="nav-badge-mini" id="navTasksBadge" style="display:none;">0</span>
+        </button>
+        <button class="nav-tab-btn" data-view="perfil" id="navBtnPerfil" data-tooltip="Mi Perfil de Agente">
           <span class="nav-icon">🐕</span>
           <span class="nav-label">Mi Perfil</span>
         </button>
-        <button class="nav-tab-btn jefatura-tab" data-view="jefatura" id="navBtnJefatura"
-          title="Centro de Mando de Jefatura K9">
+        <button class="nav-tab-btn jefatura-tab" data-view="jefatura" id="navBtnJefatura" data-tooltip="Panel de Jefatura K9">
           <span class="nav-icon">👑</span>
           <span class="nav-label">Jefatura</span>
-          <span class="nav-lock-mini" title="Acceso Exclusivo de Mandos">🔒</span>
+          <span class="nav-lock-mini" style="display:none;">🔒</span>
         </button>
       </nav>
 
-      <!-- Cluster Derecho: Indicador Cloud, Audio y Auth -->
+      <div class="top-hud-divider" aria-hidden="true"></div>
+
+      <!-- Cluster Derecho: Buscador Global, Notificaciones, Indicador Cloud, Audio y Auth -->
       <div class="top-hud-right">
-        <div class="tactical-live-status" onclick="openModal('modalCloudSync')" style="cursor:pointer;"
-          title="Ver estado de sincronización en la nube">
-          <span class="pulse-dot" id="cloudSyncDot"></span>
+        <!-- Buscador Global Trigger -->
+        <button class="top-search-trigger-btn" id="globalSearchTriggerBtn" data-tooltip="Buscador Global (Ctrl + K)">
+          <span class="search-icon">🔍</span>
+          <span class="search-text">Buscar...</span>
+          <kbd class="search-kbd">Ctrl K</kbd>
+        </button>
+
+        <!-- Centro de Notificaciones -->
+        <div class="notification-hud-wrapper" id="notificationHudWrap">
+          <button class="notification-bell-btn" id="notificationBellBtn" data-tooltip="Centro de Notificaciones">
+            <span class="bell-icon">🔔</span>
+            <span class="notification-badge" id="notificationBadge" style="display:none;">0</span>
+          </button>
+          <div class="notification-dropdown-panel" id="notificationDropdownPanel" style="display:none;">
+            <div class="notif-panel-header">
+              <div class="notif-header-title">
+                <span class="notif-header-icon">🔔</span>
+                <span class="notif-header-text font-tactical">CENTRO DE NOTIFICACIONES</span>
+                <span class="notif-unread-count" id="notifHeaderCount">0 sin leer</span>
+              </div>
+              <div class="notif-header-actions">
+                <button class="notif-action-btn" id="notifMarkAllReadBtn" title="Marcar todas como leídas">✓ Leer todas</button>
+                <button class="notif-action-btn" id="notifClearReadBtn" title="Eliminar leídas">🗑️ Limpiar</button>
+              </div>
+            </div>
+            <div class="notif-filters-bar">
+              <button class="notif-filter-chip active" data-filter="todas">Todas</button>
+              <button class="notif-filter-chip" data-filter="unread">No leídas</button>
+              <button class="notif-filter-chip" data-filter="tareas">Tareas</button>
+              <button class="notif-filter-chip" data-filter="agenda">Agenda</button>
+              <button class="notif-filter-chip" data-filter="formacion">Formación</button>
+              <button class="notif-filter-chip" data-filter="avisos">Avisos</button>
+            </div>
+            <div class="notif-items-list" id="notifItemsList">
+              <!-- Renderizado dinámicamente -->
+            </div>
+          </div>
+        </div>
+
+        <div class="tactical-live-status" data-tooltip="Terminal Policial K9 · En Línea">
+          <span class="pulse-dot dot-online" id="cloudSyncDot"></span>
           <span id="cloudSyncLabel">EN LÍNEA</span>
         </div>
-        <button class="audio-toggle-btn sound-on" id="audioToggleBtn" title="Activar/Silenciar Radio Táctica">
+        <button class="audio-toggle-btn sound-on" id="audioToggleBtn" data-tooltip="Sonidos de Radio Táctica">
           <span>🔊</span>
         </button>
         <div id="authControlsWrap">
@@ -114,56 +156,93 @@
          ================================================================ -->
     <section class="view-container active" id="view-inicio">
 
-      <!-- Hero Banner Táctico -->
-      <div class="k9-hero-banner">
-        <img src="assets/images/hero_dog.jpg" alt="Patrulla Canina K9" class="hero-background-img">
-        <div class="hero-content">
-          <div class="hero-text-block">
-            <div class="hero-pill-tag">
-              <span>★</span> SECCIÓN ESPECIAL DE GUÍAS CANINOS Y ADIESTRAMIENTO
-            </div>
-            <h1 class="hero-title font-gobold">
-              UNIDAD CANINA DE INTERVENCIÓN TÁCTICA
-            </h1>
-            <p class="hero-description">
-              Portal central de coordinación de la División K9. Espacio oficial para la gestión del servicio de
-              jefatura, seguimiento del adiestramiento canino, partes semanales de servicio, custodia veterinaria y
-              condecoraciones al mérito policial.
-            </p>
-            <div class="hero-actions-row" id="heroActionsRow">
-              <button class="btn-tactical btn-tactical-primary" onclick="switchGeneralSubtab('normativas')">
-                <span>⚖️</span> Ver Normativas Oficiales
-              </button>
-              <button class="btn-tactical btn-tactical-gold" onclick="switchGeneralSubtab('galeria')">
-                <span>🐕</span> Plantilla de Canes K9
-              </button>
-              <button class="btn-tactical btn-tactical-outline" onclick="window.K9Auth.initiateDiscordOAuth()">
-                <span>✦</span> Iniciar Sesión con Discord
-              </button>
-            </div>
+      <!-- Hero Banner Cinemático Estilo Raycast (DESIGN (1).md) -->
+      <div class="k9-hero-banner raycast-hero">
+        <!-- Imagen de Fondo Cinemática Generada: Policías K9, Perro y Patrulla -->
+        <div class="hero-backdrop-img-wrap" aria-hidden="true">
+          <img src="assets/images/k9_patrol_officers.jpg" alt="Patrulla K9 y Oficiales con Perro de Intervención" class="hero-backdrop-img" />
+          <div class="hero-backdrop-overlay"></div>
+        </div>
+
+        <!-- Haces de Luces Diagonales Neón en Perspectiva (Raycast Atmospheric Beams) -->
+        <div class="raycast-hero-beams" aria-hidden="true">
+          <div class="beam-glow-wash"></div>
+          <div class="beam-diagonal beam-4"></div>
+          <div class="beam-diagonal beam-1"></div>
+          <div class="beam-diagonal beam-2"></div>
+          <div class="beam-diagonal beam-3"></div>
+          <div class="beam-diagonal beam-5"></div>
+        </div>
+
+        <!-- Contenedor Centrado de Contenido -->
+        <div class="hero-content raycast-hero-content">
+          <div class="hero-eyebrow-pill">
+            <span class="eyebrow-symbol">★</span>
+            <span>SECCIÓN ESPECIAL DE GUÍAS CANINOS & ADIESTRAMIENTO</span>
           </div>
 
-          <!-- Métricas en Vivo de la Unidad -->
-          <div class="hero-stats-panel">
-            <div class="hero-stat-card">
-              <div class="hero-stat-value" id="heroCountAgents">4</div>
-              <div class="hero-stat-label">Agentes en la Unidad K9</div>
-            </div>
-            <div class="hero-stat-card stat-gold">
-              <div class="hero-stat-value" id="heroCountDogs">5</div>
-              <div class="hero-stat-label">Canes Operativos</div>
-            </div>
-            <div class="hero-stat-card">
-              <div class="hero-stat-value" id="heroCountReports">3</div>
-              <div class="hero-stat-label">Informes Semanales</div>
-            </div>
-            <div class="hero-stat-card stat-gold">
-              <div class="hero-stat-value" id="heroCountPatrol">1,375h</div>
-              <div class="hero-stat-label">Horas Patrulladas K9</div>
-            </div>
+          <h1 class="hero-title raycast-headline font-gobold">
+            UNIDAD CANINA DE INTERVENCIÓN TÁCTICA
+          </h1>
+
+          <p class="hero-description raycast-subtext">
+            Portal central de coordinación táctica para la División K9. Espacio oficial para la gestión del servicio,
+            seguimiento del adiestramiento canino, partes semanales, régimen disciplinario y control de jefatura.
+          </p>
+
+          <!-- Fila de Acciones Principales (Centrada) -->
+          <div class="hero-actions-row raycast-actions-row" id="heroActionsRow">
+            <button class="btn-tactical btn-tactical-primary" onclick="window.K9Auth.initiateDiscordOAuth()">
+              <span>✦</span> Iniciar Sesión con Discord
+            </button>
+            <button class="btn-tactical btn-tactical-outline" onclick="switchGeneralSubtab('normativas')">
+              <span>⚖️</span> Ver Normativas Oficiales
+            </button>
+            <button class="btn-tactical btn-tactical-ghost" onclick="switchGeneralSubtab('galeria')">
+              <span>🐕</span> Plantilla de Canes K9
+            </button>
+          </div>
+
+          <!-- Metadata Monospace Técnica Estilo Raycast -->
+          <div class="hero-meta-strip">
+            <span class="meta-item">v2.4.1</span>
+            <span class="meta-sep">|</span>
+            <span class="meta-item">DIVISIÓN CANINA OPERATIVA</span>
+            <span class="meta-sep">|</span>
+            <span class="meta-item">TERMINAL EN LÍNEA</span>
+          </div>
+
+          <!-- Enlace Rápido Destacado -->
+          <div class="hero-quick-link-pill" onclick="switchGeneralSubtab('anuncios')">
+            <span class="quick-pill-tag">TABLÓN K9</span>
+            <span class="quick-pill-text">Anuncios de Jefatura y Órdenes del Día</span>
+            <span class="quick-pill-arrow">→</span>
+          </div>
+        </div>
+
+        <!-- Métricas Tácticas Raycast (Grid Key-Shadow) -->
+        <div class="hero-stats-panel raycast-stats-panel">
+          <div class="hero-stat-card raycast-stat-card">
+            <div class="hero-stat-value font-tactical" id="heroCountAgents">4</div>
+            <div class="hero-stat-label">Agentes en la Unidad K9</div>
+          </div>
+          <div class="hero-stat-card raycast-stat-card stat-gold">
+            <div class="hero-stat-value font-tactical" id="heroCountDogs">5</div>
+            <div class="hero-stat-label">Canes Operativos</div>
+          </div>
+          <div class="hero-stat-card raycast-stat-card">
+            <div class="hero-stat-value font-tactical" id="heroCountReports">3</div>
+            <div class="hero-stat-label">Informes Semanales</div>
+          </div>
+          <div class="hero-stat-card raycast-stat-card stat-gold">
+            <div class="hero-stat-value font-tactical" id="heroCountPatrol">1,375h</div>
+            <div class="hero-stat-label">Horas Patrulladas K9</div>
           </div>
         </div>
       </div>
+
+      <!-- Resumen Táctico del Centro de Tareas del Agente -->
+      <div id="homeTaskSummaryWidget" style="margin-bottom: 2rem;"></div>
 
       <!-- Sub-navegación General (Normativas, Manuales, Canes, Anuncios) -->
       <div class="subnav-tabs-row" id="generalSubnavRow" style="margin-bottom: 2rem;">
@@ -194,6 +273,13 @@
          ================================================================ -->
     <section class="view-container" id="view-condecoraciones">
       <!-- Renderizado dinámicamente por app.js (renderDecorationsSection) -->
+    </section>
+
+    <!-- ================================================================
+         VISTA: CENTRO DE TAREAS OPERATIVAS K9
+         ================================================================ -->
+    <section class="view-container" id="view-tareas">
+      <!-- Renderizado dinámicamente por app.js (renderTasksCenter) -->
     </section>
 
     <!-- ================================================================
@@ -395,55 +481,8 @@
     </div>
   </div>
 
-  <!-- MODAL: SINCRONIZACIÓN EN LA NUBE MULTI-USUARIO -->
-  <div class="tactical-modal-overlay" id="modalCloudSync">
-    <div class="tactical-modal-card">
-      <div class="modal-header-tactical">
-        <div class="modal-title-tactical">
-          <span>☁️</span> SINCRONIZACIÓN EN TIEMPO REAL EN LA NUBE
-        </div>
-        <button type="button" class="modal-close-btn" onclick="closeModal('modalCloudSync')">✕</button>
-      </div>
-      <div class="modal-body-tactical">
-        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.75rem;">
-          Todos los cambios (agentes, solicitudes de canes, comunicados, informes y expedientes) se sincronizan
-          automáticamente en la nube para que cualquier usuario o administrador los vea en vivo.
-        </p>
 
-        <div
-          style="background:rgba(0,0,0,0.3); border:1px solid var(--border-tactical); border-radius:8px; padding:1rem; margin-bottom:1rem;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
-            <span style="font-size:0.8rem; color:var(--text-muted);">ESTADO DEL ENLACE:</span>
-            <span id="syncModalStatusBadge"
-              style="font-family:var(--font-tactical); font-size:0.75rem; color:var(--tactical-green); background:rgba(0,230,118,0.15); padding:0.2rem 0.6rem; border-radius:12px; border:1px solid var(--tactical-green);">
-              ● ACTIVO / EN LÍNEA
-            </span>
-          </div>
-          <div class="form-group-tactical" style="margin-bottom:0.6rem;">
-            <label class="form-label-tactical" for="syncEndpointInput">ENDPOINT DE SINCRONIZACIÓN CLOUD</label>
-            <input type="text" id="syncEndpointInput" class="form-input-tactical"
-              placeholder="Predeterminado: /api/sync o URL de Firebase">
-          </div>
-          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-            <button type="button" class="btn-tactical btn-tactical-gold btn-tactical-sm" id="btnForceSyncNow">
-              🔄 Sincronizar Ahora
-            </button>
-            <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" id="btnSaveSyncEndpoint">
-              💾 Guardar Servidor
-            </button>
-          </div>
-        </div>
 
-        <div
-          style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-subtle); padding-top:1rem; flex-wrap:wrap; gap:0.5rem;">
-          <span style="font-size:0.75rem; color:var(--text-subtle);">Sincronización continua cada 5 segundos</span>
-          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" id="btnExportSyncData">
-            📋 Copiar Respaldo JSON
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- MODAL: NUEVO INFORME SEMANAL -->
   <div class="tactical-modal-overlay" id="modalNewReport">
@@ -550,10 +589,11 @@
             <div class="form-group-tactical">
               <label class="form-label-tactical" for="agentRank">RANGO EN LA DIVISIÓN</label>
               <select id="agentRank" class="form-select-tactical">
-                <option value="Oficial Guía Canino">Oficial Guía Canino</option>
-                <option value="Instructor & Guía Canino">Instructor & Guía Canino</option>
-                <option value="Coordinador Operativo">Coordinador Operativo</option>
                 <option value="Aspirante K9">Aspirante K9</option>
+                <option value="Agente Guia" selected>Agente Guia</option>
+                <option value="Instructor K9">Instructor K9</option>
+                <option value="Subcoordinador K9">Subcoordinador K9</option>
+                <option value="Coordinador K9">Coordinador K9</option>
               </select>
             </div>
             <div class="form-group-tactical">
@@ -827,10 +867,12 @@
             <div class="form-group-tactical">
               <label class="form-label-tactical" for="annPrioritySelect">PRIORIDAD / TIPO</label>
               <select id="annPrioritySelect" class="form-select-tactical">
-                <option value="OFICIAL">OFICIAL</option>
-                <option value="URGENTE">URGENTE</option>
-                <option value="IMPORTANTE">IMPORTANTE</option>
-                <option value="INFORMATIVO">INFORMATIVO</option>
+                <option value="OFICIAL">🛡️ COMUNICADO OFICIAL</option>
+                <option value="URGENTE">🚨 OPERATIVO URGENTE</option>
+                <option value="IMPORTANTE">⚠️ IMPORTANTE</option>
+                <option value="FORMACION">📖 ADIESTRAMIENTO / FORMACIÓN</option>
+                <option value="CANINO">🐾 SERVICIO CANINO & SALUD</option>
+                <option value="INFORMATIVO">ℹ️ INFORMATIVO</option>
               </select>
             </div>
           </div>
@@ -1056,10 +1098,12 @@
             <div class="form-group-tactical">
               <label class="form-label-tactical" for="editAnnPriority">PRIORIDAD / TIPO</label>
               <select id="editAnnPriority" class="form-select-tactical">
-                <option value="OFICIAL">OFICIAL</option>
-                <option value="URGENTE">URGENTE</option>
-                <option value="IMPORTANTE">IMPORTANTE</option>
-                <option value="INFORMATIVO">INFORMATIVO</option>
+                <option value="OFICIAL">🛡️ COMUNICADO OFICIAL</option>
+                <option value="URGENTE">🚨 OPERATIVO URGENTE</option>
+                <option value="IMPORTANTE">⚠️ IMPORTANTE</option>
+                <option value="FORMACION">📖 ADIESTRAMIENTO / FORMACIÓN</option>
+                <option value="CANINO">🐾 SERVICIO CANINO & SALUD</option>
+                <option value="INFORMATIVO">ℹ️ INFORMATIVO</option>
               </select>
             </div>
           </div>
@@ -1324,11 +1368,10 @@
             <div class="form-group-tactical">
               <label class="form-label-tactical" for="editMemberRank">RANGO OFICIAL</label>
               <select id="editMemberRank" class="form-select-tactical" required>
-                <option value="Jefe de División K9">Jefe de División K9</option>
-                <option value="Subjefe de División K9">Subjefe de División K9</option>
-                <option value="Coordinador Operativo">Coordinador Operativo</option>
-                <option value="Instructor & Guía Canino">Instructor & Guía Canino</option>
-                <option value="Oficial Guía Canino">Oficial Guía Canino</option>
+                <option value="Coordinador K9">Coordinador K9</option>
+                <option value="Subcoordinador K9">Subcoordinador K9</option>
+                <option value="Instructor K9">Instructor K9</option>
+                <option value="Agente Guia">Agente Guia</option>
                 <option value="Aspirante K9">Aspirante K9</option>
               </select>
             </div>
@@ -1437,11 +1480,11 @@
             <div class="form-group-tactical">
               <label class="form-label-tactical" for="promoNewRank">NUEVO RANGO ASIGNADO</label>
               <select id="promoNewRank" class="form-select-tactical" required>
-                <option value="Oficial Guía Canino">Oficial Guía Canino</option>
-                <option value="Instructor & Guía Canino">Instructor & Guía Canino</option>
-                <option value="Coordinador Operativo">Coordinador Operativo</option>
-                <option value="Subjefe de División K9">Subjefe de División K9</option>
-                <option value="Jefe de División K9">Jefe de División K9</option>
+                <option value="Aspirante K9">Aspirante K9</option>
+                <option value="Agente Guia">Agente Guia</option>
+                <option value="Instructor K9">Instructor K9</option>
+                <option value="Subcoordinador K9">Subcoordinador K9</option>
+                <option value="Coordinador K9">Coordinador K9</option>
               </select>
             </div>
           </div>
@@ -1502,6 +1545,191 @@
     </div>
   </div>
 
+  <!-- ====================================================================
+       MODAL: BUSCADOR GLOBAL K9 (SPOTLIGHT)
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalGlobalSearch">
+    <div class="tactical-modal-card search-modal-card">
+      <div class="search-modal-header">
+        <span class="search-input-icon">🔍</span>
+        <input type="text" id="globalSearchInput" class="global-search-input" placeholder="Buscar miembros, canes, normativas, cursos, tareas..." autocomplete="off">
+        <kbd class="search-esc-kbd" onclick="closeModal('modalGlobalSearch')">ESC</kbd>
+      </div>
+      <div class="search-category-filter-bar" id="searchCategoryBar">
+        <button class="search-cat-btn active" data-cat="todos">Todos</button>
+        <button class="search-cat-btn" data-cat="miembros">Miembros</button>
+        <button class="search-cat-btn" data-cat="canes">Canes</button>
+        <button class="search-cat-btn" data-cat="normativas">Normativas</button>
+        <button class="search-cat-btn" data-cat="formacion">Formación</button>
+        <button class="search-cat-btn" data-cat="tareas">Tareas & Agenda</button>
+        <button class="search-cat-btn" data-cat="anuncios">Anuncios</button>
+      </div>
+      <div class="search-results-container" id="globalSearchResultsList">
+        <!-- Renderizado dinámicamente -->
+      </div>
+      <div class="search-modal-footer" style="padding: 0.65rem 1.4rem; background: rgba(0,0,0,0.4); border-top: 1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; color:var(--text-subtle);">
+        <span>Navega con <kbd style="background:rgba(255,255,255,0.1); padding:0.1rem 0.35rem; border-radius:3px;">↑</kbd> <kbd style="background:rgba(255,255,255,0.1); padding:0.1rem 0.35rem; border-radius:3px;">↓</kbd> y pulsa <kbd style="background:rgba(255,255,255,0.1); padding:0.1rem 0.35rem; border-radius:3px;">Enter</kbd> para abrir</span>
+        <span style="color:var(--police-cyan);">Unidad K9 • Búsqueda Segura</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: FORMULARIO DE TAREA (CREAR / EDITAR)
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalTaskForm">
+    <div class="tactical-modal-card" style="max-width: 580px;">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical" id="modalTaskTitle">
+          <span>📋</span> NUEVA TAREA OPERATIVA
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalTaskForm')">✕</button>
+      </div>
+      <form id="taskForm" onsubmit="window.handleTaskFormSubmit(event)">
+        <input type="hidden" id="taskFormId" value="">
+        <div class="modal-body-tactical" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1.15rem;">
+          
+          <div class="tactical-form-group">
+            <label class="tactical-form-label" for="taskTitleInput">Título de la Tarea *</label>
+            <input type="text" id="taskTitleInput" class="tactical-input" required placeholder="Ej: Revisión veterinaria periódica de Thor" maxlength="120">
+          </div>
+
+          <div class="tactical-form-group">
+            <label class="tactical-form-label" for="taskDescInput">Descripción / Instrucciones Operativas</label>
+            <textarea id="taskDescInput" class="tactical-input" rows="3" placeholder="Detalles, ubicación o requerimientos para cumplir la tarea..."></textarea>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="tactical-form-group">
+              <label class="tactical-form-label" for="taskCategoryInput">Categoría</label>
+              <select id="taskCategoryInput" class="tactical-input">
+                <option value="General">General</option>
+                <option value="Patrulla">Patrulla K9</option>
+                <option value="Adiestramiento">Adiestramiento</option>
+                <option value="Veterinaria">Veterinaria / Canes</option>
+                <option value="Administrativo">Administrativo</option>
+                <option value="Oficial">Oficial / Jefatura</option>
+              </select>
+            </div>
+
+            <div class="tactical-form-group">
+              <label class="tactical-form-label" for="taskPriorityInput">Prioridad *</label>
+              <select id="taskPriorityInput" class="tactical-input">
+                <option value="baja">Baja</option>
+                <option value="normal" selected>Normal</option>
+                <option value="alta">Alta</option>
+                <option value="urgente">Urgente</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="tactical-form-group">
+              <label class="tactical-form-label" for="taskStatusInput">Estado</label>
+              <select id="taskStatusInput" class="tactical-input">
+                <option value="pendiente" selected>Pendiente</option>
+                <option value="en_progreso">En Progreso</option>
+                <option value="completada">Completada</option>
+                <option value="cancelada">Cancelada</option>
+              </select>
+            </div>
+
+            <div class="tactical-form-group">
+              <label class="tactical-form-label" for="taskDueDateInput">Fecha Límite (Opcional)</label>
+              <input type="datetime-local" id="taskDueDateInput" class="tactical-input">
+            </div>
+          </div>
+
+          <div id="taskOfficialCheckboxWrap" style="display:none; padding: 0.75rem; background: rgba(255, 184, 0, 0.08); border: 1px solid var(--border-gold); border-radius: 8px;">
+            <label style="display:flex; align-items:center; gap:0.55rem; cursor:pointer; color:var(--tactical-gold); font-size:0.85rem; font-weight:600;">
+              <input type="checkbox" id="taskIsOfficialInput">
+              <span>👑 Tarea Oficial de Mando (Asignada por Jefatura / Visible a toda la Unidad)</span>
+            </label>
+          </div>
+
+        </div>
+        <div class="modal-footer-tactical">
+          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="closeModal('modalTaskForm')">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-tactical btn-tactical-primary btn-tactical-sm" id="btnSaveTask">
+            💾 Guardar Tarea
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: FORMULARIO DE EVENTO / AGENDAR TAREA
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalEventForm">
+    <div class="tactical-modal-card" style="max-width: 540px;">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical" id="modalEventTitle">
+          <span>📅</span> CONVERTIR A EVENTO EN AGENDA
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalEventForm')">✕</button>
+      </div>
+      <form id="eventForm" onsubmit="window.handleEventFormSubmit(event)">
+        <input type="hidden" id="eventFormTaskId" value="">
+        <input type="hidden" id="eventFormEventId" value="">
+        <div class="modal-body-tactical" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1.15rem;">
+          <div class="tactical-form-group">
+            <label class="tactical-form-label" for="eventTitleInput">Título del Evento *</label>
+            <input type="text" id="eventTitleInput" class="tactical-input" required placeholder="Ej: Convocatoria Operativa">
+          </div>
+          <div class="tactical-form-group">
+            <label class="tactical-form-label" for="eventDateInput">Fecha y Hora de la Convocatoria *</label>
+            <input type="datetime-local" id="eventDateInput" class="tactical-input" required>
+          </div>
+          <div class="tactical-form-group">
+            <label class="tactical-form-label" for="eventLocationInput">Lugar / Sector Táctico</label>
+            <input type="text" id="eventLocationInput" class="tactical-input" placeholder="Ej: Caniles Centrales / Sector Norte">
+          </div>
+          <div class="tactical-form-group">
+            <label class="tactical-form-label" for="eventNotesInput">Notas Adicionales</label>
+            <textarea id="eventNotesInput" class="tactical-input" rows="2" placeholder="Detalles de asistencia o material..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer-tactical">
+          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="closeModal('modalEventForm')">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-tactical btn-tactical-gold btn-tactical-sm">
+            📅 Programar en Agenda
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       WIDGET FLOTANTE INFERIOR DERECHO (ESTILO "MEET GLAZE" DE RAYCAST)
+       ==================================================================== -->
+  <aside class="raycast-floating-card" id="raycastFloatingPromo" role="complementary" aria-label="Aviso destacado de Jefatura">
+    <button class="floating-card-close" onclick="document.getElementById('raycastFloatingPromo').style.display='none'" title="Cerrar aviso" aria-label="Cerrar">×</button>
+    <div class="floating-card-body">
+      <div class="floating-card-thumb">
+        <img src="assets/images/emblem.jpg" alt="Emblema K9" class="floating-card-thumb-img">
+      </div>
+      <div class="floating-card-info">
+        <div class="floating-card-title">Aviso de Jefatura</div>
+        <div class="floating-card-desc">Comunicados oficiales, directrices operativas y agenda canina en tiempo real.</div>
+        <button class="floating-card-pill" onclick="switchGeneralSubtab('anuncios'); document.getElementById('raycastFloatingPromo').style.display='none';">
+          <span>Ver Comunicados</span>
+          <span>→</span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Configuración de Base de Datos Privada (Protegida por .gitignore) -->
+  <script src="js/config.local.js"></script>
+  <!-- Base de Datos Supabase (PostgreSQL en la Nube y WebSockets en Vivo) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+
   <!-- Scripts de la Aplicación -->
   <script src="js/data.js"></script>
   <script src="js/sync.js"></script>
@@ -1509,7 +1737,6 @@
   <script src="js/webhook.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/app.js"></script>
-  <!-- Actualizacion K9 Supabase -->
 </body>
 
 </html>

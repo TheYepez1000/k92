@@ -11,9 +11,34 @@ const SYNC_STORAGE_KEYS = {
   SYNC_STATUS: 'k9_cloud_status'
 };
 
+// Acceso seguro a las claves de persistencia sin colisión de identificadores const
+const K9_SYNC_KEYS = (typeof window !== 'undefined' && window.STORAGE_KEYS) || (typeof STORAGE_KEYS !== 'undefined' ? STORAGE_KEYS : {
+  CURRENT_USER: 'k9_current_user_id',
+  USERS: 'k9_data_users',
+  DOGS: 'k9_data_dogs',
+  REPORTS: 'k9_data_reports',
+  DISCIPLINARY: 'k9_data_disciplinary',
+  BADGES: 'k9_data_badges',
+  ANNOUNCEMENTS: 'k9_data_announcements',
+  NORMATIVES: 'k9_data_normatives',
+  MANUALS: 'k9_data_manuals',
+  DISCORD_CONFIG: 'k9_discord_config',
+  DOG_REQUESTS: 'k9_dog_requests',
+  AGENT_PRESETS: 'k9_agent_presets',
+  CHAT_MESSAGES: 'k9_chat_messages',
+  PROMOTIONS: 'k9_data_promotions',
+  LOGS: 'k9_data_logs',
+  EXPELLED_USERS: 'k9_expelled_users',
+  LAST_UPDATE: 'k9_last_local_update',
+  TASKS: 'k9_data_tasks',
+  EVENTS: 'k9_data_events',
+  NOTIFICATIONS: 'k9_data_notifications'
+});
+
 class K9CloudSyncManager {
   constructor() {
     this._inFlight = false;
+    this._isApplyingRemote = false;
     this._pushTimer = null;
     this._pollInterval = null;
     this._lastRemoteHash = null;
@@ -44,14 +69,18 @@ class K9CloudSyncManager {
   }
 
   init() {
-    // 1. Sincronizar inmediatamente al cargar la página
-    setTimeout(() => this.pull(), 500);
+    // 1. Sincronizar al cargar la página
+    setTimeout(() => this.pull(true), 250);
 
-    // 2. Intervalo de sondeo continuo (cada 5 segundos)
+    // 2. Intervalo de sondeo continuo de resguardo (cada 25s, no saturar si Realtime está activo)
     if (this._pollInterval) clearInterval(this._pollInterval);
     this._pollInterval = setInterval(() => {
+      // Si Supabase Realtime ya está activo y escuchando WebSockets, no saturar con peticiones continuas
+      if (window.K9Supabase && window.K9Supabase.isConnected && window.K9Supabase.channel) {
+        return;
+      }
       this.pull();
-    }, 5000);
+    }, 25000);
 
     // 3. Sincronizar al volver a la pestaña activa del navegador
     document.addEventListener('visibilitychange', () => {
@@ -83,28 +112,57 @@ class K9CloudSyncManager {
       promotions: window.K9Store.getPromotions() || [],
       logs: window.K9Store.getLogs() || [],
       expelledUserIds: window.K9Store.getExpelledUserIds() || [],
+      tasks: (window.K9Store.getRawTasks ? window.K9Store.getRawTasks() : (window.K9Store.get(K9_SYNC_KEYS.TASKS) || [])),
+      events: (window.K9Store.getRawEvents ? window.K9Store.getRawEvents() : (window.K9Store.get(K9_SYNC_KEYS.EVENTS) || [])),
+      notifications: (window.K9Store.getRawNotifications ? window.K9Store.getRawNotifications() : (window.K9Store.get(K9_SYNC_KEYS.NOTIFICATIONS) || [])),
       webhookUrl: localStorage.getItem('k9_webhook_url') || null
     };
   }
 
   // Guardar en la nube con debounce para no saturar peticiones
   schedulePush() {
+    if (this._isApplyingRemote) return; // NUNCA disparar push si estamos aplicando datos entrantes de la nube
     if (this._pushTimer) clearTimeout(this._pushTimer);
     this._pushTimer = setTimeout(() => {
       this.push();
-    }, 350);
+    }, 500);
   }
 
   // Enviar cambios locales a la nube
   async push() {
-    const endpoint = this.getEndpointUrl();
-    if (!endpoint) return;
-
+    if (this._isApplyingRemote) return;
     const payload = this.exportPayload();
     if (!payload) return;
 
+    let supabaseOk = false;
+    // 1. Prioridad: Supabase PostgreSQL (si está configurado)
+    if (window.K9Supabase && window.K9Supabase.isConfigured()) {
+      try {
+        this.setStatus('syncing');
+        supabaseOk = await window.K9Supabase.push(payload);
+        if (supabaseOk) {
+          this._lastRemoteHash = JSON.stringify(payload);
+          localStorage.setItem(SYNC_STORAGE_KEYS.LAST_SYNC, Date.now().toString());
+          this.setStatus('online');
+          console.log('[K9CloudSync] Datos sincronizados en Supabase PostgreSQL');
+          return; // Éxito con Supabase: omitir endpoint REST para no duplicar peticiones
+        }
+      } catch (err) {
+        console.warn('[K9CloudSync] Error al subir a Supabase:', err);
+      }
+    }
+
+    // 2. Endpoint REST o Firebase complementario / fallback
+    const endpoint = this.getEndpointUrl();
+    if (!endpoint) {
+      if (!supabaseOk && (!window.K9Supabase || !window.K9Supabase.isConfigured())) {
+        this.setStatus('offline');
+      }
+      return;
+    }
+
     try {
-      this.setStatus('syncing');
+      if (!supabaseOk) this.setStatus('syncing');
       const isFirebase = endpoint.includes('firebaseio.com') || endpoint.endsWith('.json');
       const response = await fetch(endpoint, {
         method: isFirebase ? 'PUT' : 'POST',
@@ -119,21 +177,46 @@ class K9CloudSyncManager {
         this._lastRemoteHash = JSON.stringify(payload);
         localStorage.setItem(SYNC_STORAGE_KEYS.LAST_SYNC, Date.now().toString());
         this.setStatus('online');
-        console.log('[K9CloudSync] Datos sincronizados en la nube con éxito');
-      } else {
+        console.log('[K9CloudSync] Datos sincronizados en endpoint REST con éxito');
+      } else if (!supabaseOk) {
         this.setStatus('warning');
       }
     } catch (err) {
-      console.warn('[K9CloudSync] No se pudo enviar actualización a la nube:', err.message);
-      this.setStatus('offline');
+      if (!supabaseOk) {
+        console.warn('[K9CloudSync] No se pudo enviar actualización a la nube:', err.message);
+        this.setStatus('offline');
+      }
     }
   }
 
   // Descargar cambios más recientes de la nube
   async pull(force = false) {
     if (this._inFlight) return;
+
+    // 1. Prioridad: Consultar Supabase PostgreSQL
+    if (window.K9Supabase && window.K9Supabase.isConfigured()) {
+      this._inFlight = true;
+      try {
+        const remoteData = await window.K9Supabase.pull(force);
+        this._inFlight = false;
+        if (remoteData) {
+          this.setStatus('online');
+          return;
+        }
+      } catch (err) {
+        this._inFlight = false;
+        console.warn('[K9CloudSync] Fallo en pull de Supabase:', err);
+      }
+    }
+
+    // 2. Fallback: Endpoint REST / Firebase
     const endpoint = this.getEndpointUrl();
-    if (!endpoint) return;
+    if (!endpoint) {
+      if (window.K9Supabase && window.K9Supabase.isConfigured()) {
+        this.setStatus(window.K9Supabase.isConnected ? 'online' : 'offline');
+      }
+      return;
+    }
 
     this._inFlight = true;
     try {
@@ -170,129 +253,230 @@ class K9CloudSyncManager {
 
   // Fusionar datos de la nube en localStorage sin alterar la sesión local del usuario
   mergeRemoteData(remote) {
-    if (!window.K9Store) return;
-    let hasChanges = false;
+    if (!remote || typeof remote !== 'object' || !window.K9Store) return;
 
-    // 0. Sincronizar agentes expulsados (refleja expulsiones y readmisiones)
-    if (Array.isArray(remote.expelledUserIds)) {
-      window.K9Store.save(STORAGE_KEYS.EXPELLED_USERS, remote.expelledUserIds);
+    // Comprobar si los datos recibidos son idénticos a los últimos que ya procesamos
+    const remoteHash = JSON.stringify(remote);
+    if (this._lastRemoteHash && remoteHash === this._lastRemoteHash) {
+      return;
     }
-    const expelled = window.K9Store.getExpelledUserIds();
+    this._lastRemoteHash = remoteHash;
 
-    // 1. Presets de Jefatura
-    if (Array.isArray(remote.presets)) {
-      const validPresets = remote.presets.filter(p => !expelled.includes(p.discordId));
-      localStorage.setItem(STORAGE_KEYS.AGENT_PRESETS, JSON.stringify(validPresets));
-      hasChanges = true;
-    }
+    this._isApplyingRemote = true;
+    try {
+      let hasChanges = false;
 
-    // 2. Directorio completo de usuarios (preservando estados)
-    if (Array.isArray(remote.users)) {
-      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(remote.users));
-      hasChanges = true;
-    }
+      // Obtener información del usuario autenticado en este navegador
+      const currentUid = window.K9Store.getCurrentUserId();
+      const currentDiscordId = localStorage.getItem('k9_auth_discord_id');
+      const localUsers = window.K9Store.getAllUsers ? window.K9Store.getAllUsers() : [];
+      const localCurrent = localUsers.find(u => (currentUid && u.id === currentUid) || (currentDiscordId && u.discordId === currentDiscordId));
 
-    // 3. Solicitudes de canes (binomios)
-    if (Array.isArray(remote.dogRequests)) {
-      localStorage.setItem(STORAGE_KEYS.DOG_REQUESTS, JSON.stringify(remote.dogRequests));
-      hasChanges = true;
-    }
-
-    // 4. Canes K9 (Si la nube tiene datos, los aplica; si está vacía, local nutre a la nube)
-    if (Array.isArray(remote.dogs) && remote.dogs.length > 0) {
-      localStorage.setItem(STORAGE_KEYS.DOGS, JSON.stringify(remote.dogs));
-      hasChanges = true;
-    } else {
-      const localDogs = window.K9Store.getDogs();
-      if (localDogs && localDogs.length > 0) {
-        this.schedulePush();
+      // 0. Sincronizar agentes expulsados (NUNCA expulsar al usuario que acaba de iniciar sesión activamente)
+      if (Array.isArray(remote.expelledUserIds)) {
+        let cleanExpelled = [...remote.expelledUserIds];
+        if (localCurrent) {
+          cleanExpelled = cleanExpelled.filter(id => id !== localCurrent.id && id !== localCurrent.discordId);
+        }
+        // Inmunidad permanente para IDs de Jefatura Suprema
+        cleanExpelled = cleanExpelled.filter(id => id !== '578954458948698122' && id !== '760159743616090164');
+        localStorage.setItem(K9_SYNC_KEYS.EXPELLED_USERS, JSON.stringify(cleanExpelled));
       }
-    }
+      const expelled = window.K9Store.getExpelledUserIds();
 
-    // 5. Comunicados oficiales
-    if (Array.isArray(remote.announcements)) {
-      localStorage.setItem(STORAGE_KEYS.ANNOUNCEMENTS, JSON.stringify(remote.announcements));
-      hasChanges = true;
-    }
+      // 1. Presets de Jefatura
+      if (Array.isArray(remote.presets)) {
+        const validPresets = remote.presets.filter(p => !expelled.includes(p.discordId));
+        localStorage.setItem(K9_SYNC_KEYS.AGENT_PRESETS, JSON.stringify(validPresets));
+        hasChanges = true;
+      }
 
-    // 6. Expedientes disciplinarios
-    if (Array.isArray(remote.disciplinary)) {
-      localStorage.setItem(STORAGE_KEYS.DISCIPLINARY, JSON.stringify(remote.disciplinary));
-      hasChanges = true;
-    }
+      // 2. Directorio de usuarios: FUSIÓN INTELIGENTE (jamás borrar ni desloguear al usuario actual)
+      if (Array.isArray(remote.users)) {
+        const userMap = new Map();
+        remote.users.forEach(u => {
+          if (u && u.id) userMap.set(u.id, { ...u });
+        });
 
-    // 7. Chat de Despacho con Jefatura
-    if (Array.isArray(remote.chatMessages)) {
-      const localChat = window.K9Store.getChatMessages();
-      const chatMap = new Map();
-      localChat.forEach(m => { if (m.id) chatMap.set(m.id, m); });
-      remote.chatMessages.forEach(m => { if (m.id) chatMap.set(m.id, m); });
-      const mergedChat = Array.from(chatMap.values()).slice(-60);
-      localStorage.setItem(STORAGE_KEYS.CHAT_MESSAGES, JSON.stringify(mergedChat));
-      hasChanges = true;
-      window.dispatchEvent(new CustomEvent('k9_chat_updated', { detail: mergedChat }));
-    }
+        // Si tenemos un usuario local autenticado, garantizar que permanece en la lista con sesión activa
+        if (localCurrent && localCurrent.id) {
+          let remoteMatch = userMap.get(localCurrent.id);
+          if (!remoteMatch && localCurrent.discordId) {
+            remoteMatch = Array.from(userMap.values()).find(u => u.discordId && u.discordId === localCurrent.discordId);
+          }
 
-    // 8. Informes de patrulla
-    if (Array.isArray(remote.reports)) {
-      localStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify(remote.reports));
-      hasChanges = true;
-    }
+          if (remoteMatch) {
+            remoteMatch.isExpelled = false;
+            if (localCurrent.avatar) remoteMatch.avatar = localCurrent.avatar;
+            if (localCurrent.discordUsername) remoteMatch.discordUsername = localCurrent.discordUsername;
+            if (localCurrent.discordId) remoteMatch.discordId = localCurrent.discordId;
+            if (localCurrent.name && !remoteMatch.name) remoteMatch.name = localCurrent.name;
 
-    // 9. Normativas Oficiales
-    if (Array.isArray(remote.normatives) && remote.normatives.length > 0) {
-      localStorage.setItem(STORAGE_KEYS.NORMATIVES, JSON.stringify(remote.normatives));
-      hasChanges = true;
-    } else {
-      const localNorms = window.K9Store.getNormatives();
-      if (localNorms && localNorms.length > 0) this.schedulePush();
-    }
-
-    // 10. Manuales de Instrucción
-    if (Array.isArray(remote.manuals) && remote.manuals.length > 0) {
-      localStorage.setItem(STORAGE_KEYS.MANUALS, JSON.stringify(remote.manuals));
-      hasChanges = true;
-    } else {
-      const localMans = window.K9Store.getManuals();
-      if (localMans && localMans.length > 0) this.schedulePush();
-    }
-
-    // 11. Ascensos Oficiales
-    if (Array.isArray(remote.promotions)) {
-      localStorage.setItem(STORAGE_KEYS.PROMOTIONS, JSON.stringify(remote.promotions));
-      hasChanges = true;
-    }
-
-    // 12. Logs tácticos internos: Asignación directa autoritativa (permite purgar sin que resuciten)
-    if (Array.isArray(remote.logs)) {
-      localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(remote.logs));
-      hasChanges = true;
-    }
-
-    // 13. Webhook URL si está configurada en la nube
-    if (remote.webhookUrl && remote.webhookUrl.startsWith('https://discord.com/api/webhooks/')) {
-      localStorage.setItem('k9_webhook_url', remote.webhookUrl);
-    }
-
-    if (hasChanges) {
-      // Si el usuario actual está logueado, sincronizar su rango si Jefatura lo cambió remotamente
-      if (window.K9Auth) {
-        const currentUser = window.K9Auth.getCurrentUser();
-        if (currentUser) {
-          const freshUsers = window.K9Store.getUsers();
-          const fresh = freshUsers.find(u => u.id === currentUser.id);
-          if (fresh) {
-            window.K9Auth.loadUser();
+            // Si Jefatura ya asignó rango/placa en la nube, adoptar la decisión de Jefatura:
+            if (remoteMatch.rank && remoteMatch.rank !== 'Sin Rango Asignado' && !remoteMatch.rank.includes('Pendiente')) {
+              localCurrent.rank = remoteMatch.rank;
+              localCurrent.placa = remoteMatch.placa || localCurrent.placa;
+              localCurrent.isJefatura = !!remoteMatch.isJefatura;
+              localCurrent.isVerified = !!remoteMatch.isVerified;
+              localCurrent.permissions = remoteMatch.permissions || localCurrent.permissions;
+            } else if (localCurrent.rank && localCurrent.rank !== '🚫 Expulsado de la Unidad') {
+              remoteMatch.rank = localCurrent.rank;
+              remoteMatch.placa = localCurrent.placa || remoteMatch.placa;
+              remoteMatch.isJefatura = !!localCurrent.isJefatura;
+              remoteMatch.isVerified = !!localCurrent.isVerified;
+            }
+            window.K9Store.setCurrentUser(remoteMatch.id, remoteMatch.discordId);
+            userMap.set(remoteMatch.id, remoteMatch);
+          } else {
+            // El usuario se acaba de autenticar y la nube aún no lo tenía
+            userMap.set(localCurrent.id, localCurrent);
           }
         }
+
+        // Preservar cualquier otro usuario local que no esté en la nube todavía
+        localUsers.forEach(lu => {
+          if (lu && lu.id && !userMap.has(lu.id)) {
+            const matchDiscord = Array.from(userMap.values()).some(ru => ru.discordId && lu.discordId && ru.discordId === lu.discordId);
+            if (!matchDiscord) userMap.set(lu.id, lu);
+          }
+        });
+
+        const mergedUsers = Array.from(userMap.values());
+        localStorage.setItem(K9_SYNC_KEYS.USERS, JSON.stringify(mergedUsers));
+        hasChanges = true;
       }
 
-      // Refrescar vistas activas en tiempo real
-      if (typeof window.setupAuthUI === 'function') window.setupAuthUI();
-      if (typeof window.renderCurrentView === 'function') window.renderCurrentView();
+      // 3. Solicitudes de canes (binomios)
+      if (Array.isArray(remote.dogRequests)) {
+        localStorage.setItem(K9_SYNC_KEYS.DOG_REQUESTS, JSON.stringify(remote.dogRequests));
+        hasChanges = true;
+      }
 
-      // Disparar evento para componentes
-      window.dispatchEvent(new CustomEvent('k9:cloud-sync', { detail: remote }));
+      // 4. Canes K9
+      if (Array.isArray(remote.dogs) && remote.dogs.length > 0) {
+        localStorage.setItem(K9_SYNC_KEYS.DOGS, JSON.stringify(remote.dogs));
+        hasChanges = true;
+      }
+
+      // 5. Comunicados oficiales
+      if (Array.isArray(remote.announcements)) {
+        localStorage.setItem(K9_SYNC_KEYS.ANNOUNCEMENTS, JSON.stringify(remote.announcements));
+        hasChanges = true;
+      }
+
+      // 6. Expedientes disciplinarios
+      if (Array.isArray(remote.disciplinary)) {
+        localStorage.setItem(K9_SYNC_KEYS.DISCIPLINARY, JSON.stringify(remote.disciplinary));
+        hasChanges = true;
+      }
+
+      // 7. Chat de Despacho con Jefatura
+      if (Array.isArray(remote.chatMessages)) {
+        const localChat = window.K9Store.getChatMessages();
+        const chatMap = new Map();
+        localChat.forEach(m => { if (m.id) chatMap.set(m.id, m); });
+        remote.chatMessages.forEach(m => { if (m.id) chatMap.set(m.id, m); });
+        const mergedChat = Array.from(chatMap.values()).slice(-60);
+        localStorage.setItem(K9_SYNC_KEYS.CHAT_MESSAGES, JSON.stringify(mergedChat));
+        hasChanges = true;
+        window.dispatchEvent(new CustomEvent('k9_chat_updated', { detail: mergedChat }));
+      }
+
+      // 8. Informes de patrulla
+      if (Array.isArray(remote.reports)) {
+        localStorage.setItem(K9_SYNC_KEYS.REPORTS, JSON.stringify(remote.reports));
+        hasChanges = true;
+      }
+
+      // 9. Normativas Oficiales
+      if (Array.isArray(remote.normatives) && remote.normatives.length > 0) {
+        localStorage.setItem(K9_SYNC_KEYS.NORMATIVES, JSON.stringify(remote.normatives));
+        hasChanges = true;
+      }
+
+      // 10. Manuales de Instrucción
+      if (Array.isArray(remote.manuals) && remote.manuals.length > 0) {
+        localStorage.setItem(K9_SYNC_KEYS.MANUALS, JSON.stringify(remote.manuals));
+        hasChanges = true;
+      }
+
+      // 11. Ascensos Oficiales
+      if (Array.isArray(remote.promotions)) {
+        localStorage.setItem(K9_SYNC_KEYS.PROMOTIONS, JSON.stringify(remote.promotions));
+        hasChanges = true;
+      }
+
+      // 12. Logs tácticos internos
+      if (Array.isArray(remote.logs)) {
+        localStorage.setItem(K9_SYNC_KEYS.LOGS, JSON.stringify(remote.logs));
+        hasChanges = true;
+      }
+
+      // 13. Webhook URL si está configurada en la nube
+      if (remote.webhookUrl && remote.webhookUrl.startsWith('https://discord.com/api/webhooks/')) {
+        localStorage.setItem('k9_webhook_url', remote.webhookUrl);
+      }
+
+      // 14. Centro de Tareas
+      if (Array.isArray(remote.tasks)) {
+        localStorage.setItem(K9_SYNC_KEYS.TASKS, JSON.stringify(remote.tasks));
+        hasChanges = true;
+      }
+
+      // 15. Eventos y Agenda
+      if (Array.isArray(remote.events)) {
+        localStorage.setItem(K9_SYNC_KEYS.EVENTS, JSON.stringify(remote.events));
+        hasChanges = true;
+      }
+
+      // 16. Centro de Notificaciones
+      if (Array.isArray(remote.notifications)) {
+        localStorage.setItem(K9_SYNC_KEYS.NOTIFICATIONS, JSON.stringify(remote.notifications));
+        hasChanges = true;
+      }
+
+      if (hasChanges) {
+        // Si el usuario actual está logueado, sincronizar su rango si Jefatura lo cambió remotamente
+        if (window.K9Auth) {
+          const currentUser = window.K9Auth.getCurrentUser();
+          if (currentUser) {
+            const freshUsers = window.K9Store.getUsers();
+            const fresh = freshUsers.find(u => u.id === currentUser.id);
+            if (fresh) {
+              window.K9Auth.loadUser();
+            }
+          }
+        }
+
+        // Refrescar vistas activas en tiempo real
+        if (typeof window.setupAuthUI === 'function') window.setupAuthUI();
+        if (typeof window.renderCurrentView === 'function') window.renderCurrentView();
+        if (typeof window.updateLiveCounters === 'function') window.updateLiveCounters();
+
+        // Refrescar directorio de miembros si el elemento está presente
+        const membersCont = document.getElementById('view-miembros');
+        if (membersCont && typeof window.renderMembersDirectory === 'function') {
+          window.renderMembersDirectory(membersCont);
+        }
+
+        // Refrescar subtabs de Jefatura (Agentes y Canes) si están visibles
+        const jefaturaCont = document.getElementById('jefaturaSubtabContent');
+        if (jefaturaCont) {
+          const activeSubtab = document.querySelector('.subnav-pill-btn.jefatura-subnav.active');
+          if (activeSubtab) {
+            if (activeSubtab.dataset.subtab === 'agentes' && typeof window.renderAgentsSection === 'function') {
+              window.renderAgentsSection(jefaturaCont);
+            } else if (activeSubtab.dataset.subtab === 'canes' && typeof window.renderDogsSection === 'function') {
+              window.renderDogsSection(jefaturaCont);
+            }
+          }
+        }
+
+        // Disparar evento para componentes
+        window.dispatchEvent(new CustomEvent('k9:cloud-sync', { detail: remote }));
+      }
+    } finally {
+      this._isApplyingRemote = false;
     }
   }
 
@@ -306,6 +490,11 @@ class K9CloudSyncManager {
   }
 
   updateIndicatorUI() {
+    if (window.K9Supabase && window.K9Supabase.isConfigured()) {
+      window.K9Supabase.updateIndicatorUI(this._status === 'online');
+      return;
+    }
+
     const dot = document.getElementById('cloudSyncDot');
     const label = document.getElementById('cloudSyncLabel');
     if (!dot) return;
@@ -328,4 +517,3 @@ class K9CloudSyncManager {
 
 // Instancia global
 window.K9CloudSync = new K9CloudSyncManager();
-/* Actualizacion K9 Supabase */

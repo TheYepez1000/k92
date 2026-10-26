@@ -2,11 +2,12 @@
  * UNIDAD CANINA K9 - API SERVERLESS DE SINCRONIZACIÓN EN LA NUBE (VERCEL)
  * Permite almacenar y sincronizar el estado global de la unidad K9 entre
  * múltiples navegadores, ordenadores y dispositivos en tiempo real.
- *  <!-- Actualizacion K9 Supabase -->
+ *
  * Compatible con:
  * - Vercel KV / Upstash Redis (variables KV_REST_API_URL o UPSTASH_REDIS_REST_URL)
  * - Persistencia local /tmp y en memoria con soporte de expulsiones permanentes y purga de logs
  */
+
 const fs = require('fs');
 const path = require('path');
 
@@ -371,17 +372,46 @@ function mergeDatasets(existing, incoming) {
   } else if (!Array.isArray(result.expelledUserIds)) {
     result.expelledUserIds = [];
   }
+  // Asegurar que el ID oficial de Jefatura (578954458948698122) nunca permanezca en la lista de expulsados
+  result.expelledUserIds = result.expelledUserIds.filter(id => id !== '578954458948698122' && id !== '760159743616090164');
   const expelledSet = new Set(result.expelledUserIds);
 
   // 1. Directorio de usuarios: autoritativo si incoming lo envía
   if (Array.isArray(incoming.users)) {
     result.users = incoming.users;
+    result.users.forEach(u => {
+      if (u.discordId === '578954458948698122' || u.discordId === '760159743616090164') {
+        u.isExpelled = false;
+        u.isJefatura = true;
+        u.isVerified = true;
+        u.rank = 'Coordinador K9';
+        u.placa = 'K-01';
+        u.serviceStatus = 'En Activo / Mando';
+      }
+    });
   }
 
   // 2. Presets de Jefatura
   if (Array.isArray(incoming.presets)) {
     result.presets = incoming.presets.filter(p => !expelledSet.has(p.discordId));
+  } else if (!Array.isArray(result.presets)) {
+    result.presets = [];
   }
+  const adminIds = ['578954458948698122', '760159743616090164'];
+  adminIds.forEach(admId => {
+    if (!result.presets.some(p => p.discordId === admId)) {
+      result.presets.unshift({
+        discordId: admId,
+        discordUsername: 'Jefatura K9',
+        placa: 'K-01',
+        rank: 'Coordinador K9',
+        isJefatura: true,
+        permissions: ['*'],
+        serviceStatus: 'En Activo / Mando',
+        createdAt: '25/10/2026'
+      });
+    }
+  });
 
   // 3. Canes K9
   if (Array.isArray(incoming.dogs) && incoming.dogs.length > 0) {
@@ -447,6 +477,21 @@ function mergeDatasets(existing, incoming) {
   // 14. Webhook URL
   if (incoming.webhookUrl) {
     result.webhookUrl = incoming.webhookUrl;
+  }
+
+  // 15. Centro de Tareas
+  if (Array.isArray(incoming.tasks)) {
+    result.tasks = incoming.tasks;
+  }
+
+  // 16. Eventos y Agenda de Servicio
+  if (Array.isArray(incoming.events)) {
+    result.events = incoming.events;
+  }
+
+  // 17. Centro de Notificaciones
+  if (Array.isArray(incoming.notifications)) {
+    result.notifications = incoming.notifications.slice(0, 100);
   }
 
   result.updatedAt = incoming.updatedAt || Date.now();

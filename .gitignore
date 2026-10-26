@@ -1,0 +1,19 @@
+# Variables de entorno y credenciales protegidas
+.env
+.env.local
+.env.*.local
+js/config.local.js
+js/db-config.local.js
+
+# Dependencias y logs
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Archivos del sistema operativo y editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

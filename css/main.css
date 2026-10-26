@@ -1,7 +1,7 @@
 /* ==========================================================================
    UNIDAD CANINA K9 - SISTEMA TÁCTICO DE GESTIÓN & JEFATURA
-   DESIGN SYSTEM & CORE STYLES
-   Fuentes principales: GoBold & Conthrax
+   RAYCAST COMMAND-CENTER DESIGN SYSTEM (DESIGN (1).md)
+   Preserva: Colores tácticos (Cyan, Blue, Gold, Red) y Tipografías Oficiales (GoBold, Conthrax, Inter)
    ========================================================================== */
 
 /* Fuentes CDN y Fallbacks */
@@ -10,20 +10,36 @@
 @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  /* Tipografía Oficial Solicitada */
+  /* ========================================================================
+     RAYCAST DESIGN TOKENS (DESIGN (1).md)
+     ======================================================================== */
+  --color-void-black: #040506;
+  --color-ink: #07080a;
+  --color-obsidian: #111214;
+  --color-graphite: #1b1c1e;
+  --color-smoke: #6a6b6c;
+  --color-ash: #9c9c9d;
+  --color-mist: #e6e6e6;
+  --color-iron: #454647;
+  --color-slate: #2f3031;
+  --color-pure-white: #ffffff;
+  --color-coral-pulse: #ff6363;
+  --color-ember-hush: #452324;
+  --color-electric-sky: #63a1ff;
+  --color-cobalt-edge: #143ca3;
+  --color-deep-space: #02193b;
+  --border-raycast: #363739;
+
+  /* ========================================================================
+     TIPOGRAFÍA OFICIAL PRESERVADA
+     ======================================================================== */
   --font-tactical: 'Conthrax', 'Chakra Petch', monospace, sans-serif;
   --font-headline: 'Gobold', 'Barlow Condensed', sans-serif;
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
-  /* Paleta Táctica Policial de Alta Gama */
-  --bg-deep: #050811;
-  --bg-primary: #0a0f1d;
-  --bg-surface: #10182b;
-  --bg-surface-elevated: #16223b;
-  --bg-card: rgba(16, 24, 43, 0.75);
-  --bg-card-hover: rgba(22, 34, 59, 0.9);
-
-  /* Acentos Tácticos */
+  /* ========================================================================
+     PALETA DE COLORES PRESERVADA DE LA WEB K9
+     ======================================================================== */
   --police-blue: #0066ff;
   --police-blue-glow: rgba(0, 102, 255, 0.45);
   --police-cyan: #00e5ff;
@@ -38,24 +54,43 @@
   --discord-blurple: #5865F2;
   --discord-blurple-hover: #4752c4;
 
-  /* Bordes y Líneas Tácticas */
+  /* Superficies Raycast adaptadas */
+  --bg-deep: var(--color-void-black);
+  --bg-primary: var(--color-ink);
+  --bg-surface: var(--color-obsidian);
+  --bg-surface-elevated: #16181d;
+  --bg-card: rgba(7, 8, 10, 0.88);
+  --bg-card-hover: rgba(17, 18, 20, 0.95);
+
+  /* Bordes Hairline de Precisión */
   --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-tactical: rgba(0, 229, 255, 0.22);
+  --border-tactical: rgba(255, 255, 255, 0.12);
+  --border-cyan: rgba(0, 229, 255, 0.28);
   --border-gold: rgba(255, 183, 3, 0.35);
   --border-danger: rgba(255, 42, 95, 0.35);
 
   /* Texto */
   --text-main: #f0f4fc;
-  --text-muted: #8899b5;
-  --text-subtle: #52637e;
-  --text-highlight: #ffffff;
+  --text-muted: var(--color-ash);
+  --text-subtle: var(--color-smoke);
+  --text-highlight: var(--color-pure-white);
 
-  /* Efectos y Sombras */
-  --glass-blur: blur(14px);
-  --shadow-elevation: 0 10px 30px -5px rgba(0, 0, 0, 0.8), 0 0 1px 1px rgba(255, 255, 255, 0.05);
-  --shadow-glow-cyan: 0 0 20px rgba(0, 229, 255, 0.25);
-  --shadow-glow-gold: 0 0 20px rgba(255, 183, 3, 0.25);
-  --shadow-glow-red: 0 0 20px rgba(255, 42, 95, 0.3);
+  /* Sombras Táctiles Raycast (Key Shadow Stack & Elevation) */
+  --shadow-key: rgba(255, 255, 255, 0.05) 0px 1px 0px 0px inset, rgba(255, 255, 255, 0.16) 0px 0px 0px 1px, rgba(0, 0, 0, 0.4) 0px -1px 0px 0px inset;
+  --shadow-key-hover: rgba(255, 255, 255, 0.08) 0px 1px 0px 0px inset, rgba(255, 255, 255, 0.24) 0px 0px 0px 1px, rgba(0, 0, 0, 0.5) 0px -1px 0px 0px inset;
+  --shadow-btn-mist: rgba(0, 0, 0, 0.03) 0px 7px 3px 0px, rgba(0, 0, 0, 0.25) 0px 4px 4px 0px;
+  --shadow-glass-nav: rgba(0, 0, 0, 0.55) 0px 10px 36px 0px, rgba(255, 255, 255, 0.06) 0px 1px 0px 0px inset;
+  --shadow-elevation: var(--shadow-key);
+  --shadow-glow-cyan: 0 0 25px rgba(0, 229, 255, 0.25);
+  --glass-blur: blur(28px);
+
+  /* Radii según DESIGN (1).md */
+  --radius-cards: 16px;
+  --radius-largecards: 20px;
+  --radius-pills: 9999px;
+  --radius-buttons: 8px;
+  --radius-inputs: 8px;
+  --radius-badges: 6px;
 
   /* Transiciones */
   --transition-fast: 0.15s ease;
@@ -64,9 +99,7 @@
 }
 
 /* Reset y Base */
-*,
-*::before,
-*::after {
+*, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -82,7 +115,7 @@ body {
   font-family: var(--font-body);
   color: var(--text-main);
   background-color: var(--bg-deep);
-  background-image:
+  background-image: 
     radial-gradient(circle at 50% 0%, rgba(0, 102, 255, 0.12) 0%, transparent 65%),
     radial-gradient(circle at 100% 50%, rgba(0, 229, 255, 0.05) 0%, transparent 50%),
     linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
@@ -99,27 +132,21 @@ body {
 body::before {
   content: "";
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0; width: 100%; height: 100%;
   pointer-events: none;
-  background: repeating-linear-gradient(0deg,
-      rgba(0, 0, 0, 0.15),
-      rgba(0, 0, 0, 0.15) 1px,
-      transparent 1px,
-      transparent 2px);
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15),
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
   opacity: 0.35;
   z-index: 9999;
 }
 
 /* Utilidades Tipográficas Oficiales: GOBOLD para todos los títulos */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6,
+h1, h2, h3, h4, h5, h6,
 .hero-title,
 .section-title,
 .section-main-title,
@@ -144,53 +171,63 @@ h6,
 /* ==========================================================================
    HEADER HUD TÁCTICO & NAVEGACIÓN SUPERIOR
    ========================================================================== */
+/* ==========================================================================
+   FLOATING GLASS NAVIGATION BAR (RAYCAST STYLE)
+   ========================================================================== */
 .top-hud-bar {
-  background: rgba(8, 14, 28, 0.92);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-bottom: 1px solid rgba(0, 229, 255, 0.16);
   position: sticky;
-  top: 0;
+  top: 14px;
   z-index: 1000;
-  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.7);
+  margin: 14px auto 1.5rem auto;
+  width: fit-content;
+  max-width: calc(100vw - 32px);
+  background: rgba(7, 8, 10, 0.88);
+  backdrop-filter: blur(48px);
+  -webkit-backdrop-filter: blur(48px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  box-shadow: 
+    0 12px 36px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .top-hud-container {
-  max-width: 1560px;
-  margin: 0 auto;
-  padding: 0.6rem 1.25rem;
+  padding: 0.35rem 0.75rem 0.35rem 0.95rem;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  justify-content: center;
+  gap: 0.65rem;
+  width: auto;
 }
 
 /* Marca / Logo Izquierda */
 .brand-wrapper {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.65rem;
   text-decoration: none;
   cursor: pointer;
   flex-shrink: 0;
 }
 
 .brand-emblem-wrap {
-  width: 44px;
-  height: 44px;
-  position: relative;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.35);
+  transition: transform 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  padding: 2px;
-  background: linear-gradient(135deg, rgba(0, 229, 255, 0.4), rgba(255, 183, 3, 0.3));
-  box-shadow: 0 0 12px rgba(0, 102, 255, 0.35);
-  transition: transform 0.2s ease;
+  background: var(--color-ink);
 }
 
 .brand-wrapper:hover .brand-emblem-wrap {
-  transform: scale(1.05);
+  transform: scale(1.08);
 }
 
 .brand-emblem-img {
@@ -206,37 +243,32 @@ h6,
 }
 
 .brand-title {
-  font-family: 'Barlow Condensed', 'Inter', sans-serif !important;
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: #fff;
+  font-family: var(--font-headline) !important;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-pure-white);
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.4rem;
   line-height: 1.1;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
 .brand-sub-pill {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 0.68rem;
-  font-weight: 700;
-  background: rgba(0, 229, 255, 0.15);
-  border: 1px solid rgba(0, 229, 255, 0.4);
+  font-family: var(--font-body);
+  font-size: 0.65rem;
+  font-weight: 600;
+  background: rgba(0, 229, 255, 0.12);
+  border: 1px solid rgba(0, 229, 255, 0.35);
   color: var(--police-cyan);
   padding: 0.05rem 0.4rem;
-  border-radius: 4px;
-  letter-spacing: 0.08em;
+  border-radius: 9999px;
+  letter-spacing: 0.04em;
 }
 
 .brand-subtitle {
-  font-family: 'Barlow Condensed', sans-serif !important;
-  font-size: 0.72rem;
-  font-weight: 500;
-  color: #64748b;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  display: none; /* Look minimal y limpio como Raycast */
 }
 
 /* ==========================================================================
@@ -249,10 +281,10 @@ h6,
   transform: translate(-50%, -50%);
   width: min(720px, 85vw);
   height: min(720px, 85vw);
-  background: radial-gradient(circle at center, rgba(0, 229, 255, 0.05) 0%, transparent 65%),
-    url('../assets/images/emblem.jpg') center/contain no-repeat;
-  opacity: 0.055;
-  filter: grayscale(20%) drop-shadow(0 0 60px rgba(0, 102, 255, 0.4));
+  background: radial-gradient(circle at center, rgba(0, 229, 255, 0.03) 0%, transparent 65%),
+              url('../assets/images/emblem.jpg') center/contain no-repeat;
+  opacity: 0.035;
+  filter: grayscale(40%) drop-shadow(0 0 60px rgba(0, 102, 255, 0.3));
   pointer-events: none;
   z-index: 0;
   border-radius: 50%;
@@ -263,56 +295,81 @@ h6,
   z-index: 1;
 }
 
-/* Actualizacion K9 Supabase */
-
 /* ==========================================================================
-   NAVEGACIÓN PRINCIPAL (UNIFORME & ELEGANTE)
+   NAVEGACIÓN PRINCIPAL (GHOST LINKS ESTILO RAYCAST)
    ========================================================================== */
+/* ==========================================================================
+   NAVEGACIÓN PRINCIPAL (SOLO ICONOS CON TOOLTIP TÁCTICO FLOTANTE)
+   ========================================================================== */
+.top-hud-divider {
+  width: 1px;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.12);
+  margin: 0 0.2rem;
+  flex-shrink: 0;
+}
+
 .nav-tabs {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
-  background: rgba(12, 19, 36, 0.85);
-  padding: 0.28rem 0.35rem;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  gap: 0.35rem;
+  background: transparent;
+  padding: 0;
+  border: none;
+  box-shadow: none;
 }
 
 .nav-tab-btn {
   background: transparent;
   border: 1px solid transparent;
-  color: #94a3b8;
-  font-family: 'Barlow Condensed', 'Inter', -apple-system, sans-serif !important;
-  font-size: 0.88rem;
-  font-weight: 600;
-  padding: 0.42rem 0.82rem;
-  border-radius: 7px;
+  color: var(--color-ash);
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  padding: 0;
+  border-radius: 50%;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 0.42rem;
-  transition: all 0.16s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  justify-content: center;
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   white-space: nowrap;
 }
 
 .nav-tab-btn .nav-icon {
-  font-size: 0.95rem;
+  font-size: 1.15rem;
   line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Ocultar texto para que SOLO se vean los iconos como pidió el usuario */
+.nav-tab-btn .nav-label,
+.nav-tab-btn .nav-lock-mini {
+  display: none !important;
 }
 
 .nav-tab-btn:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-pure-white);
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-1px);
+}
+
+.nav-tab-btn:hover .nav-icon {
+  transform: scale(1.15);
 }
 
 .nav-tab-btn.active {
-  color: #fff;
-  background: linear-gradient(135deg, rgba(0, 102, 255, 0.35), rgba(0, 229, 255, 0.22));
+  color: var(--color-pure-white);
+  background: rgba(0, 229, 255, 0.15);
   border: 1px solid rgba(0, 229, 255, 0.45);
-  box-shadow: 0 0 15px rgba(0, 102, 255, 0.25);
+  box-shadow: 
+    0 0 16px rgba(0, 229, 255, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
 .nav-tab-btn.jefatura-tab {
@@ -320,51 +377,209 @@ h6,
 }
 
 .nav-tab-btn.jefatura-tab:hover {
-  background: rgba(251, 191, 36, 0.08);
   color: #fde68a;
+  background: rgba(251, 191, 36, 0.14);
+  border-color: rgba(251, 191, 36, 0.4);
 }
 
 .nav-tab-btn.jefatura-tab.active {
   color: #fde68a;
-  background: linear-gradient(135deg, rgba(251, 191, 36, 0.24), rgba(245, 158, 11, 0.16));
-  border: 1px solid rgba(251, 191, 36, 0.45);
-  box-shadow: 0 0 15px rgba(251, 191, 36, 0.2);
+  background: rgba(251, 191, 36, 0.22);
+  border: 1px solid rgba(251, 191, 36, 0.6);
+  box-shadow: 
+    0 0 16px rgba(251, 191, 36, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
-.nav-lock-mini {
-  font-size: 0.7rem;
-  opacity: 0.75;
+.nav-tab-btn .nav-badge-mini {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  background: var(--police-cyan);
+  color: #000;
+  font-size: 0.62rem;
+  font-weight: 800;
+  min-width: 17px;
+  height: 17px;
+  line-height: 17px;
+  text-align: center;
+  border-radius: 9999px;
+  padding: 0 3px;
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.6);
+  border: 1px solid rgba(0, 0, 0, 0.4);
+  pointer-events: none;
 }
 
 /* Cluster Derecho: Utilidades, Sincronización y Auth */
 .top-hud-right {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.45rem;
   flex-shrink: 0;
+}
+
+.top-search-trigger-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--color-ash);
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 50%;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.top-search-trigger-btn .search-icon {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.top-search-trigger-btn .search-text,
+.top-search-trigger-btn .search-kbd {
+  display: none !important;
+}
+
+.top-search-trigger-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--color-pure-white);
+  border-color: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px);
+}
+
+.notification-bell-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--color-ash);
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.notification-bell-btn:hover {
+  color: var(--color-pure-white);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px);
 }
 
 .tactical-live-status {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  background: rgba(0, 230, 118, 0.06);
-  border: 1px solid rgba(0, 230, 118, 0.25);
-  padding: 0.35rem 0.75rem;
-  border-radius: 20px;
-  font-family: 'Barlow Condensed', 'Inter', sans-serif !important;
-  font-size: 0.74rem;
-  font-weight: 700;
-  color: var(--tactical-green);
+  gap: 0.35rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.25rem 0.6rem;
+  border-radius: 9999px;
+  font-family: var(--font-body) !important;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--police-cyan);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
+  position: relative;
 }
 
 .tactical-live-status:hover {
-  background: rgba(0, 230, 118, 0.12);
-  border-color: rgba(0, 230, 118, 0.45);
+  background: rgba(0, 229, 255, 0.08);
+  border-color: rgba(0, 229, 255, 0.3);
+}
+
+.audio-toggle-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--color-ash);
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.audio-toggle-btn:hover {
+  color: var(--color-pure-white);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   TOOLTIPS TÁCTICOS FLOTANTES (ESTILO RAYCAST — APARECEN ABAJO AL HACER HOVER)
+   ========================================================================== */
+[data-tooltip] {
+  position: relative;
+}
+
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-5px);
+  background: rgba(8, 10, 15, 0.96);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  color: #ffffff;
+  font-family: var(--font-body) !important;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 0.34rem 0.7rem;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.85),
+    0 2px 6px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.16s cubic-bezier(0.16, 1, 0.3, 1), transform 0.16s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.16s;
+  z-index: 999999;
+}
+
+[data-tooltip]::before {
+  content: "";
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-5px);
+  border-width: 0 5px 6px 5px;
+  border-style: solid;
+  border-color: transparent transparent rgba(255, 255, 255, 0.2) transparent;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.16s cubic-bezier(0.16, 1, 0.3, 1), transform 0.16s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.16s;
+  z-index: 1000000;
+}
+
+[data-tooltip]:hover::after,
+[data-tooltip]:hover::before {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
 }
 
 .pulse-dot {
@@ -377,65 +592,63 @@ h6,
 }
 
 @keyframes pulseGreen {
-
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 0.4;
-    transform: scale(0.8);
-  }
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
 }
 
 /* User Profile & Auth Controls */
 .auth-controls-wrap {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.65rem;
 }
 
+/* Botón Discord Login como botón de icono circular compacto */
 .discord-login-btn {
-  background: linear-gradient(135deg, var(--discord-blurple), #404eed);
-  color: #fff;
-  border: none;
-  font-family: var(--font-tactical);
-  font-size: 0.85rem;
-  font-weight: 600;
-  padding: 0.6rem 1.1rem;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  cursor: pointer;
-  box-shadow: 0 4px 15px rgba(88, 101, 242, 0.35);
-  transition: all var(--transition-fast);
-  text-transform: uppercase;
+  background: var(--color-mist) !important;
+  color: var(--color-void-black) !important;
+  border: none !important;
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  box-shadow: rgba(0, 0, 0, 0.25) 0px 4px 4px 0px !important;
+  transition: all var(--transition-fast) !important;
+  position: relative;
+}
+
+.discord-login-btn svg {
+  width: 19px !important;
+  height: 19px !important;
 }
 
 .discord-login-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(88, 101, 242, 0.5);
-  background: linear-gradient(135deg, #6774f4, #404eed);
+  transform: translateY(-1px) scale(1.06) !important;
+  background: #ffffff !important;
+  box-shadow: rgba(88, 101, 242, 0.35) 0px 0px 14px 0px !important;
 }
 
 .auth-user-badge {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  background: rgba(16, 24, 43, 0.85);
-  border: 1px solid var(--border-tactical);
-  padding: 0.35rem 0.65rem 0.35rem 0.4rem;
-  border-radius: 40px;
+  gap: 0.55rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  padding: 0.25rem 0.75rem 0.25rem 0.35rem;
+  border-radius: 9999px;
   cursor: pointer;
   position: relative;
-  transition: border-color var(--transition-fast);
+  transition: all var(--transition-fast);
 }
 
 .auth-user-badge:hover {
-  border-color: var(--police-cyan);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .auth-avatar-wrap {
@@ -543,15 +756,8 @@ h6,
 }
 
 @keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .dropdown-section-title {
@@ -663,15 +869,8 @@ h6,
 }
 
 @keyframes viewFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Footer Táctico */
@@ -737,7 +936,6 @@ h6,
   .top-hud-container {
     flex-wrap: wrap;
   }
-
   .nav-tabs {
     order: 3;
     width: 100%;
@@ -750,26 +948,20 @@ h6,
   .brand-title {
     font-size: 1.1rem;
   }
-
-  .brand-subtitle,
-  .tactical-live-status {
+  .brand-subtitle, .tactical-live-status {
     display: none;
   }
-
   .nav-tab-btn {
     font-size: 0.75rem;
     padding: 0.5rem 0.7rem;
   }
-
   .main-wrapper {
     padding: 1rem 0.75rem 3rem;
   }
-
   .footer-content {
     flex-direction: column;
     text-align: center;
   }
-
   .footer-meta {
     text-align: center;
   }
@@ -804,15 +996,8 @@ h6,
 }
 
 @keyframes pulseGlow {
-  0% {
-    opacity: 0.4;
-    transform: scale(0.96);
-  }
-
-  100% {
-    opacity: 1;
-    transform: scale(1.04);
-  }
+  0% { opacity: 0.4; transform: scale(0.96); }
+  100% { opacity: 1; transform: scale(1.04); }
 }
 
 .k9-centerpiece-ring {
@@ -835,13 +1020,8 @@ h6,
 }
 
 @keyframes rotateEmblemRing {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .k9-centerpiece-glow {
@@ -1112,18 +1292,22 @@ h6,
   border: 1px solid rgba(140, 160, 195, 0.3);
 }
 
+.ann-priority-formacion {
+  background: rgba(52, 211, 153, 0.18);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.4);
+}
+
+.ann-priority-canino {
+  background: rgba(56, 189, 248, 0.18);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+}
+
 @keyframes pulseTacticalRed {
-  0% {
-    box-shadow: 0 0 8px rgba(255, 42, 95, 0.3);
-  }
-
-  50% {
-    box-shadow: 0 0 18px rgba(255, 42, 95, 0.6);
-  }
-
-  100% {
-    box-shadow: 0 0 8px rgba(255, 42, 95, 0.3);
-  }
+  0% { box-shadow: 0 0 8px rgba(255, 42, 95, 0.3); }
+  50% { box-shadow: 0 0 18px rgba(255, 42, 95, 0.6); }
+  100% { box-shadow: 0 0 8px rgba(255, 42, 95, 0.3); }
 }
 
 .announcement-photo-wrap {
@@ -1244,7 +1428,7 @@ h6,
   height: 32px;
   border-radius: 6px;
   object-fit: contain;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0,0,0,0.5);
   border: 1px solid var(--tactical-gold);
   padding: 2px;
   cursor: pointer;
@@ -1348,3 +1532,196 @@ h6,
   padding: 0.15rem 0.5rem;
   border-radius: 4px;
 }
+
+/* ==========================================================================
+   WIDGET FLOTANTE INFERIOR DERECHO (ESTILO "MEET GLAZE" DE RAYCAST)
+   ========================================================================== */
+.raycast-floating-card {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 330px;
+  max-width: calc(100vw - 32px);
+  background: rgba(17, 18, 20, 0.94);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 1rem 1.15rem;
+  box-shadow: 
+    rgba(0, 0, 0, 0.65) 0px 14px 40px 0px,
+    rgba(255, 255, 255, 0.06) 0px 1px 0px 0px inset,
+    rgba(0, 229, 255, 0.12) 0px 0px 20px 0px;
+  z-index: 1000;
+  animation: raycastFloatIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: all 0.25s ease;
+}
+
+@keyframes raycastFloatIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.raycast-floating-card:hover {
+  border-color: rgba(0, 229, 255, 0.35);
+  box-shadow: 
+    rgba(0, 0, 0, 0.75) 0px 16px 48px 0px,
+    rgba(255, 255, 255, 0.1) 0px 1px 0px 0px inset,
+    rgba(0, 229, 255, 0.22) 0px 0px 25px 0px;
+  transform: translateY(-2px);
+}
+
+.floating-card-close {
+  position: absolute;
+  top: 9px;
+  right: 11px;
+  background: transparent;
+  border: none;
+  color: var(--color-smoke);
+  font-size: 1.15rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: color 0.15s ease;
+}
+
+.floating-card-close:hover {
+  color: var(--color-pure-white);
+}
+
+.floating-card-body {
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+}
+
+.floating-card-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: var(--color-ink);
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.6);
+}
+
+.floating-card-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.floating-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  flex: 1;
+}
+
+.floating-card-title {
+  font-family: var(--font-headline);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-pure-white);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.floating-card-desc {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  color: var(--color-ash);
+  line-height: 1.35;
+  margin: 0;
+}
+
+.floating-card-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--color-pure-white);
+  font-family: var(--font-body);
+  font-size: 0.74rem;
+  font-weight: 500;
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  margin-top: 0.4rem;
+  align-self: flex-start;
+  transition: all 0.15s ease;
+}
+
+.floating-card-pill:hover {
+  background: var(--color-mist);
+  color: var(--color-void-black);
+  border-color: var(--color-mist);
+}
+
+/* ==========================================================================
+   CARDS Y CONTENEDORES CON KEY-SHADOW DE RAYCAST
+   ========================================================================== */
+.tactical-card,
+.announcement-card,
+.directory-card,
+.report-card,
+.dog-card,
+.task-card,
+.table-container-tactical,
+.modal-content-tactical,
+.promotion-decree-card {
+  background: var(--color-ink) !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  border-radius: 16px !important;
+  box-shadow: 
+    rgba(255, 255, 255, 0.04) 0px 1px 0px 0px inset,
+    rgba(255, 255, 255, 0.14) 0px 0px 0px 1px,
+    rgba(0, 0, 0, 0.45) 0px -1px 0px 0px inset !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.tactical-card:hover,
+.announcement-card:hover,
+.directory-card:hover,
+.dog-card:hover {
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  box-shadow: 
+    rgba(255, 255, 255, 0.08) 0px 1px 0px 0px inset,
+    rgba(255, 255, 255, 0.22) 0px 0px 0px 1px,
+    rgba(0, 0, 0, 0.5) 0px -1px 0px 0px inset,
+    rgba(0, 0, 0, 0.6) 0px 12px 30px 0px !important;
+  transform: translateY(-2px);
+}
+
+/* Inputs estilo Well / Obsidian Recessed */
+input[type="text"],
+input[type="password"],
+input[type="search"],
+input[type="number"],
+input[type="url"],
+input[type="date"],
+input[type="datetime-local"],
+select,
+textarea {
+  background: var(--color-obsidian) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 8px !important;
+  color: var(--color-pure-white) !important;
+  font-family: var(--font-body) !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.45) !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--police-cyan) !important;
+  outline: none !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.45), 0 0 0 2px rgba(0, 229, 255, 0.2) !important;
+}
+
+
+
