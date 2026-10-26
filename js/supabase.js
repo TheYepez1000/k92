@@ -4,6 +4,9 @@
  * y suscripciones en tiempo real (WebSockets / Supabase Realtime).
  */
 
+const DEFAULT_SUPABASE_PROJECT_ID = 'lokfaliwnnfqmachndwv';
+const DEFAULT_SUPABASE_URL = 'https://lokfaliwnnfqmachndwv.supabase.co';
+
 const SUPABASE_STORAGE_KEYS = {
   URL: 'k9_supabase_url',
   ANON_KEY: 'k9_supabase_anon_key',
@@ -19,9 +22,22 @@ class K9SupabaseManager {
     this.init();
   }
 
+  normalizeUrl(raw) {
+    let clean = (raw || '').trim();
+    if (!clean) return DEFAULT_SUPABASE_URL;
+    if (!clean.startsWith('http://') && !clean.startsWith('https://')) {
+      if (/^[a-z0-9_-]+$/i.test(clean)) {
+        return `https://${clean}.supabase.co`;
+      }
+      return `https://${clean}`;
+    }
+    return clean;
+  }
+
   getConfig() {
+    const storedUrl = localStorage.getItem(SUPABASE_STORAGE_KEYS.URL);
     return {
-      url: (localStorage.getItem(SUPABASE_STORAGE_KEYS.URL) || '').trim(),
+      url: this.normalizeUrl(storedUrl || DEFAULT_SUPABASE_URL),
       key: (localStorage.getItem(SUPABASE_STORAGE_KEYS.ANON_KEY) || '').trim()
     };
   }
@@ -32,8 +48,9 @@ class K9SupabaseManager {
   }
 
   saveConfig(url, key) {
-    if (url && url.trim()) {
-      localStorage.setItem(SUPABASE_STORAGE_KEYS.URL, url.trim());
+    const cleanUrl = url && url.trim() ? this.normalizeUrl(url) : '';
+    if (cleanUrl) {
+      localStorage.setItem(SUPABASE_STORAGE_KEYS.URL, cleanUrl);
     } else {
       localStorage.removeItem(SUPABASE_STORAGE_KEYS.URL);
     }
@@ -215,7 +232,8 @@ class K9SupabaseManager {
     }
 
     try {
-      const tempClient = window.supabase.createClient(url.trim(), key.trim(), {
+      const cleanUrl = this.normalizeUrl(url);
+      const tempClient = window.supabase.createClient(cleanUrl, key.trim(), {
         auth: { persistSession: false, autoRefreshToken: false }
       });
 

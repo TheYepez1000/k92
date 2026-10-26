@@ -873,7 +873,7 @@ window.editMember = function (id) {
   document.getElementById('editMemberId').value = u.id;
   document.getElementById('editMemberName').value = u.name;
   document.getElementById('editMemberPlaca').value = u.placa;
-  document.getElementById('editMemberRank').value = u.rank || 'Oficial Guía Canino';
+  document.getElementById('editMemberRank').value = u.rank || 'Agente Guia';
   document.getElementById('editMemberAvatar').value = u.avatar || '';
   document.getElementById('editMemberDiscordId').value = u.discordId || '';
   document.getElementById('editMemberIsJefatura').checked = !!u.isJefatura;
@@ -950,13 +950,13 @@ window.reenterService = function (userId) {
   u.isVerified = true;
 
   if (u.discordId === '578954458948698122' || u.discordId === '760159743616090164') {
-    u.rank = 'Jefe de División K9';
+    u.rank = 'Coordinador K9';
     u.placa = 'K-01';
     u.isJefatura = true;
     u.permissions = ['*'];
     u.serviceStatus = 'En Activo / Mando';
   } else if (u.rank === '🚫 Expulsado de la Unidad' || !u.rank || u.rank === 'Sin Rango Asignado') {
-    u.rank = u.previousRank || 'Oficial Guía Canino';
+    u.rank = u.previousRank || 'Agente Guia';
     u.placa = (u.placa && u.placa !== 'EXPULSADO') ? u.placa : 'K-99';
   }
 
@@ -1213,8 +1213,8 @@ function renderMemberProfile() {
     user.isExpelled = false;
     user.isJefatura = true;
     user.isVerified = true;
-    if (user.rank === '🚫 Expulsado de la Unidad' || !user.rank || user.rank === 'Sin Rango Asignado') {
-      user.rank = 'Jefe de División K9';
+    if (user.rank === '🚫 Expulsado de la Unidad' || !user.rank || user.rank === 'Sin Rango Asignado' || user.rank === 'Jefe de División K9') {
+      user.rank = 'Coordinador K9';
       user.placa = 'K-01';
       user.serviceStatus = 'En Activo / Mando';
       user.permissions = ['*'];
@@ -1228,7 +1228,7 @@ function renderMemberProfile() {
       uMatch.isExpelled = false;
       uMatch.isJefatura = true;
       uMatch.isVerified = true;
-      uMatch.rank = 'Jefe de División K9';
+      uMatch.rank = 'Coordinador K9';
       uMatch.placa = 'K-01';
       uMatch.serviceStatus = 'En Activo / Mando';
       uMatch.permissions = ['*'];
@@ -1669,7 +1669,7 @@ function checkJefaturaAccessAndRender() {
 
   // Función para reclamar Jefatura con clave maestra
   window.promptClaimJefatura = function () {
-    const code = prompt('Introduce la Clave Maestra de Mando para acreditar esta cuenta como Jefe de División K9:\n\n(Clave oficial: K9-MANDO-2026)');
+    const code = prompt('Introduce la Clave Maestra de Mando para acreditar esta cuenta como Coordinador K9:\n\n(Clave oficial: K9-MANDO-2026)');
     if (!code) return;
     const res = window.K9Auth.claimMasterJefatura(code);
     if (res.ok) {
@@ -2206,12 +2206,10 @@ function renderAgentsSection(container) {
           <label style="display:block; font-family:var(--font-headline); font-size:0.7rem; color:var(--police-cyan); letter-spacing:0.05em; margin-bottom:0.3rem;">RANGO OFICIAL ASIGNADO *</label>
           <select id="presetRank" required style="width:100%; padding:0.5rem 0.75rem; background:rgba(10,14,23,0.8); border:1px solid var(--border-tactical); border-radius:4px; color:#fff; font-family:var(--font-headline); font-size:0.85rem;">
             <option value="Aspirante K9">Aspirante K9</option>
-            <option value="Oficial Guía K9" selected>Oficial Guía K9</option>
-            <option value="Oficial Mayor K9">Oficial Mayor K9</option>
-            <option value="Instructor Guía K9">Instructor Guía K9</option>
-            <option value="Subinspector K9">Subinspector K9</option>
-            <option value="Inspector K9">Inspector K9</option>
-            <option value="Jefe de División K9">Jefe de División K9</option>
+            <option value="Agente Guia" selected>Agente Guia</option>
+            <option value="Instructor K9">Instructor K9</option>
+            <option value="Subcoordinador K9">Subcoordinador K9</option>
+            <option value="Coordinador K9">Coordinador K9</option>
           </select>
         </div>
 
@@ -2481,13 +2479,11 @@ window.editAgentRank = function (userId) {
   if (!user) return;
 
   const RANKS = [
-    { value: 'Aspirante K9',        label: '🔰 Aspirante K9',         color: '#94a3b8' },
-    { value: 'Oficial Guía K9',     label: '🐾 Oficial Guía K9',      color: '#38bdf8' },
-    { value: 'Oficial Mayor K9',    label: '🐾 Oficial Mayor K9',     color: '#22d3ee' },
-    { value: 'Instructor Guía K9',  label: '🎓 Instructor Guía K9',   color: '#34d399' },
-    { value: 'Subinspector K9',     label: '⭐ Subinspector K9',      color: '#a78bfa' },
-    { value: 'Inspector K9',        label: '⭐⭐ Inspector K9',        color: '#f59e0b' },
-    { value: 'Jefe de División K9', label: '🦅 Jefe de División K9',  color: '#fbbf24' }
+    { value: 'Aspirante K9',      label: '🔰 Aspirante K9',       color: '#94a3b8' },
+    { value: 'Agente Guia',       label: '🐾 Agente Guia',        color: '#38bdf8' },
+    { value: 'Instructor K9',     label: '🎓 Instructor K9',      color: '#34d399' },
+    { value: 'Subcoordinador K9', label: '⭐ Subcoordinador K9',  color: '#f59e0b' },
+    { value: 'Coordinador K9',    label: '🦅 Coordinador K9',     color: '#fbbf24' }
   ];
 
   // Crear modal inline de cambio de rango
@@ -2547,7 +2543,7 @@ window.editAgentRank = function (userId) {
   document.body.appendChild(overlay);
 
   // Estado de selección de rango
-  let selectedRank = user.rank || 'Oficial Guía K9';
+  let selectedRank = user.rank || 'Agente Guia';
 
   // Click en tarjetas de rango
   overlay.querySelectorAll('.rank-pick-btn').forEach(btn => {
@@ -3388,7 +3384,7 @@ function renderUserPermissionsMatrix(userId) {
   if (!user || !container) return;
 
   const userPerms = user.permissions || [];
-  const isSupreme = user.rank === 'Jefe de División K9';
+  const isSupreme = user.rank === 'Coordinador K9' || user.rank === 'Jefe de División K9';
 
   container.innerHTML = `
     ${isSupreme ? `
@@ -3436,7 +3432,7 @@ function saveUserPermissions(userId) {
   });
 
   user.permissions = selected;
-  user.isJefatura = selected.length > 0 || user.rank === 'Jefe de División K9';
+  user.isJefatura = selected.length > 0 || user.rank === 'Coordinador K9' || user.rank === 'Subcoordinador K9' || user.rank === 'Jefe de División K9';
 
   window.K9Store.save(STORAGE_KEYS.USERS, users);
 
@@ -3452,7 +3448,7 @@ function saveUserPermissions(userId) {
         discordId: user.discordId,
         discordUsername: user.discordUsername || user.name,
         placa: user.placa || 'S/P',
-        rank: user.rank || 'Oficial Guía K9',
+        rank: user.rank || 'Agente Guia',
         isJefatura: user.isJefatura,
         permissions: selected,
         serviceStatus: user.serviceStatus || 'En Activo',
@@ -4858,6 +4854,7 @@ function isTaskOverdue(task) {
 function renderTasksCenter(container) {
   if (!container) return;
   const user = window.K9Auth.getCurrentUser();
+  const isJef = window.K9Auth.isJefaturaMember ? window.K9Auth.isJefaturaMember() : (user && user.isJefatura);
   const allTasks = window.K9Store.getTasks(user);
 
   // Estadísticas globales para las tarjetas resumen
@@ -5122,9 +5119,11 @@ function renderTasksCenter(container) {
                   ${isDone ? '↩ Reabrir' : '✓ Completar'}
                 </button>
                 <div style="display:flex; align-items:center; gap:0.35rem;">
-                  <button class="btn-tactical btn-tactical-outline btn-tactical-sm" style="padding:0.25rem 0.55rem; font-size:0.75rem;" title="Convertir en evento de agenda" onclick="window.openConvertToEventModal('${t.id}')">
-                    📅 Agendar
-                  </button>
+                  ${isJef ? `
+                    <button class="btn-tactical btn-tactical-outline btn-tactical-sm" style="padding:0.25rem 0.55rem; font-size:0.75rem;" title="Convertir en evento de agenda (Jefatura)" onclick="window.openConvertToEventModal('${t.id}')">
+                      📅 Agendar
+                    </button>
+                  ` : ''}
                   <button class="btn-tactical btn-tactical-outline btn-tactical-sm" style="padding:0.25rem 0.55rem; font-size:0.75rem;" title="Editar tarea" onclick="window.editTask('${t.id}')">
                     ✏️
                   </button>
@@ -5313,38 +5312,107 @@ window.toggleTaskCompleteAction = function (taskId) {
   }
 };
 
-// Conversión de Tarea a Evento de Agenda
+// Conversión de Tarea / Creación de Evento en Agenda Operativa (Solo Jefatura)
 window.openConvertToEventModal = function (taskId) {
-  const tasks = window.K9Store.getRawTasks();
-  const task = tasks.find(t => t.id === taskId);
-  if (!task) return;
+  if (!window.K9Auth.isJefaturaMember()) {
+    showToast('⚠️ Permiso denegado: Solo los mandos de Jefatura pueden programar eventos en la agenda operativa', 'warning');
+    return;
+  }
 
+  const eventIdInp = document.getElementById('eventFormEventId');
   const idInp = document.getElementById('eventFormTaskId');
   const titleInp = document.getElementById('eventTitleInput');
   const dateInp = document.getElementById('eventDateInput');
+  const locationInp = document.getElementById('eventLocationInput');
   const notesInp = document.getElementById('eventNotesInput');
+  const titleHeader = document.getElementById('modalEventTitle');
 
-  if (idInp) idInp.value = task.id;
-  if (titleInp) titleInp.value = '📋 ' + task.title;
-  if (dateInp) {
-    if (task.dueDate) {
-      dateInp.value = task.dueDate.substring(0, 16);
-    } else {
-      // Por defecto mañana a las 10:00
-      const d = new Date();
-      d.setDate(d.getDate() + 1);
-      d.setHours(10, 0, 0, 0);
-      dateInp.value = d.toISOString().substring(0, 16);
+  if (titleHeader) titleHeader.innerHTML = '<span>📅</span> PROGRAMAR CONVOCATORIA EN AGENDA';
+  if (eventIdInp) eventIdInp.value = '';
+  if (locationInp) locationInp.value = 'Caniles Centrales K9';
+
+  if (taskId) {
+    const tasks = window.K9Store.getRawTasks();
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+      if (idInp) idInp.value = task.id;
+      if (titleInp) titleInp.value = '📋 ' + task.title;
+      if (dateInp) {
+        if (task.dueDate) {
+          dateInp.value = task.dueDate.substring(0, 16);
+        } else {
+          const d = new Date();
+          d.setDate(d.getDate() + 1);
+          d.setHours(10, 0, 0, 0);
+          dateInp.value = d.toISOString().substring(0, 16);
+        }
+      }
+      if (notesInp) notesInp.value = task.description || '';
+      openModal('modalEventForm');
+      return;
     }
   }
-  if (notesInp) notesInp.value = task.description || '';
 
+  // Creación de nuevo evento manual
+  if (idInp) idInp.value = '';
+  if (titleInp) titleInp.value = '';
+  if (notesInp) notesInp.value = '';
+  if (dateInp) {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    d.setHours(10, 0, 0, 0);
+    dateInp.value = d.toISOString().substring(0, 16);
+  }
+
+  openModal('modalEventForm');
+};
+
+// Edición de Eventos de la Agenda (Solo Jefatura)
+window.editAgendaEventItem = function (eventId) {
+  if (!window.K9Auth.isJefaturaMember()) {
+    showToast('⚠️ Permiso denegado: Solo los mandos de Jefatura pueden editar eventos de la agenda', 'warning');
+    return;
+  }
+
+  const events = window.K9Store.getRawEvents();
+  const ev = events.find(e => e.id === eventId);
+  if (!ev) return;
+
+  const eventIdInp = document.getElementById('eventFormEventId');
+  const idInp = document.getElementById('eventFormTaskId');
+  const titleInp = document.getElementById('eventTitleInput');
+  const dateInp = document.getElementById('eventDateInput');
+  const locationInp = document.getElementById('eventLocationInput');
+  const notesInp = document.getElementById('eventNotesInput');
+  const titleHeader = document.getElementById('modalEventTitle');
+
+  if (titleHeader) titleHeader.innerHTML = '<span>✏️</span> EDITAR CONVOCATORIA / AGENDA';
+  if (eventIdInp) eventIdInp.value = ev.id;
+  if (idInp) idInp.value = ev.taskId || '';
+  if (titleInp) titleInp.value = ev.title || '';
+  if (locationInp) locationInp.value = ev.location || 'Caniles Centrales K9';
+  if (notesInp) notesInp.value = ev.description || '';
+  if (dateInp && ev.date) {
+    try {
+      dateInp.value = new Date(ev.date).toISOString().substring(0, 16);
+    } catch (err) {
+      dateInp.value = '';
+    }
+  }
+
+  closeModal('modalTacticalAgenda');
   openModal('modalEventForm');
 };
 
 window.handleEventFormSubmit = function (e) {
   e.preventDefault();
+  if (!window.K9Auth.isJefaturaMember()) {
+    showToast('⚠️ Permiso denegado: Solo Jefatura puede gestionar la agenda operativa', 'warning');
+    return;
+  }
+
   const user = window.K9Auth.getCurrentUser();
+  const eventId = document.getElementById('eventFormEventId')?.value;
   const taskId = document.getElementById('eventFormTaskId')?.value;
   const title = document.getElementById('eventTitleInput')?.value.trim();
   const dateVal = document.getElementById('eventDateInput')?.value;
@@ -5356,19 +5424,23 @@ window.handleEventFormSubmit = function (e) {
     return;
   }
 
-  const newEvent = {
+  const eventData = {
     title: title,
     date: new Date(dateVal).toISOString(),
     location: location || 'Caniles Centrales K9',
     description: notes,
     category: 'agenda',
     type: 'personal',
-    userId: user ? user.id : 'guest',
-    userName: user ? user.name : 'Agente',
+    userId: user ? user.id : 'jefatura',
+    userName: user ? user.name : 'Jefatura K9',
     taskId: taskId || null
   };
 
-  window.K9Store.saveEvent(newEvent);
+  if (eventId) {
+    eventData.id = eventId;
+  }
+
+  window.K9Store.saveEvent(eventData);
 
   if (taskId) {
     const rawTasks = window.K9Store.getRawTasks();
@@ -5382,23 +5454,40 @@ window.handleEventFormSubmit = function (e) {
   if (window.K9CloudSync) window.K9CloudSync.push();
 
   closeModal('modalEventForm');
-  showToast('Evento programado en la agenda operativa K9', 'success');
+  showToast(eventId ? 'Convocatoria actualizada en la agenda' : 'Evento programado en la agenda operativa K9', 'success');
 
   evaluateAndGenerateNotifications();
+
+  const agendaModal = document.getElementById('modalTacticalAgenda');
+  if (agendaModal && agendaModal.classList.contains('active')) {
+    window.openAgendaModal();
+  }
 };
 
 window.openAgendaModal = function () {
   const user = window.K9Auth.getCurrentUser();
+  const isJef = window.K9Auth.isJefaturaMember ? window.K9Auth.isJefaturaMember() : (user && user.isJefatura);
   const events = window.K9Store.getEvents(user);
 
   let html = `
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
-      <h3 style="font-family:var(--font-headline); font-size:1.25rem; color:#fff; margin:0;">
-        📅 AGENDA & CONVOCATORIAS OPERATIVAS K9
-      </h3>
-      <button class="btn-tactical btn-tactical-gold btn-tactical-sm" onclick="window.openConvertToEventModal('')">
-        ➕ Nuevo Evento
-      </button>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem; flex-wrap:wrap; gap:0.5rem;">
+      <div>
+        <h3 style="font-family:var(--font-headline); font-size:1.2rem; color:#fff; margin:0; display:flex; align-items:center; gap:0.5rem;">
+          <span>📅</span> AGENDA & CONVOCATORIAS K9
+        </h3>
+        <p style="margin:0.2rem 0 0 0; font-size:0.75rem; color:var(--text-muted);">
+          ${isJef ? '⭐ Modo Jefatura: Tienes autorización para programar, editar y eliminar eventos.' : '👁️ Modo Miembro: Consulta de convocatorias operativas de la unidad.'}
+        </p>
+      </div>
+      ${isJef ? `
+        <button class="btn-tactical btn-tactical-gold btn-tactical-sm" onclick="window.openConvertToEventModal('')">
+          ➕ Programar Convocatoria
+        </button>
+      ` : `
+        <span style="font-size:0.72rem; padding:0.25rem 0.6rem; border-radius:4px; background:rgba(0,229,255,0.08); border:1px solid rgba(0,229,255,0.25); color:var(--police-cyan); font-family:var(--font-headline);">
+          🔒 Solo Jefatura puede editar/borrar
+        </span>
+      `}
     </div>
     <div style="display:flex; flex-direction:column; gap:0.75rem; max-height:420px; overflow-y:auto;">
       ${events.length === 0 ? `
@@ -5411,14 +5500,21 @@ window.openAgendaModal = function () {
         });
         return `
           <div style="background:rgba(0,0,0,0.35); border:1px solid var(--border-subtle); border-left:3px solid var(--tactical-gold); border-radius:8px; padding:0.85rem 1rem; display:flex; justify-content:space-between; align-items:center; gap:1rem;">
-            <div>
+            <div style="flex:1;">
               <div style="font-family:var(--font-headline); font-size:0.95rem; color:#fff; margin-bottom:0.2rem;">${escapeHtml(ev.title)}</div>
-              <div style="font-size:0.75rem; color:var(--tactical-gold); margin-bottom:0.2rem;">🕒 ${evDate} • 📍 ${escapeHtml(ev.location || 'Base K9')}</div>
+              <div style="font-size:0.75rem; color:var(--tactical-gold); margin-bottom:0.2rem;">🕒 ${evDate} • 📍 ${escapeHtml(ev.location || 'Base K9')} ${ev.userName ? `• 👤 Convocado por: ${escapeHtml(ev.userName)}` : ''}</div>
               ${ev.description ? `<div style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(ev.description)}</div>` : ''}
             </div>
-            <button class="btn-tactical btn-tactical-danger btn-tactical-sm" style="padding:0.2rem 0.5rem; font-size:0.75rem;" onclick="window.deleteAgendaEventItem('${ev.id}')">
-              🗑️
-            </button>
+            ${isJef ? `
+              <div style="display:flex; align-items:center; gap:0.35rem; flex-shrink:0;">
+                <button class="btn-tactical btn-tactical-outline btn-tactical-sm" style="padding:0.25rem 0.55rem; font-size:0.75rem;" title="Editar evento" onclick="window.editAgendaEventItem('${ev.id}')">
+                  ✏️
+                </button>
+                <button class="btn-tactical btn-tactical-danger btn-tactical-sm" style="padding:0.25rem 0.55rem; font-size:0.75rem;" title="Eliminar evento" onclick="window.deleteAgendaEventItem('${ev.id}')">
+                  🗑️
+                </button>
+              </div>
+            ` : ''}
           </div>
         `;
       }).join('')}
@@ -5453,10 +5549,14 @@ window.openAgendaModal = function () {
 };
 
 window.deleteAgendaEventItem = function (eventId) {
+  if (!window.K9Auth.isJefaturaMember()) {
+    showToast('⚠️ Permiso denegado: Solo los mandos de Jefatura pueden retirar eventos de la agenda', 'warning');
+    return;
+  }
   const user = window.K9Auth.getCurrentUser();
-  window.K9Store.deleteEvent(eventId, user ? user.id : 'guest');
+  window.K9Store.deleteEvent(eventId, user ? user.id : 'jefatura');
   if (window.K9CloudSync) window.K9CloudSync.push();
-  showToast('Evento retirado de la agenda', 'info');
+  showToast('Evento retirado de la agenda operativa', 'info');
   window.openAgendaModal();
   evaluateAndGenerateNotifications();
 };

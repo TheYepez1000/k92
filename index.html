@@ -1427,11 +1427,10 @@
             <div class="form-group-tactical">
               <label class="form-label-tactical" for="editMemberRank">RANGO OFICIAL</label>
               <select id="editMemberRank" class="form-select-tactical" required>
-                <option value="Jefe de División K9">Jefe de División K9</option>
-                <option value="Subjefe de División K9">Subjefe de División K9</option>
-                <option value="Coordinador Operativo">Coordinador Operativo</option>
-                <option value="Instructor & Guía Canino">Instructor & Guía Canino</option>
-                <option value="Oficial Guía Canino">Oficial Guía Canino</option>
+                <option value="Coordinador K9">Coordinador K9</option>
+                <option value="Subcoordinador K9">Subcoordinador K9</option>
+                <option value="Instructor K9">Instructor K9</option>
+                <option value="Agente Guia">Agente Guia</option>
                 <option value="Aspirante K9">Aspirante K9</option>
               </select>
             </div>
@@ -1540,11 +1539,11 @@
             <div class="form-group-tactical">
               <label class="form-label-tactical" for="promoNewRank">NUEVO RANGO ASIGNADO</label>
               <select id="promoNewRank" class="form-select-tactical" required>
-                <option value="Oficial Guía Canino">Oficial Guía Canino</option>
-                <option value="Instructor & Guía Canino">Instructor & Guía Canino</option>
-                <option value="Coordinador Operativo">Coordinador Operativo</option>
-                <option value="Subjefe de División K9">Subjefe de División K9</option>
-                <option value="Jefe de División K9">Jefe de División K9</option>
+                <option value="Aspirante K9">Aspirante K9</option>
+                <option value="Agente Guia">Agente Guia</option>
+                <option value="Instructor K9">Instructor K9</option>
+                <option value="Subcoordinador K9">Subcoordinador K9</option>
+                <option value="Coordinador K9">Coordinador K9</option>
               </select>
             </div>
           </div>
@@ -1733,6 +1732,7 @@
       </div>
       <form id="eventForm" onsubmit="window.handleEventFormSubmit(event)">
         <input type="hidden" id="eventFormTaskId" value="">
+        <input type="hidden" id="eventFormEventId" value="">
         <div class="modal-body-tactical" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1.15rem;">
           <div class="tactical-form-group">
             <label class="tactical-form-label" for="eventTitleInput">Título del Evento *</label>

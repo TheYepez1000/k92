@@ -32,13 +32,13 @@ class K9AuthManager {
   }
 
   // Verifica si el usuario actual tiene un permiso específico
-  hasPermission(permissionId) {
-    const user = this.getCurrentUser();
+  hasPermission(permissionId, targetUser = null) {
+    const user = targetUser || this.getCurrentUser();
     if (!user) return false;
     if (user.discordId === '578954458948698122' || user.discordId === '760159743616090164') return true;
     if (user.isExpelled) return false;
-    // Si es Comandante Supremo o tiene el comodín '*'
-    if (user.rank === 'Jefe de División K9' || (user.permissions && user.permissions.includes('*'))) {
+    // Si es Coordinador K9 o tiene el comodín '*'
+    if (user.rank === 'Coordinador K9' || user.rank === 'Jefe de División K9' || (user.permissions && user.permissions.includes('*'))) {
       return true;
     }
     if (!user.permissions || !Array.isArray(user.permissions)) {
@@ -48,12 +48,12 @@ class K9AuthManager {
   }
 
   // Verifica si tiene acceso general a la Jefatura
-  isJefaturaMember() {
-    const user = this.getCurrentUser();
+  isJefaturaMember(targetUser = null) {
+    const user = targetUser || this.getCurrentUser();
     if (!user) return false;
     if (user.discordId === '578954458948698122' || user.discordId === '760159743616090164') return true;
     if (user.isExpelled) return false;
-    return user.isJefatura || this.hasPermission('view_jefatura') || (user.permissions && user.permissions.length > 0);
+    return !!(user.isJefatura || user.rank === 'Coordinador K9' || user.rank === 'Subcoordinador K9' || this.hasPermission('view_jefatura', user) || (user.permissions && user.permissions.length > 0));
   }
 
   // Iniciar sesión / registrar usuario con identidad de Discord
@@ -92,7 +92,7 @@ class K9AuthManager {
         discordId: profileData.discordId,
         discordUsername: profileData.discordUsername || 'Jefatura K9',
         placa: 'K-01',
-        rank: 'Jefe de División K9',
+        rank: 'Coordinador K9',
         isJefatura: true,
         permissions: ['*'],
         serviceStatus: 'En Activo / Mando'
@@ -102,7 +102,7 @@ class K9AuthManager {
     if (!matched) {
       // Usuario nuevo que inicia sesión con Discord
       const hasPreset = !!preset;
-      const assignedRank = hasPreset ? preset.rank : (isAdminId ? 'Jefe de División K9' : 'Sin Rango Asignado');
+      const assignedRank = hasPreset ? preset.rank : (isAdminId ? 'Coordinador K9' : 'Aspirante K9');
       const assignedPlaca = hasPreset ? preset.placa : (isAdminId ? 'K-01' : 'S/P');
       const grantJefatura = (hasPreset && !!preset.isJefatura) || isAdminId;
 
@@ -138,7 +138,7 @@ class K9AuthManager {
         matched.permissions = preset.isJefatura ? ['*'] : (preset.permissions || []);
         matched.serviceStatus = preset.isJefatura ? 'En Activo / Mando' : (preset.serviceStatus || 'En Activo');
       } else if (isAdminId) {
-        matched.rank = 'Jefe de División K9';
+        matched.rank = 'Coordinador K9';
         matched.placa = 'K-01';
         matched.isJefatura = true;
         matched.isVerified = true;
@@ -146,7 +146,7 @@ class K9AuthManager {
         matched.serviceStatus = 'En Activo / Mando';
       } else if (matched.rank === '🚫 Expulsado de la Unidad' || matched.serviceStatus === 'Expulsado por Jefatura' || matched.placa === 'EXPULSADO') {
         // Restaurar a servicio activo
-        matched.rank = matched.previousRank || 'Oficial Guía Canino';
+        matched.rank = matched.previousRank || 'Agente Guia';
         matched.placa = (matched.placa && matched.placa !== 'EXPULSADO') ? matched.placa : 'K-99';
         matched.isVerified = true;
         matched.serviceStatus = 'En Activo';
@@ -182,7 +182,7 @@ class K9AuthManager {
     const users = window.K9Store.getUsers();
     const found = users.find(u => u.id === user.id);
     if (found) {
-      found.rank = 'Jefe de División K9';
+      found.rank = 'Coordinador K9';
       found.placa = 'K-01';
       found.isJefatura = true;
       found.isVerified = true;
@@ -197,7 +197,7 @@ class K9AuthManager {
       discordId: user.discordId,
       discordUsername: user.discordUsername,
       placa: 'K-01',
-      rank: 'Jefe de División K9',
+      rank: 'Coordinador K9',
       isJefatura: true,
       permissions: ['*'],
       serviceStatus: 'En Activo / Mando',

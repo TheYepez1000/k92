@@ -384,7 +384,7 @@ function mergeDatasets(existing, incoming) {
         u.isExpelled = false;
         u.isJefatura = true;
         u.isVerified = true;
-        u.rank = 'Jefe de División K9';
+        u.rank = 'Coordinador K9';
         u.placa = 'K-01';
         u.serviceStatus = 'En Activo / Mando';
       }
@@ -404,7 +404,7 @@ function mergeDatasets(existing, incoming) {
         discordId: admId,
         discordUsername: 'Jefatura K9',
         placa: 'K-01',
-        rank: 'Jefe de División K9',
+        rank: 'Coordinador K9',
         isJefatura: true,
         permissions: ['*'],
         serviceStatus: 'En Activo / Mando',

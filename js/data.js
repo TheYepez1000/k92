@@ -34,7 +34,7 @@ const DEFAULT_CHAT_MESSAGES = [
     authorId: 'jefatura_k01',
     authorName: 'Coordinador K9',
     authorPlaca: 'K-01',
-    authorRank: 'Jefe de División K9',
+    authorRank: 'Coordinador K9',
     authorAvatar: 'assets/images/emblem.jpg',
     isJefatura: true,
     text: 'Canal oficial de despacho de la Jefatura K9 abierto. Los miembros de la división pueden utilizar este espacio para comunicarse directamente con los mandos, realizar consultas operativas o coordinar patrullajes.',
@@ -454,7 +454,7 @@ const DEFAULT_AGENT_PRESETS = [
     discordId: '578954458948698122',
     discordUsername: 'Jefatura K9',
     placa: 'K-01',
-    rank: 'Jefe de División K9',
+    rank: 'Coordinador K9',
     isJefatura: true,
     permissions: ['*'],
     serviceStatus: 'En Activo / Mando',
@@ -464,7 +464,7 @@ const DEFAULT_AGENT_PRESETS = [
     discordId: '760159743616090164',
     discordUsername: 'Coordinador K9',
     placa: 'K-01',
-    rank: 'Jefe de División K9',
+    rank: 'Coordinador K9',
     isJefatura: true,
     permissions: ['*'],
     serviceStatus: 'En Activo / Mando',
@@ -625,10 +625,33 @@ class K9DataStore {
       this.save(STORAGE_KEYS.EXPELLED_USERS, expelled);
     }
 
-    // Asegurar que los presets de Jefatura oficial siempre estén presentes y activos
+    // Función de normalización de los 5 rangos oficiales:
+    // Aspirante K9, Agente Guia, Instructor K9, Subcoordinador K9, Coordinador K9
+    const normalizeK9Rank = (r) => {
+      if (!r) return 'Aspirante K9';
+      const s = String(r).trim();
+      if (s.includes('Jefe de División') || s.includes('Coordinador K9') || s === 'Coordinador K9') return 'Coordinador K9';
+      if (s.includes('Subjefe') || s.includes('Subcoordinador') || s.includes('Inspector') || s.includes('Coordinador Operativo')) return 'Subcoordinador K9';
+      if (s.includes('Instructor') || s.includes('Instuctor')) return 'Instructor K9';
+      if (s.includes('Oficial') || s.includes('Guía') || s.includes('Guia') || s === 'Agente Guia' || s === 'Agente Guía') return 'Agente Guia';
+      if (s.includes('Aspirante')) return 'Aspirante K9';
+      return 'Agente Guia';
+    };
+
+    // Asegurar que los presets de Jefatura oficial siempre estén presentes y activos con rangos actualizados
     const existingPresets = this.get(STORAGE_KEYS.AGENT_PRESETS) || [];
     const adminIds = ['578954458948698122', '760159743616090164'];
     let presetsModified = false;
+
+    // Normalizar rangos de todos los presets existentes
+    existingPresets.forEach(p => {
+      const normalized = normalizeK9Rank(p.rank);
+      if (p.rank !== normalized) {
+        p.rank = normalized;
+        presetsModified = true;
+      }
+    });
+
     adminIds.forEach(admId => {
       const found = existingPresets.find(p => p.discordId === admId);
       if (!found) {
@@ -640,7 +663,7 @@ class K9DataStore {
       } else {
         found.isJefatura = true;
         found.permissions = ['*'];
-        found.rank = 'Jefe de División K9';
+        found.rank = 'Coordinador K9';
         found.placa = 'K-01';
         presetsModified = true;
       }
@@ -649,16 +672,21 @@ class K9DataStore {
       localStorage.setItem(STORAGE_KEYS.AGENT_PRESETS, JSON.stringify(existingPresets));
     }
 
-    // Si el usuario 578954458948698122 está en storedUsers marcado como expulsado, reactivarlo
+    // Normalizar rangos de todos los agentes existentes y proteger Jefatura
     const usersList = this.get(STORAGE_KEYS.USERS);
     if (Array.isArray(usersList)) {
       let modUsers = false;
       usersList.forEach(u => {
-        if (u.discordId === '578954458948698122') {
+        const norm = normalizeK9Rank(u.rank);
+        if (u.rank !== norm) {
+          u.rank = norm;
+          modUsers = true;
+        }
+        if (u.discordId === '578954458948698122' || u.discordId === '760159743616090164') {
           u.isExpelled = false;
           u.isJefatura = true;
           u.isVerified = true;
-          u.rank = 'Jefe de División K9';
+          u.rank = 'Coordinador K9';
           u.placa = 'K-01';
           u.serviceStatus = 'En Activo / Mando';
           u.permissions = ['*'];
@@ -955,12 +983,8 @@ class K9DataStore {
 
   getEvents(user = null) {
     const list = this.getRawEvents();
-    if (!user) return list.filter(e => e.type === 'oficial' || e.userId === 'all');
-    return list.filter(e => {
-      if (e.type === 'oficial' || e.userId === 'all') return true;
-      if (e.userId === user.id || (user.discordId && e.userId === user.discordId)) return true;
-      return false;
-    });
+    // Toda la plantilla de la Unidad K9 puede consultar los eventos de la agenda operativa
+    return list;
   }
 
   saveEvent(eventData) {
