@@ -975,8 +975,35 @@ window._confirmDeleteManual = function () {
   renderManuals(document.getElementById('generalSubtabContent'));
 };
 
+function userHasRank(u) {
+  if (!u) return false;
+  if (u.isExpelled || u.rank === '🚫 Expulsado de la Unidad') return false;
+  const rank = (u.rank || '').trim();
+  if (!rank) return false;
+  const lower = rank.toLowerCase();
+  if (
+    lower === 'sin rango' ||
+    lower.includes('sin rango') ||
+    lower.includes('sin asignar') ||
+    lower.includes('pendiente') ||
+    lower.includes('expulsado') ||
+    lower === '—' ||
+    lower === '-' ||
+    lower === 's/r' ||
+    lower === 'ninguno' ||
+    lower === 'none' ||
+    lower === 'null' ||
+    lower === 'undefined'
+  ) {
+    return false;
+  }
+  return true;
+}
+window.userHasRank = userHasRank;
+
 function renderMembersDirectory(container) {
-  const users = window.K9Store.getUsers();
+  const allUsers = window.K9Store.getUsers();
+  const users = allUsers.filter(userHasRank);
   const dogs = window.K9Store.getDogs();
   const badges = window.K9Store.getBadges();
   const isJef = window.K9Auth.isJefaturaMember();
@@ -1026,10 +1053,11 @@ function renderMembersDirectory(container) {
 window.renderMembersDirectory = renderMembersDirectory;
 
 function renderMemberCardsHtml(users, dogs, allBadges, isJef) {
-  if (!users || users.length === 0) {
+  const validUsers = (users || []).filter(userHasRank);
+  if (!validUsers || validUsers.length === 0) {
     return `<div class="empty-state-box" style="grid-column: 1 / -1;"><p style="color:var(--text-muted);">No hay miembros registrados en la unidad todavía.</p></div>`;
   }
-  return users.map(u => {
+  return validUsers.map(u => {
     const assignedDog = u.assignedDogId ? dogs.find(d => d.id === u.assignedDogId) : null;
     const userBadges = (u.badges || []).map(bId => allBadges.find(b => b.id === bId)).filter(Boolean);
 
@@ -5702,7 +5730,7 @@ window.openBadgeInspection = function (badgeId, recipientName) {
 // TOASTS Y CONTADORES EN VIVO
 // ==========================================
 function updateLiveCounters() {
-  const agents = window.K9Store.getUsers();
+  const agents = window.K9Store.getUsers().filter(userHasRank);
   const dogs = window.K9Store.getDogs();
   const reports = window.K9Store.getReports();
 
@@ -7002,7 +7030,7 @@ function executeGlobalSearch() {
 
   // 1. MIEMBROS DE LA UNIDAD
   if (globalSearchActiveCategory === 'todos' || globalSearchActiveCategory === 'miembros') {
-    const users = window.K9Store.getUsers();
+    const users = window.K9Store.getUsers().filter(userHasRank);
     users.forEach(u => {
       if (!query || match(u.name) || match(u.placa) || match(u.rank)) {
         results.push({
