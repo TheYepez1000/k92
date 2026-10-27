@@ -1,0 +1,1871 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unidad K9 - Portal Oficial & Sistema de Jefatura Canina</title>
+  <meta name="description"
+    content="Plataforma operativa táctica para la Unidad Canina K9. Gestión de informes semanales, expedientes de agentes, canes operativos, régimen disciplinario, condecoraciones y control de permisos mediante Discord.">
+
+  <!-- Fuentes Oficiales Solicitadas: GoBold y Conthrax -->
+  <link href="https://fonts.cdnfonts.com/css/conthrax" rel="stylesheet">
+  <link href="https://fonts.cdnfonts.com/css/gobold" rel="stylesheet">
+
+  <!-- Fallbacks y Tipografía Secundaria -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+
+  <!-- Leaflet Maps CSS (Cargado localmente para máxima fiabilidad y rapidez) -->
+  <link rel="stylesheet" href="css/vendor/leaflet.css">
+
+  <!-- Hojas de Estilo Tácticas -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="icon" type="image/jpeg" href="assets/images/emblem.jpg">
+</head>
+
+<body>
+
+  <!-- ====================================================================
+       MARCA DE AGUA / LOGO DE FONDO OFICIAL K9
+       ==================================================================== -->
+  <div class="k9-background-watermark" aria-hidden="true"></div>
+
+  <!-- ====================================================================
+       BARRA SUPERIOR HUD TÁCTICA
+       ==================================================================== -->
+  <header class="top-hud-bar">
+    <div class="top-hud-container">
+
+      <!-- Marca y Emblema de la Unidad K9 -->
+      <div class="brand-wrapper" onclick="switchMainView('inicio')" data-tooltip="Inicio · Unidad K9 LSPD">
+        <div class="brand-emblem-wrap">
+          <img src="assets/images/emblem.jpg" alt="Emblema Oficial K9" class="brand-emblem-img">
+        </div>
+        <div class="brand-info">
+          <div class="brand-title">
+            <span>UNIDAD K9</span>
+            <span class="brand-sub-pill">LSPD</span>
+          </div>
+          <span class="brand-subtitle">DIVISIÓN POLICIAL & OPERACIONES</span>
+        </div>
+      </div>
+
+      <div class="top-hud-divider" aria-hidden="true"></div>
+
+      <!-- Pestañas de Navegación Principal Unificadas (Iconos con Tooltip) -->
+      <nav class="nav-tabs" aria-label="Navegación principal">
+        <button class="nav-tab-btn active" data-view="inicio" id="navBtnInicio" data-tooltip="Normativa Oficial">
+          <span class="nav-icon">⚖️</span>
+          <span class="nav-label">Normativa</span>
+        </button>
+        <button class="nav-tab-btn" data-view="miembros" id="navBtnMiembros" data-tooltip="Directorio de Miembros">
+          <span class="nav-icon">👥</span>
+          <span class="nav-label">Miembros</span>
+        </button>
+        <button class="nav-tab-btn" data-view="ascensos" id="navBtnAscensos" data-tooltip="Tablón de Ascensos">
+          <span class="nav-icon">🎖️</span>
+          <span class="nav-label">Ascensos</span>
+        </button>
+        <button class="nav-tab-btn" data-view="condecoraciones" id="navBtnCondecoraciones" data-tooltip="Condecoraciones & Medallas">
+          <span class="nav-icon">🏅</span>
+          <span class="nav-label">Condecoraciones</span>
+        </button>
+        <button class="nav-tab-btn" data-view="tareas" id="navBtnTareas" data-tooltip="Centro de Tareas">
+          <span class="nav-icon">📋</span>
+          <span class="nav-label">Tareas</span>
+          <span class="nav-badge-mini" id="navTasksBadge" style="display:none;">0</span>
+          <span class="nav-lock-mini" id="tasksLockMini" style="display:none;">🔒</span>
+        </button>
+        <button class="nav-tab-btn" data-view="vestimenta" id="navBtnVestimenta" data-tooltip="Uniformidad & Vestimenta K9">
+          <span class="nav-icon">🥋</span>
+          <span class="nav-label">Vestimenta</span>
+          <span class="nav-lock-mini" id="vestimentaLockMini" style="display:none;">🔒</span>
+        </button>
+        <button class="nav-tab-btn" data-view="perfil" id="navBtnPerfil" data-tooltip="Mi Perfil de Agente">
+          <span class="nav-icon">🐕</span>
+          <span class="nav-label">Mi Perfil</span>
+        </button>
+        <button class="nav-tab-btn" data-view="mapa" id="navBtnMapa" data-tooltip="Mapa Operativo de Los Santos">
+          <span class="nav-icon">🗺️</span>
+          <span class="nav-label">Mapa</span>
+          <span class="nav-lock-mini" id="mapaLockMini" style="display:none;">🔒</span>
+        </button>
+        <button class="nav-tab-btn jefatura-tab" data-view="jefatura" id="navBtnJefatura" data-tooltip="Panel de Jefatura K9">
+          <span class="nav-icon">👑</span>
+          <span class="nav-label">Jefatura</span>
+          <span class="nav-lock-mini" style="display:none;">🔒</span>
+        </button>
+      </nav>
+
+      <div class="top-hud-divider" aria-hidden="true"></div>
+
+      <!-- Cluster Derecho: Buscador Global, Notificaciones, Indicador Cloud, Audio y Auth -->
+      <div class="top-hud-right">
+        <!-- Buscador Global Trigger -->
+        <button class="top-search-trigger-btn" id="globalSearchTriggerBtn" data-tooltip="Buscador Global (Ctrl + K)">
+          <span class="search-icon">🔍</span>
+          <span class="search-text">Buscar...</span>
+          <kbd class="search-kbd">Ctrl K</kbd>
+        </button>
+
+        <!-- Centro de Notificaciones -->
+        <div class="notification-hud-wrapper" id="notificationHudWrap">
+          <button class="notification-bell-btn" id="notificationBellBtn" data-tooltip="Centro de Notificaciones">
+            <span class="bell-icon">🔔</span>
+            <span class="notification-badge" id="notificationBadge" style="display:none;">0</span>
+          </button>
+          <div class="notification-dropdown-panel" id="notificationDropdownPanel" style="display:none;">
+            <div class="notif-panel-header">
+              <div class="notif-header-title">
+                <span class="notif-header-icon">🔔</span>
+                <span class="notif-header-text font-tactical">CENTRO DE NOTIFICACIONES</span>
+                <span class="notif-unread-count" id="notifHeaderCount">0 sin leer</span>
+              </div>
+              <div class="notif-header-actions">
+                <button class="notif-action-btn" id="notifMarkAllReadBtn" title="Marcar todas como leídas">✓ Leer todas</button>
+                <button class="notif-action-btn" id="notifClearReadBtn" title="Eliminar leídas">🗑️ Limpiar</button>
+              </div>
+            </div>
+            <div class="notif-filters-bar">
+              <button class="notif-filter-chip active" data-filter="todas">Todas</button>
+              <button class="notif-filter-chip" data-filter="unread">No leídas</button>
+              <button class="notif-filter-chip" data-filter="tareas">Tareas</button>
+              <button class="notif-filter-chip" data-filter="agenda">Agenda</button>
+              <button class="notif-filter-chip" data-filter="formacion">Formación</button>
+              <button class="notif-filter-chip" data-filter="avisos">Avisos</button>
+            </div>
+            <div class="notif-items-list" id="notifItemsList">
+              <!-- Renderizado dinámicamente -->
+            </div>
+          </div>
+        </div>
+
+        <div class="tactical-live-status" data-tooltip="Terminal Policial K9 · En Línea">
+          <span class="pulse-dot dot-online" id="cloudSyncDot"></span>
+          <span id="cloudSyncLabel">EN LÍNEA</span>
+        </div>
+        <button class="audio-toggle-btn sound-on" id="audioToggleBtn" data-tooltip="Sonidos de Radio Táctica">
+          <span>🔊</span>
+        </button>
+        <div id="authControlsWrap">
+          <!-- Renderizado dinámicamente por auth.js -->
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ====================================================================
+       CONTENEDOR PRINCIPAL
+       ==================================================================== -->
+  <main class="main-wrapper">
+
+    <!-- ================================================================
+         VISTA 1: GENERAL & TABLÓN PÚBLICO (INICIO - NORMATIVA & CANES)
+         ================================================================ -->
+    <section class="view-container active" id="view-inicio">
+
+      <!-- Hero Banner Cinemático Estilo Raycast (DESIGN (1).md) -->
+      <div class="k9-hero-banner raycast-hero">
+        <!-- Imagen de Fondo Cinemática Generada: Policías K9, Perro y Patrulla -->
+        <div class="hero-backdrop-img-wrap" aria-hidden="true">
+          <img src="assets/images/k9_patrol_officers.jpg" alt="Patrulla K9 y Oficiales con Perro de Intervención" class="hero-backdrop-img" />
+          <div class="hero-backdrop-overlay"></div>
+        </div>
+
+        <!-- Haces de Luces Diagonales Neón en Perspectiva (Raycast Atmospheric Beams) -->
+        <div class="raycast-hero-beams" aria-hidden="true">
+          <div class="beam-glow-wash"></div>
+          <div class="beam-diagonal beam-4"></div>
+          <div class="beam-diagonal beam-1"></div>
+          <div class="beam-diagonal beam-2"></div>
+          <div class="beam-diagonal beam-3"></div>
+          <div class="beam-diagonal beam-5"></div>
+        </div>
+
+        <!-- Contenedor Centrado de Contenido -->
+        <div class="hero-content raycast-hero-content">
+          <div class="hero-eyebrow-pill">
+            <span class="eyebrow-symbol">★</span>
+            <span>SECCIÓN ESPECIAL DE GUÍAS CANINOS & ADIESTRAMIENTO</span>
+          </div>
+
+          <h1 class="hero-title raycast-headline font-gobold">
+            UNIDAD CANINA DE INTERVENCIÓN TÁCTICA
+          </h1>
+
+          <p class="hero-description raycast-subtext">
+            Portal central de coordinación táctica para la División K9. Espacio oficial para la gestión del servicio,
+            seguimiento del adiestramiento canino, partes semanales, régimen disciplinario y control de jefatura.
+          </p>
+
+          <!-- Fila de Acciones Principales (Centrada) -->
+          <div class="hero-actions-row raycast-actions-row" id="heroActionsRow">
+            <button class="btn-tactical btn-tactical-primary" onclick="window.K9Auth.initiateDiscordOAuth()">
+              <span>✦</span> Iniciar Sesión con Discord
+            </button>
+            <button class="btn-tactical btn-tactical-outline" onclick="switchGeneralSubtab('normativas')">
+              <span>⚖️</span> Ver Normativas Oficiales
+            </button>
+            <button class="btn-tactical btn-tactical-ghost" onclick="switchGeneralSubtab('galeria')">
+              <span>🐕</span> Plantilla de Canes K9
+            </button>
+          </div>
+
+          <!-- Metadata Monospace Técnica Estilo Raycast -->
+          <div class="hero-meta-strip">
+            <span class="meta-item">v2.4.1</span>
+            <span class="meta-sep">|</span>
+            <span class="meta-item">DIVISIÓN CANINA OPERATIVA</span>
+            <span class="meta-sep">|</span>
+            <span class="meta-item">TERMINAL EN LÍNEA</span>
+          </div>
+
+          <!-- Enlace Rápido Destacado -->
+          <div class="hero-quick-link-pill" onclick="switchGeneralSubtab('anuncios')">
+            <span class="quick-pill-tag">TABLÓN K9</span>
+            <span class="quick-pill-text">Anuncios de Jefatura y Órdenes del Día</span>
+            <span class="quick-pill-arrow">→</span>
+          </div>
+        </div>
+
+        <!-- Métricas Tácticas Raycast (Grid Key-Shadow) -->
+        <div class="hero-stats-panel raycast-stats-panel">
+          <div class="hero-stat-card raycast-stat-card">
+            <div class="hero-stat-value font-tactical" id="heroCountAgents">4</div>
+            <div class="hero-stat-label">Agentes en la Unidad K9</div>
+          </div>
+          <div class="hero-stat-card raycast-stat-card stat-gold">
+            <div class="hero-stat-value font-tactical" id="heroCountDogs">5</div>
+            <div class="hero-stat-label">Canes Operativos</div>
+          </div>
+          <div class="hero-stat-card raycast-stat-card">
+            <div class="hero-stat-value font-tactical" id="heroCountReports">3</div>
+            <div class="hero-stat-label">Informes Semanales</div>
+          </div>
+          <div class="hero-stat-card raycast-stat-card stat-gold">
+            <div class="hero-stat-value font-tactical" id="heroCountPatrol">1,375h</div>
+            <div class="hero-stat-label">Horas Patrulladas K9</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resumen Táctico del Centro de Tareas del Agente -->
+      <div id="homeTaskSummaryWidget" style="margin-bottom: 2rem;"></div>
+
+      <!-- Sub-navegación General (Normativas, Manuales, Canes, Anuncios) -->
+      <div class="subnav-tabs-row" id="generalSubnavRow" style="margin-bottom: 2rem;">
+        <!-- Inyectado dinámicamente por app.js -->
+      </div>
+
+      <!-- Contenedor dinámico de subtab público -->
+      <div id="generalSubtabContent"></div>
+
+    </section>
+
+    <!-- ================================================================
+         VISTA 2: MIEMBROS K9 (DIRECTORIO OFICIAL)
+         ================================================================ -->
+    <section class="view-container" id="view-miembros">
+      <!-- Renderizado dinámicamente por app.js (renderMembersDirectory) -->
+    </section>
+
+    <!-- ================================================================
+         VISTA 3: ASCENSOS OFICIALES DE JEFATURA
+         ================================================================ -->
+    <section class="view-container" id="view-ascensos">
+      <!-- Renderizado dinámicamente por app.js (renderPromotionsSection) -->
+    </section>
+
+    <!-- ================================================================
+         VISTA 4: CONDECORACIONES & INSIGNIAS K9
+         ================================================================ -->
+    <section class="view-container" id="view-condecoraciones">
+      <!-- Renderizado dinámicamente por app.js (renderDecorationsSection) -->
+    </section>
+
+    <!-- ================================================================
+         VISTA: CENTRO DE TAREAS OPERATIVAS K9
+         ================================================================ -->
+    <section class="view-container" id="view-tareas">
+      <!-- Renderizado dinámicamente por app.js (renderTasksCenter) -->
+    </section>
+
+    <!-- ================================================================
+         VISTA: CÓDIGO DE VESTIMENTA & UNIFORMIDAD K9 (SOLO MIEMBROS)
+         ================================================================ -->
+    <section class="view-container" id="view-vestimenta">
+      <!-- Renderizado dinámicamente por app.js (renderVestimentaSection) -->
+    </section>
+
+    <!-- ================================================================
+         VISTA 5: PERFIL DE MIEMBRO (ACCESO INDIVIDUAL & DESPACHO)
+         ================================================================ -->
+    <section class="view-container" id="view-perfil">
+      <!-- Renderizado dinámicamente por app.js (renderMemberProfile) -->
+    </section>
+
+    <!-- ================================================================
+         VISTA MAPA: MAPA OPERATIVO DE LOS SANTOS (CARTOGRAFÍA & ENTRENAMIENTOS)
+         ================================================================ -->
+    <section class="view-container" id="view-mapa">
+      <!-- Renderizado dinámicamente por app.js (renderTacticalMapSection) -->
+    </section>
+
+    <!-- ================================================================
+         VISTA 6: CENTRO DE MANDO Y JEFATURA K9 (RESTRINGIDO)
+         ================================================================ -->
+    <section class="view-container" id="view-jefatura">
+      <!-- Renderizado dinámicamente por app.js (checkJefaturaAccessAndRender) -->
+    </section>
+
+  </main>
+
+  <!-- ====================================================================
+       FOOTER OFICIAL TÁCTICO
+       ==================================================================== -->
+  <footer class="k9-tactical-footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <img src="assets/images/emblem.jpg" alt="K9" class="footer-logo">
+        <div class="footer-text">
+          <h4 class="font-tactical">DIVISIÓN POLICIAL CANINA K-9</h4>
+          <p>Lealtad, Honor y Fuerza — Sistema Integrado de Gestión Operativa y Jefatura</p>
+        </div>
+      </div>
+      <div class="footer-meta">
+        <div style="color:var(--tactical-gold);">DIVISIÓN K9 © 2026 — TODOS LOS DERECHOS RESERVADOS</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ====================================================================
+       MODALES TÁCTICOS
+       ==================================================================== -->
+
+  <!-- MODAL: AUTENTICACIÓN OFICIAL DISCORD OAUTH2 -->
+  <div class="tactical-modal-overlay" id="modalDiscordLogin">
+    <div class="tactical-modal-card" style="max-width: 490px;">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical" style="display:flex; align-items:center; gap:0.6rem;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="#5865F2">
+            <path
+              d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.893.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
+          </svg>
+          <span style="color:#fff;">AUTENTICACIÓN CON DISCORD OAUTH2</span>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalDiscordLogin')">✕</button>
+      </div>
+      <div class="modal-body-tactical">
+        <div
+          style="background:rgba(88,101,242,0.08); border:1px solid rgba(88,101,242,0.3); border-radius:10px; padding:1rem; margin-bottom:1.25rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+            <span
+              style="font-family:var(--font-headline); font-size:0.75rem; color:var(--text-subtle); letter-spacing:0.08em;">CLIENT
+              ID OFICIAL:</span>
+            <span
+              style="font-family:var(--font-tactical); font-size:0.8rem; color:#a5b4fc; background:rgba(88,101,242,0.2); padding:0.15rem 0.5rem; border-radius:4px;">1406448851153326131</span>
+          </div>
+          <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.5; margin:0;">
+            Verificación automática y segura mediante OAuth2. <strong>No requiere claves ni contraseñas</strong>: pulsa
+            el botón para autorizar tu identidad de Discord y desbloquear el portal de la Unidad K9.
+          </p>
+        </div>
+
+        <!-- Botón Directo OAuth2 -->
+        <button type="button" id="btnModalDiscordOAuth" class="btn-tactical btn-tactical-primary"
+          onclick="window.K9Auth.initiateDiscordOAuth()"
+          style="width:100%; justify-content:center; background:#5865F2; border-color:#5865F2; padding:0.95rem 1.25rem; font-size:1rem; font-weight:700; box-shadow:0 6px 20px rgba(88,101,242,0.45); cursor:pointer;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.893.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
+          </svg>
+          Verificar & Entrar con Discord
+        </button>
+
+        <div
+          style="border-top:1px solid var(--border-subtle); padding-top:1rem; margin-top:1.25rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+          <span style="font-size:0.75rem; color:var(--text-subtle);">Alcance: <code
+              style="color:var(--police-cyan);">identify</code></span>
+          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+            onclick="closeModal('modalDiscordLogin'); openModal('modalDiscordConfig');">
+            ⚙️ Ajustes de Redirect URI
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CONFIGURACIÓN DISCORD OAUTH2 REAL -->
+  <div class="tactical-modal-overlay" id="modalDiscordConfig">
+    <div class="tactical-modal-card">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical">
+          <span>⚙️</span> CONFIGURACIÓN DISCORD DEVELOPER PORTAL
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalDiscordConfig')">✕</button>
+      </div>
+      <form id="formDiscordConfig">
+        <div class="modal-body-tactical">
+          <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.75rem;">
+            Asegúrate de que la <strong>Redirect URI</strong> esté registrada exactamente en tu aplicación del <a
+              href="https://discord.com/developers/applications/1406448851153326131/oauth2" target="_blank"
+              style="color:var(--police-cyan); text-decoration:underline;">Discord Developer Portal (Sección OAuth2 >
+              Redirects)</a>:
+          </p>
+
+          <div
+            style="background:rgba(255,183,3,0.1); border:1px solid rgba(255,183,3,0.3); border-radius:6px; padding:0.75rem; margin-bottom:1rem; font-size:0.78rem;">
+            <div style="color:var(--tactical-gold); font-weight:700; margin-bottom:0.3rem;">📋 URLs que debes añadir en
+              Discord Developer Portal:</div>
+            <code
+              style="display:block; color:#fff; background:rgba(0,0,0,0.4); padding:0.3rem 0.5rem; border-radius:4px; margin-bottom:0.3rem; user-select:all;">https://k9-livid.vercel.app/</code>
+            <code
+              style="display:block; color:#fff; background:rgba(0,0,0,0.4); padding:0.3rem 0.5rem; border-radius:4px; margin-bottom:0.3rem; user-select:all;">https://k9-livid.vercel.app/index.html</code>
+            <code
+              style="display:block; color:#fff; background:rgba(0,0,0,0.4); padding:0.3rem 0.5rem; border-radius:4px; margin-bottom:0.4rem; user-select:all;">https://k9-livid.vercel.app</code>
+            <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+              style="font-size:0.72rem; padding:0.2rem 0.5rem;"
+              onclick="navigator.clipboard.writeText('https://k9-livid.vercel.app/\nhttps://k9-livid.vercel.app/index.html\nhttps://k9-livid.vercel.app'); showToast('URLs copiadas al portapapeles', 'info');">
+              📋 Copiar lista de Redirects
+            </button>
+          </div>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="cfgClientId">DISCORD CLIENT ID</label>
+            <input type="text" id="cfgClientId" class="form-input-tactical" value="1406448851153326131" required>
+          </div>
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="cfgRedirectUri">REDIRECT URI AUTORIZADA (ACTUAL)</label>
+            <input type="text" id="cfgRedirectUri" class="form-input-tactical" required>
+            <div style="display:flex; gap:0.4rem; flex-wrap:wrap; margin-top:0.4rem;">
+              <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+                style="font-size:0.7rem; padding:0.15rem 0.4rem;"
+                onclick="document.getElementById('cfgRedirectUri').value='https://k9-livid.vercel.app/';">
+                Vercel (con /)
+              </button>
+              <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+                style="font-size:0.7rem; padding:0.15rem 0.4rem;"
+                onclick="document.getElementById('cfgRedirectUri').value='https://k9-livid.vercel.app/index.html';">
+                Vercel (/index.html)
+              </button>
+              <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+                style="font-size:0.7rem; padding:0.15rem 0.4rem;"
+                onclick="document.getElementById('cfgRedirectUri').value='https://k9-livid.vercel.app';">
+                Vercel (sin /)
+              </button>
+            </div>
+          </div>
+          <div style="font-size:0.78rem; color:var(--text-subtle);">
+            Scope de autenticación: <code style="color:var(--police-cyan);">identify</code> (Flujo implícito sin
+            secrets)
+          </div>
+
+          <!-- ══════════════════════════════════════════
+               SECCIÓN: WEBHOOK DE LOGS
+          ══════════════════════════════════════════ -->
+          <hr style="border-color: rgba(0,229,255,0.15); margin: 1.2rem 0;">
+          <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.8rem;">
+            <span style="font-size:1.1rem;">📡</span>
+            <span style="font-size:0.8rem; font-weight:700; letter-spacing:0.08em; color:var(--police-cyan);">WEBHOOK DE
+              LOGS — CANAL DISCORD</span>
+          </div>
+          <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.8rem;">
+            Todos los eventos del portal (logins, informes, anuncios, disciplinarios…) se enviarán automáticamente a
+            este canal de Discord.
+          </p>
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="cfgWebhookUrl">URL DEL WEBHOOK</label>
+            <input type="url" id="cfgWebhookUrl" class="form-input-tactical"
+              placeholder="https://discord.com/api/webhooks/...">
+          </div>
+          <div style="display:flex; gap:0.6rem; flex-wrap:wrap; margin-top:0.4rem;">
+            <button type="button" id="btnSaveWebhook" class="btn-tactical btn-tactical-outline btn-tactical-sm">
+              💾 Guardar Webhook
+            </button>
+            <button type="button" id="btnTestWebhook" class="btn-tactical btn-tactical-outline btn-tactical-sm">
+              🔔 Enviar Test
+            </button>
+            <button type="button" id="btnClearWebhook" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+              style="color:#ff6b6b; border-color:#ff6b6b33;">
+              🗑️ Borrar
+            </button>
+          </div>
+        </div>
+        <div class="modal-footer-tactical">
+          <button type="button" class="btn-tactical btn-tactical-primary btn-tactical-sm" id="btnLaunchLiveDiscord">
+            🚀 Iniciar OAuth2 con Discord
+          </button>
+          <button type="submit" class="btn-tactical btn-tactical-gold btn-tactical-sm">
+            Guardar Configuración
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+
+
+  <!-- MODAL: NUEVO INFORME SEMANAL -->
+  <div class="tactical-modal-overlay" id="modalNewReport">
+    <div class="tactical-modal-card">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical">
+          <span>📑</span> REDACTAR INFORME SEMANAL DE AGENTE
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalNewReport')">✕</button>
+      </div>
+      <form id="formNewReport">
+        <div class="modal-body-tactical">
+          <div class="form-grid-2">
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="repWeek">PERÍODO / SEMANA</label>
+              <input type="text" id="repWeek" class="form-input-tactical" value="Semana 43 - Octubre 2026" required>
+            </div>
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="repDog">CAN K9 EN SERVICIO</label>
+              <input type="text" id="repDog" class="form-input-tactical" placeholder="Ej: Thor (K9-T02)" required>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="repHours">HORAS DE PATRULLAJE</label>
+              <input type="number" id="repHours" class="form-input-tactical" value="35" min="1" max="100" required>
+            </div>
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="repAlerts">ALERTAS POSITIVAS DEL CAN</label>
+              <input type="number" id="repAlerts" class="form-input-tactical" value="3" min="0" required>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="repInterventions">INTERVENCIONES CANINAS</label>
+              <input type="number" id="repInterventions" class="form-input-tactical" value="2" min="0" required>
+            </div>
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="repRating">EVALUACIÓN PROPUESTA</label>
+              <select id="repRating" class="form-select-tactical">
+                <option value="Sobresaliente (10/10)">Sobresaliente (10/10)</option>
+                <option value="Excelente (9.5/10)" selected>Excelente (9.5/10)</option>
+                <option value="Favorable (8.0/10)">Favorable (8.0/10)</option>
+                <option value="Aceptable (6.5/10)">Aceptable (6.5/10)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="repSeizures">INCAUTACIONES O SUSTANCIAS LOCALIZADAS</label>
+            <input type="text" id="repSeizures" class="form-input-tactical"
+              placeholder="Ej: 1.2 kg estupefacientes en maletero de vehículo">
+          </div>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="repNotes">DETALLES DE LAS ACTUACIONES OPERATIVAS</label>
+            <textarea id="repNotes" class="form-textarea-tactical"
+              placeholder="Describe los despliegues de la semana, comportamiento y obediencia del can..."
+              required></textarea>
+          </div>
+
+          <label class="perm-toggle-card">
+            <input type="checkbox" id="repConfidentialInput" class="perm-checkbox">
+            <div class="perm-details">
+              <span class="perm-title">🔒 Marcar como Confidencial (Solo Jefatura)</span>
+              <span class="perm-desc">Este informe solo será visible para mandos y coordinadores de Jefatura</span>
+            </div>
+          </label>
+        </div>
+        <div class="modal-footer-tactical">
+          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+            onclick="closeModal('modalNewReport')">Cancelar</button>
+          <button type="submit" class="btn-tactical btn-tactical-gold btn-tactical-sm">Enviar a Jefatura</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ALTA DE AGENTE -->
+  <div class="tactical-modal-overlay" id="modalNewAgent">
+    <div class="tactical-modal-card">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical">
+          <span>👮</span> DAR DE ALTA AGENTE EN LA UNIDAD K9
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalNewAgent')">✕</button>
+      </div>
+      <form id="formNewAgent">
+        <div class="modal-body-tactical">
+          <div class="form-grid-2">
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="agentName">NOMBRE COMPLETO</label>
+              <input type="text" id="agentName" class="form-input-tactical" placeholder="Ej: Carlos Santana" required>
+            </div>
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="agentPlaca">NÚMERO DE PLACA</label>
+              <input type="text" id="agentPlaca" class="form-input-tactical" placeholder="Ej: K-12" required>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="agentRank">RANGO EN LA DIVISIÓN</label>
+              <select id="agentRank" class="form-select-tactical">
+                <option value="Jefatura LSPD">👑 Jefatura LSPD (Staff)</option>
+                <option value="Coordinador K9">🦅 Coordinador K9</option>
+                <option value="Subcoordinador K9">⭐ Subcoordinador K9</option>
+                <option value="Instructor K9">🎯 Instructor K9</option>
+                <option value="Agente Guia" selected>🐾 Agente Guia</option>
+                <option value="Aspirante K9">🔰 Aspirante K9</option>
+                <option value="Sin Rango">⏳ Sin Rango Asignado</option>
+              </select>
+            </div>
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="agentDiscord">USUARIO DE DISCORD</label>
+              <input type="text" id="agentDiscord" class="form-input-tactical" placeholder="Ej: Santana_K9#4401"
+                required>
+            </div>
+          </div>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="agentAvatar">URL DE FOTOGRAFÍA / AVATAR</label>
+            <input type="url" id="agentAvatar" class="form-input-tactical" placeholder="https://ejemplo.com/foto.jpg">
+          </div>
+
+          <label class="perm-toggle-card">
+            <input type="checkbox" id="agentIsJefatura" class="perm-checkbox">
+            <div class="perm-details">
+              <span class="perm-title">Conceder Rango de Jefatura / Mando</span>
+              <span class="perm-desc">Habilita acceso inicial a herramientas de supervisión</span>
+            </div>
+          </label>
+        </div>
+        <div class="modal-footer-tactical">
+          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+            onclick="closeModal('modalNewAgent')">Cancelar</button>
+          <button type="submit" class="btn-tactical btn-tactical-primary btn-tactical-sm">Dar de Alta</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: REGISTRAR NUEVO CAN K9 -->
+  <div class="tactical-modal-overlay" id="modalNewDog">
+    <div class="tactical-modal-card">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical">
+          <span>🐕</span> REGISTRAR NUEVO CAN OPERATIVO
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalNewDog')">✕</button>
+      </div>
+      <form id="formNewDog">
+        <div class="modal-body-tactical">
+          <div class="form-grid-2">
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="dogNameInput">NOMBRE DEL CAN</label>
+              <input type="text" id="dogNameInput" class="form-input-tactical" placeholder="Ej: Shadow" required>
+            </div>
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="dogTagInput">PLACA CANINA / CHIP</label>
+              <input type="text" id="dogTagInput" class="form-input-tactical" placeholder="Ej: K9-S06" required>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="dogBreedInput">RAZA</label>
+              <select id="dogBreedInput" class="form-select-tactical">
+                <option value="Pastor Belga Malinois">Pastor Belga Malinois</option>
+                <option value="Pastor Alemán Sable">Pastor Alemán Sable</option>
+                <option value="Labrador Retriever">Labrador Retriever</option>
+                <option value="Bloodhound (Sabueso)">Bloodhound (Sabueso)</option>
+                <option value="Rottweiler Táctico">Rottweiler Táctico</option>
+              </select>
+            </div>
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="dogSpecialtyInput">ESPECIALIDAD CANINA</label>
+              <select id="dogSpecialtyInput" class="form-select-tactical">
+                <option value="Intervención Táctica & Asalto">Intervención Táctica & Asalto</option>
+                <option value="Detección de Narcóticos & Sustancias">Detección de Narcóticos & Sustancias</option>
+                <option value="Detección de Explosivos & IED">Detección de Explosivos & IED</option>
+                <option value="Búsqueda & Rescate de Personas">Búsqueda & Rescate de Personas</option>
+                <option value="Control de Masas">Control de Masas</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="dogAgeInput">EDAD</label>
+              <input type="text" id="dogAgeInput" class="form-input-tactical" placeholder="Ej: 3 años" required>
+            </div>
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="dogHealthInput">ESTADO DE SALUD</label>
+              <select id="dogHealthInput" class="form-select-tactical">
+                <option value="Apto Operativo">Apto Operativo</option>
+                <option value="En Entrenamiento">En Entrenamiento</option>
+                <option value="En Recuperación">En Recuperación</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="dogSyncInput">NIVEL DE ADIESTRAMIENTO TÁCTICO (%)</label>
+            <input type="number" id="dogSyncInput" class="form-input-tactical" value="90" min="0" max="100" required>
+          </div>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="dogPhotoInput">FOTOGRAFÍA DEL CAN (RUTA / URL)</label>
+            <input type="text" id="dogPhotoInput" class="form-input-tactical" value="assets/images/k9_thor.jpg">
+          </div>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="dogNotesInput">NOTAS DE ADIESTRAMIENTO & COMPORTAMIENTO</label>
+            <textarea id="dogNotesInput" class="form-textarea-tactical"
+              placeholder="Comandos conocidos, temperamento..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer-tactical">
+          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+            onclick="closeModal('modalNewDog')">Cancelar</button>
+          <button type="submit" class="btn-tactical btn-tactical-gold btn-tactical-sm">Registrar Can</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: REGISTRAR FALTA DISCIPLINARIA -->
+  <div class="tactical-modal-overlay" id="modalNewDisciplinary">
+    <div class="tactical-modal-card">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical">
+          <span style="color:var(--tactical-red);">⚠️</span> ABRIR EXPEDIENTE DISCIPLINARIO
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalNewDisciplinary')">✕</button>
+      </div>
+      <form id="formNewDisciplinary">
+        <div class="modal-body-tactical">
+          <div class="form-grid-2">
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="discAgentSelect">AGENTE IMPLICADO</label>
+              <select id="discAgentSelect" class="form-select-tactical" required></select>
+            </div>
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="discTypeSelect">GRAVEDAD DE LA INFRACCIÓN</label>
+              <select id="discTypeSelect" class="form-select-tactical">
+                <option value="Leve">Falta Leve</option>
+                <option value="Grave">Falta Grave</option>
+                <option value="Muy Grave">Falta Muy Grave</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="discCategorySelect">TIPO DE REGISTRO / VISIBILIDAD PARA EL
+              MIEMBRO</label>
+            <select id="discCategorySelect" class="form-select-tactical">
+              <option value="falta_notificada" selected>⚠️ Falta Notificada (Visible para el miembro en Mi Perfil)
+              </option>
+              <option value="expediente_interno">🔒 Expediente Interno / Confidencial (Solo Jefatura — NO le saldrá al
+                miembro)</option>
+            </select>
+            <small style="color:var(--text-subtle); font-size:0.75rem; margin-top:0.3rem; display:block;">
+              Si es un expediente interno confidencial, solo la Jefatura tendrá acceso a él y nunca le aparecerá al
+              agente en su perfil.
+            </small>
+          </div>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="discReasonInput">MOTIVO Y HECHOS COMPROBADOS</label>
+            <textarea id="discReasonInput" class="form-textarea-tactical"
+              placeholder="Explica detalladamente la infracción de las normativas de la Unidad K9..."
+              required></textarea>
+          </div>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="discSanctionInput">SANCIÓN APLICADA / MEDIDA CAUTELAR</label>
+            <input type="text" id="discSanctionInput" class="form-input-tactical"
+              placeholder="Ej: Suspensión de servicio activo por 7 días" required>
+          </div>
+        </div>
+        <div class="modal-footer-tactical">
+          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+            onclick="closeModal('modalNewDisciplinary')">Cancelar</button>
+          <button type="submit" class="btn-tactical btn-tactical-danger btn-tactical-sm">Aplicar Sanción</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: OTORGAR CONDECORACIÓN / INSIGNIA -->
+  <div class="tactical-modal-overlay" id="modalAwardBadge">
+    <div class="tactical-modal-card">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical">
+          <span style="color:var(--tactical-gold);">🎖️</span> OTORGAR CONDECORACIÓN OFICIAL K9
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalAwardBadge')">✕</button>
+      </div>
+      <form id="formAwardBadge">
+        <div class="modal-body-tactical">
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="awardUserSelect">AGENTE DESTINATARIO</label>
+            <select id="awardUserSelect" class="form-select-tactical" required></select>
+          </div>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="awardBadgeSelect">INSIGNIA / MEDALLA A CONCEDER</label>
+            <select id="awardBadgeSelect" class="form-select-tactical" required></select>
+          </div>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="awardReasonInput">CITACIÓN OFICIAL / MOTIVO DEL MÉRITO</label>
+            <textarea id="awardReasonInput" class="form-textarea-tactical"
+              placeholder="Escribe la dedicatoria oficial de Jefatura..."
+              required>Por su destacada actuación y valentía en servicio canino.</textarea>
+          </div>
+        </div>
+        <div class="modal-footer-tactical">
+          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+            onclick="closeModal('modalAwardBadge')">Cancelar</button>
+          <button type="submit" class="btn-tactical btn-tactical-gold btn-tactical-sm">Conceder Insignia</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: INSPECCIONAR CONDECORACIÓN EN DETALLE -->
+  <div class="tactical-modal-overlay" id="modalBadgeInspect">
+    <div class="tactical-modal-card" style="max-width:520px; text-align:center;">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical">
+          <span>🎖️</span> CONDECORACIÓN POLICIAL CANINA
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalBadgeInspect')">✕</button>
+      </div>
+      <div class="modal-body-tactical" style="padding:2.5rem 2rem;">
+        <div
+          style="width:130px; height:130px; margin:0 auto 1.5rem; filter:drop-shadow(0 10px 25px rgba(255,183,3,0.35));">
+          <img id="inspectBadgeImg" src="assets/images/medal_valor.jpg" alt="Insignia"
+            style="width:100%; height:100%; object-fit:contain;">
+        </div>
+        <h3 id="inspectBadgeTitle" class="font-tactical" style="font-size:1.45rem; color:#fff; margin-bottom:0.35rem;">
+        </h3>
+        <div id="inspectBadgeCategory"
+          style="font-family:var(--font-headline); color:var(--tactical-gold); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:1.25rem;">
+        </div>
+        <p id="inspectBadgeDesc"
+          style="font-size:0.92rem; color:var(--text-muted); line-height:1.6; margin-bottom:1.5rem;"></p>
+        <div
+          style="border-top:1px solid var(--border-subtle); padding-top:1rem; font-size:0.82rem; color:var(--text-subtle);">
+          Otorgada con honores de servicio a: <strong id="inspectBadgeRecipient"
+            style="color:var(--police-cyan);"></strong>
+        </div>
+      </div>
+      <div class="modal-footer-tactical" style="justify-content:center;">
+        <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+          onclick="closeModal('modalBadgeInspect')">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: PUBLICAR COMUNICADO DE JEFATURA -->
+  <div class="tactical-modal-overlay" id="modalNewAnnouncement">
+    <div class="tactical-modal-card">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical">
+          <span>📢</span> EMITIR COMUNICADO OFICIAL DE JEFATURA
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalNewAnnouncement')">✕</button>
+      </div>
+      <form id="formNewAnnouncement">
+        <div class="modal-body-tactical">
+          <div class="form-grid-2">
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="annTitleInput">TÍTULO DEL COMUNICADO</label>
+              <input type="text" id="annTitleInput" class="form-input-tactical"
+                placeholder="Ej: PROTOCOLO DE ALIMENTACIÓN Y DESCANSO" required>
+            </div>
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="annPrioritySelect">PRIORIDAD / TIPO</label>
+              <select id="annPrioritySelect" class="form-select-tactical">
+                <option value="OFICIAL">🛡️ COMUNICADO OFICIAL</option>
+                <option value="URGENTE">🚨 OPERATIVO URGENTE</option>
+                <option value="IMPORTANTE">⚠️ IMPORTANTE</option>
+                <option value="FORMACION">📖 ADIESTRAMIENTO / FORMACIÓN</option>
+                <option value="CANINO">🐾 SERVICIO CANINO & SALUD</option>
+                <option value="INFORMATIVO">ℹ️ INFORMATIVO</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="annImageInput">FOTOGRAFÍA / IMAGEN TÁCTICA (OPCIONAL)</label>
+            <input type="url" id="annImageInput" class="form-input-tactical"
+              placeholder="https://ejemplo.com/foto-comunicado.jpg">
+          </div>
+
+          <label class="perm-toggle-card">
+            <input type="checkbox" id="annPinnedInput" class="perm-checkbox" checked>
+            <div class="perm-details">
+              <span class="perm-title">Fijar en la parte superior del tablón</span>
+              <span class="perm-desc">Mantendrá el comunicado destacado ante los agentes</span>
+            </div>
+          </label>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="annContentInput">CONTENIDO DEL COMUNICADO</label>
+            <textarea id="annContentInput" class="form-textarea-tactical" style="min-height:140px;"
+              placeholder="Escribe el texto de la directriz oficial..." required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer-tactical">
+          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+            onclick="closeModal('modalNewAnnouncement')">Cancelar</button>
+          <button type="submit" class="btn-tactical btn-tactical-gold btn-tactical-sm">Publicar en Tablón</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: MENÚ TÁCTICO DE BAJA Y ELIMINACIÓN DE CAN K9
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalDeleteDog">
+    <div class="tactical-modal-card" style="max-width: 520px;">
+      <div class="modal-header-tactical" style="border-bottom-color: var(--tactical-red);">
+        <div class="modal-title-tactical" style="color: var(--tactical-red);">
+          <span>🚨</span> DAR DE BAJA Y ELIMINAR CAN K9
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalDeleteDog')">✕</button>
+      </div>
+      <div class="modal-body-tactical" style="padding: 1.5rem;">
+        <div
+          style="display: flex; gap: 1rem; align-items: center; background: rgba(255, 42, 95, 0.08); border: 1px solid var(--border-danger); border-radius: 12px; padding: 1rem; margin-bottom: 1.25rem;">
+          <img id="delDogPhoto" src="assets/images/k9_thor.jpg" alt="Can K9"
+            style="width: 70px; height: 70px; border-radius: 10px; object-fit: cover; border: 2px solid var(--tactical-red);">
+          <div>
+            <h3 id="delDogName" class="font-gobold" style="color: #fff; font-size: 1.25rem; margin-bottom: 0.2rem;">THOR
+            </h3>
+            <div id="delDogTag"
+              style="font-family: var(--font-headline); color: var(--police-cyan); font-size: 0.85rem; font-weight: 700; margin-bottom: 0.2rem;">
+              K9-T02</div>
+            <div id="delDogBreed" style="font-size: 0.8rem; color: var(--text-muted);">Pastor Belga Malinois</div>
+          </div>
+        </div>
+
+        <div
+          style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 0.85rem 1rem; margin-bottom: 1.25rem; font-size: 0.84rem; line-height: 1.5; color: var(--text-main);">
+          <div style="margin-bottom: 0.4rem; color: var(--tactical-gold); font-weight: 700;">⚠️ Advertencia de
+            Procedimiento:</div>
+          Esta acción dará de baja definitiva al can del registro policial. Si el can tenía un guía asignado, quedará
+          automáticamente liberado y disponible para una nueva asignación.
+        </div>
+
+        <div class="form-group-tactical">
+          <label class="form-label-tactical" for="delDogReason">MOTIVO DE LA BAJA / RESOLUCIÓN</label>
+          <select id="delDogReason" class="form-select-tactical">
+            <option value="Jubilación del servicio canino">Jubilación del servicio canino por edad/mérito</option>
+            <option value="Baja médica no recuperable">Baja médica / Lesión no apto para servicio</option>
+            <option value="Fallecimiento en acto de servicio">Fallecimiento con honores en acto de servicio</option>
+            <option value="Reasignación externa a otra unidad">Reasignación externa a otra unidad de policía</option>
+            <option value="Error en ficha o duplicado">Error de registro / Ficha duplicada</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer-tactical">
+        <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+          onclick="closeModal('modalDeleteDog')">
+          Cancelar
+        </button>
+        <button type="button" class="btn-tactical btn-tactical-danger btn-tactical-sm" id="btnConfirmDeleteDogAction"
+          onclick="window._confirmDeleteDog()">
+          🚨 Confirmar Baja y Eliminación
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: MENÚ TÁCTICO DE ELIMINACIÓN DE FALTA DISCIPLINARIA
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalDeleteDisciplinary">
+    <div class="tactical-modal-card" style="max-width: 520px;">
+      <div class="modal-header-tactical" style="border-bottom-color: var(--tactical-red);">
+        <div class="modal-title-tactical" style="color: var(--tactical-red);">
+          <span>⚖️</span> RETIRAR / ELIMINAR EXPEDIENTE DISCIPLINARIO
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalDeleteDisciplinary')">✕</button>
+      </div>
+      <div class="modal-body-tactical" style="padding: 1.5rem;">
+        <div
+          style="background: rgba(255, 42, 95, 0.08); border: 1px solid var(--border-danger); border-radius: 12px; padding: 1rem; margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <strong id="delDiscAgent" style="color: #fff; font-size: 1rem;">Agente Implicado</strong>
+            <span id="delDiscSeverity"
+              style="font-family: var(--font-headline); font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; background: rgba(255, 42, 95, 0.2); color: var(--tactical-red); border: 1px solid var(--tactical-red);">
+              Falta Grave
+            </span>
+          </div>
+          <div id="delDiscReason"
+            style="font-size: 0.85rem; color: var(--text-main); line-height: 1.5; margin-bottom: 0.5rem;">
+            Motivo de los hechos
+          </div>
+          <div style="font-size: 0.8rem; color: var(--tactical-gold);">
+            Sanción: <strong id="delDiscSanction">Suspensión de servicio</strong>
+          </div>
+        </div>
+
+        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+          ¿Estás seguro de que deseas retirar y sobreseer este expediente? Esta sanción desaparecerá definitivamente del
+          historial del agente y de los registros de Jefatura.
+        </p>
+      </div>
+      <div class="modal-footer-tactical">
+        <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+          onclick="closeModal('modalDeleteDisciplinary')">
+          Cancelar
+        </button>
+        <button type="button" class="btn-tactical btn-tactical-danger btn-tactical-sm" id="btnConfirmDeleteDiscAction"
+          onclick="window._confirmDeleteDisc()">
+          🗑️ Confirmar Retirada de Expediente
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: MENÚ TÁCTICO DE ELIMINACIÓN DE INFORME SEMANAL
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalDeleteReport">
+    <div class="tactical-modal-card" style="max-width: 520px;">
+      <div class="modal-header-tactical" style="border-bottom-color: var(--tactical-red);">
+        <div class="modal-title-tactical" style="color: var(--tactical-red);">
+          <span>🗑️</span> ELIMINAR INFORME SEMANAL
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalDeleteReport')">✕</button>
+      </div>
+      <div class="modal-body-tactical" style="padding: 1.5rem;">
+        <div
+          style="background: rgba(255, 42, 95, 0.08); border: 1px solid var(--border-danger); border-radius: 12px; padding: 1rem; margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <strong id="delReportAgent" style="color: #fff; font-size: 1rem;">Agente</strong>
+            <span id="delReportWeek"
+              style="font-family: var(--font-headline); font-size: 0.8rem; color: var(--police-cyan);">Semana</span>
+          </div>
+          <div id="delReportDog" style="font-size: 0.85rem; color: var(--text-muted);">Can K9: —</div>
+          <div id="delReportPatrol" style="font-size: 0.85rem; color: var(--tactical-gold); margin-top: 0.3rem;">Horas
+            patrulladas: —</div>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+          ¿Estás seguro de que deseas eliminar este informe semanal? Se borrará de las estadísticas de patrulla de forma
+          definitiva.
+        </p>
+      </div>
+      <div class="modal-footer-tactical">
+        <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+          onclick="closeModal('modalDeleteReport')">
+          Cancelar
+        </button>
+        <button type="button" class="btn-tactical btn-tactical-danger btn-tactical-sm" id="btnConfirmDeleteReportAction"
+          onclick="window._confirmDeleteReport()">
+          🗑️ Eliminar Informe Definitivamente
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: VISUALIZADOR DETALLADO DE INFORME SEMANAL (SIN ALERT DE GOOGLE)
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalViewReport">
+    <div class="tactical-modal-card" style="max-width: 600px;">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical">
+          <span>📋</span> EXPEDIENTE DE INFORME SEMANAL K9
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalViewReport')">✕</button>
+      </div>
+      <div class="modal-body-tactical" style="padding: 1.5rem;" id="modalViewReportBody">
+        <!-- Renderizado dinámicamente por app.js -->
+      </div>
+      <div class="modal-footer-tactical">
+        <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+          onclick="closeModal('modalViewReport')">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: EDITAR COMUNICADO DE JEFATURA
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalEditAnnouncement">
+    <div class="tactical-modal-card">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical">
+          <span>✏️</span> EDITAR COMUNICADO OFICIAL DE JEFATURA
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalEditAnnouncement')">✕</button>
+      </div>
+      <form id="formEditAnnouncement">
+        <input type="hidden" id="editAnnId">
+        <div class="modal-body-tactical">
+          <div class="form-grid-2">
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="editAnnTitle">TÍTULO DEL COMUNICADO</label>
+              <input type="text" id="editAnnTitle" class="form-input-tactical" required>
+            </div>
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="editAnnPriority">PRIORIDAD / TIPO</label>
+              <select id="editAnnPriority" class="form-select-tactical">
+                <option value="OFICIAL">🛡️ COMUNICADO OFICIAL</option>
+                <option value="URGENTE">🚨 OPERATIVO URGENTE</option>
+                <option value="IMPORTANTE">⚠️ IMPORTANTE</option>
+                <option value="FORMACION">📖 ADIESTRAMIENTO / FORMACIÓN</option>
+                <option value="CANINO">🐾 SERVICIO CANINO & SALUD</option>
+                <option value="INFORMATIVO">ℹ️ INFORMATIVO</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="editAnnImage">FOTOGRAFÍA / IMAGEN TÁCTICA (OPCIONAL)</label>
+            <input type="url" id="editAnnImage" class="form-input-tactical"
+              placeholder="https://ejemplo.com/foto-comunicado.jpg">
+          </div>
+
+          <label class="perm-toggle-card">
+            <input type="checkbox" id="editAnnPinned" class="perm-checkbox">
+            <div class="perm-details">
+              <span class="perm-title">Fijar en la parte superior del tablón</span>
+              <span class="perm-desc">Mantendrá el comunicado destacado con chincheta táctica</span>
+            </div>
+          </label>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="editAnnContent">CONTENIDO DEL COMUNICADO</label>
+            <textarea id="editAnnContent" class="form-textarea-tactical" style="min-height:140px;" required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer-tactical">
+          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+            onclick="closeModal('modalEditAnnouncement')">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-tactical btn-tactical-gold btn-tactical-sm">
+            💾 Guardar Cambios
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: MENÚ TÁCTICO DE ELIMINACIÓN DE ANUNCIO DE JEFATURA
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalDeleteAnnouncement">
+    <div class="tactical-modal-card" style="max-width: 520px;">
+      <div class="modal-header-tactical" style="border-bottom-color: var(--tactical-red);">
+        <div class="modal-title-tactical" style="color: var(--tactical-red);">
+          <span>🗑️</span> ELIMINAR COMUNICADO DE JEFATURA
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalDeleteAnnouncement')">✕</button>
+      </div>
+      <div class="modal-body-tactical" style="padding: 1.5rem;">
+        <div
+          style="background: rgba(255, 42, 95, 0.08); border: 1px solid var(--border-danger); border-radius: 12px; padding: 1rem; margin-bottom: 1.25rem;">
+          <h4 id="delAnnTitle"
+            style="color: #fff; font-size: 1.05rem; margin-bottom: 0.4rem; font-family: var(--font-tactical);">Título
+            Comunicado</h4>
+          <div id="delAnnAuthor" style="font-size: 0.8rem; color: var(--text-muted);">Emitido por: —</div>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+          ¿Estás seguro de que deseas retirar y borrar este comunicado del tablón oficial? Los agentes ya no podrán
+          visualizarlo.
+        </p>
+      </div>
+      <div class="modal-footer-tactical">
+        <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+          onclick="closeModal('modalDeleteAnnouncement')">
+          Cancelar
+        </button>
+        <button type="button" class="btn-tactical btn-tactical-danger btn-tactical-sm" id="btnConfirmDeleteAnnAction"
+          onclick="window._confirmDeleteAnnouncement()">
+          🗑️ Eliminar Comunicado
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: EDITAR / CREAR NORMATIVA OFICIAL
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalEditNormative">
+    <div class="tactical-modal-card" style="max-width: 650px;">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical" id="modalNormativeTitle">
+          <span>⚖️</span> GESTIONAR NORMATIVA OFICIAL K9
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalEditNormative')">✕</button>
+      </div>
+      <form id="formEditNormative">
+        <input type="hidden" id="normId">
+        <div class="modal-body-tactical">
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="normChapter">TÍTULO DEL CAPÍTULO</label>
+            <input type="text" id="normChapter" class="form-input-tactical"
+              placeholder="Ej: CAPÍTULO I — DISPOSICIONES GENERALES" required>
+          </div>
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="normArticlesRaw">ARTÍCULOS Y DISPOSICIONES (FORMATO LÍNEA POR
+              ARTÍCULO: Art. X | Título | Texto)</label>
+            <textarea id="normArticlesRaw" class="form-textarea-tactical"
+              style="min-height: 180px; font-family: monospace; font-size: 0.85rem;"
+              placeholder="Art. 1 | Objeto | El presente reglamento establece...&#10;Art. 2 | Finalidad | La unidad tiene como finalidad..."
+              required></textarea>
+            <small style="color:var(--text-subtle); font-size:0.75rem; margin-top:0.3rem; display:block;">
+              Escribe cada artículo en una línea separando número, título y texto con el símbolo <code>|</code>
+            </small>
+          </div>
+        </div>
+        <div class="modal-footer-tactical">
+          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+            onclick="closeModal('modalEditNormative')">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-tactical btn-tactical-gold btn-tactical-sm">
+            💾 Guardar Normativa
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: MENÚ TÁCTICO DE ELIMINACIÓN DE NORMATIVA
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalDeleteNormative">
+    <div class="tactical-modal-card" style="max-width: 520px;">
+      <div class="modal-header-tactical" style="border-bottom-color: var(--tactical-red);">
+        <div class="modal-title-tactical" style="color: var(--tactical-red);">
+          <span>🗑️</span> ELIMINAR CAPÍTULO DE NORMATIVAS
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalDeleteNormative')">✕</button>
+      </div>
+      <div class="modal-body-tactical" style="padding: 1.5rem;">
+        <div
+          style="background: rgba(255, 42, 95, 0.08); border: 1px solid var(--border-danger); border-radius: 12px; padding: 1rem; margin-bottom: 1.25rem;">
+          <h4 id="delNormChapter" style="color: #fff; font-size: 1.05rem; font-family: var(--font-tactical);">Capítulo
+          </h4>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+          ¿Estás seguro de que deseas eliminar este capítulo y todos sus artículos? Se retirará del reglamento oficial.
+        </p>
+      </div>
+      <div class="modal-footer-tactical">
+        <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+          onclick="closeModal('modalDeleteNormative')">
+          Cancelar
+        </button>
+        <button type="button" class="btn-tactical btn-tactical-danger btn-tactical-sm" id="btnConfirmDeleteNormAction"
+          onclick="window._confirmDeleteNormative()">
+          🗑️ Eliminar Capítulo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: EDITAR / CREAR MANUAL DE ADIESTRAMIENTO
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalEditManual">
+    <div class="tactical-modal-card" style="max-width: 650px;">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical" id="modalManualTitle">
+          <span>📖</span> GESTIONAR MANUAL DE INSTRUCCIÓN K9
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalEditManual')">✕</button>
+      </div>
+      <form id="formEditManual">
+        <input type="hidden" id="manId">
+        <div class="modal-body-tactical">
+          <div class="form-grid-2">
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="manTitle">TÍTULO DEL MANUAL</label>
+              <input type="text" id="manTitle" class="form-input-tactical"
+                placeholder="Ej: GUÍA OPERATIVA DE INTERVENCIÓN" required>
+            </div>
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="manCategory">CATEGORÍA</label>
+              <input type="text" id="manCategory" class="form-input-tactical"
+                placeholder="Ej: COMANDOS / TÁCTICA / VETERINARIA" required>
+            </div>
+          </div>
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="manItemsRaw">ÓRDENES / COMANDOS (FORMATO: Comando | Traducción |
+              Descripción)</label>
+            <textarea id="manItemsRaw" class="form-textarea-tactical"
+              style="min-height: 180px; font-family: monospace; font-size: 0.85rem;"
+              placeholder="Fass | Ataque / Morder | Neutraliza al objetivo&#10;Aus | Soltar | Libera mordida al instante"
+              required></textarea>
+            <small style="color:var(--text-subtle); font-size:0.75rem; margin-top:0.3rem; display:block;">
+              Escribe cada comando en una línea con el separador <code>|</code>
+            </small>
+          </div>
+        </div>
+        <div class="modal-footer-tactical">
+          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+            onclick="closeModal('modalEditManual')">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-tactical btn-tactical-gold btn-tactical-sm">
+            💾 Guardar Manual
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: MENÚ TÁCTICO DE ELIMINACIÓN DE MANUAL
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalDeleteManual">
+    <div class="tactical-modal-card" style="max-width: 520px;">
+      <div class="modal-header-tactical" style="border-bottom-color: var(--tactical-red);">
+        <div class="modal-title-tactical" style="color: var(--tactical-red);">
+          <span>🗑️</span> ELIMINAR MANUAL DE ADIESTRAMIENTO
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalDeleteManual')">✕</button>
+      </div>
+      <div class="modal-body-tactical" style="padding: 1.5rem;">
+        <div
+          style="background: rgba(255, 42, 95, 0.08); border: 1px solid var(--border-danger); border-radius: 12px; padding: 1rem; margin-bottom: 1.25rem;">
+          <h4 id="delManTitle" style="color: #fff; font-size: 1.05rem; font-family: var(--font-tactical);">Manual</h4>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+          ¿Estás seguro de que deseas eliminar este manual de adiestramiento?
+        </p>
+      </div>
+      <div class="modal-footer-tactical">
+        <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+          onclick="closeModal('modalDeleteManual')">
+          Cancelar
+        </button>
+        <button type="button" class="btn-tactical btn-tactical-danger btn-tactical-sm" id="btnConfirmDeleteManAction"
+          onclick="window._confirmDeleteManual()">
+          🗑️ Eliminar Manual
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: EDITAR FICHA COMPLETA DE MIEMBRO (JEFATURA)
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalEditMember">
+    <div class="tactical-modal-card" style="max-width: 580px;">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical">
+          <span>👮</span> EDITAR EXPEDIENTE DEL MIEMBRO
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalEditMember')">✕</button>
+      </div>
+      <form id="formEditMember">
+        <input type="hidden" id="editMemberId">
+        <div class="modal-body-tactical">
+          <div class="form-grid-2">
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="editMemberName">NOMBRE COMPLETO</label>
+              <input type="text" id="editMemberName" class="form-input-tactical" required>
+            </div>
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="editMemberPlaca">NÚMERO DE PLACA</label>
+              <input type="text" id="editMemberPlaca" class="form-input-tactical" required>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="editMemberRank">RANGO OFICIAL</label>
+              <select id="editMemberRank" class="form-select-tactical" required>
+                <option value="Jefatura LSPD">👑 Jefatura LSPD (Staff)</option>
+                <option value="Coordinador K9">🦅 Coordinador K9</option>
+                <option value="Subcoordinador K9">⭐ Subcoordinador K9</option>
+                <option value="Instructor K9">🎯 Instructor K9</option>
+                <option value="Agente Guia">🐾 Agente Guia</option>
+                <option value="Aspirante K9">🔰 Aspirante K9</option>
+                <option value="Sin Rango">⏳ Sin Rango Asignado</option>
+              </select>
+            </div>
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="editMemberDogSelect">CAN K9 ASIGNADO</label>
+              <select id="editMemberDogSelect" class="form-select-tactical">
+                <option value="">Sin can asignado</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="editMemberAvatar">FOTOGRAFÍA / AVATAR</label>
+            <div style="display:flex; gap:0.5rem; align-items:center;">
+              <input type="text" id="editMemberAvatar" class="form-input-tactical" placeholder="https://... o subir archivo">
+              <input type="file" id="editMemberAvatarFile" accept="image/*" style="display:none;" onchange="(function(e){const f=e.target.files&&e.target.files[0];if(f){const r=new FileReader();r.onload=function(ev){document.getElementById('editMemberAvatar').value=ev.target.result;};r.readAsDataURL(f);}})(event)">
+              <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" style="white-space:nowrap; padding:0.55rem 0.75rem;" onclick="document.getElementById('editMemberAvatarFile').click()">📁 Subir</button>
+            </div>
+          </div>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="editMemberDiscordId">DISCORD ID (Para vinculación OAuth2)</label>
+            <input type="text" id="editMemberDiscordId" class="form-input-tactical"
+              placeholder="Ej: 760159743616090164">
+          </div>
+
+          <label class="perm-toggle-card">
+            <input type="checkbox" id="editMemberIsJefatura" class="perm-checkbox">
+            <div class="perm-details">
+              <span class="perm-title">Acreditar con Privilegios de Jefatura</span>
+              <span class="perm-desc">Permite entrar al Centro de Mando y administrar el portal</span>
+            </div>
+          </label>
+        </div>
+        <div class="modal-footer-tactical">
+          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+            onclick="closeModal('modalEditMember')">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-tactical btn-tactical-gold btn-tactical-sm">
+            💾 Guardar Ficha de Miembro
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: MENÚ TÁCTICO DE ELIMINACIÓN DE MIEMBRO
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalDeleteMember">
+    <div class="tactical-modal-card" style="max-width: 520px;">
+      <div class="modal-header-tactical" style="border-bottom-color: var(--tactical-red);">
+        <div class="modal-title-tactical" style="color: var(--tactical-red);">
+          <span>🚨</span> DAR DE BAJA MIEMBRO DE LA UNIDAD
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalDeleteMember')">✕</button>
+      </div>
+      <div class="modal-body-tactical" style="padding: 1.5rem;">
+        <div
+          style="background: rgba(255, 42, 95, 0.08); border: 1px solid var(--border-danger); border-radius: 12px; padding: 1rem; margin-bottom: 1.25rem;">
+          <h4 id="delMemberName"
+            style="color: #fff; font-size: 1.1rem; font-family: var(--font-tactical); margin-bottom: 0.2rem;">Nombre
+          </h4>
+          <div id="delMemberRank" style="font-size: 0.85rem; color: var(--police-cyan);">Rango</div>
+          <div id="delMemberPlaca" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">Placa: #—
+          </div>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+          ¿Estás seguro de que deseas expulsar o dar de baja a este miembro de la plantilla de la División K9? Se
+          desvinculará su can y se archivará su expediente.
+        </p>
+      </div>
+      <div class="modal-footer-tactical">
+        <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+          onclick="closeModal('modalDeleteMember')">
+          Cancelar
+        </button>
+        <button type="button" class="btn-tactical btn-tactical-danger btn-tactical-sm" id="btnConfirmDeleteMemberAction"
+          onclick="window._confirmDeleteMember()">
+          🚨 Confirmar Baja de la Unidad
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: PUBLICAR ORDEN OFICIAL DE ASCENSO (JEFATURA)
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalNewPromotion">
+    <div class="tactical-modal-card" style="max-width: 580px;">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical">
+          <span>🎖️</span> PUBLICAR ORDEN OFICIAL DE ASCENSO
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalNewPromotion')">✕</button>
+      </div>
+      <form id="formNewPromotion">
+        <div class="modal-body-tactical">
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="promoAgentSelect">AGENTE PROMOVIDO</label>
+            <select id="promoAgentSelect" class="form-select-tactical" required></select>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="promoOldRank">RANGO ACTUAL / ANTERIOR</label>
+              <input type="text" id="promoOldRank" class="form-input-tactical" required readonly style="opacity: 0.8;">
+            </div>
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="promoNewRank">NUEVO RANGO ASIGNADO</label>
+              <select id="promoNewRank" class="form-select-tactical" required>
+                <option value="Jefatura LSPD">👑 Jefatura LSPD (Staff)</option>
+                <option value="Coordinador K9">🦅 Coordinador K9</option>
+                <option value="Subcoordinador K9">⭐ Subcoordinador K9</option>
+                <option value="Instructor K9">🎯 Instructor K9</option>
+                <option value="Agente Guia">🐾 Agente Guia</option>
+                <option value="Aspirante K9">🔰 Aspirante K9</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="promoCitation">CITACIÓN OFICIAL DE MÉRITO / RESOLUCIÓN DE
+              MANDO</label>
+            <textarea id="promoCitation" class="form-textarea-tactical" style="min-height: 110px;"
+              placeholder="Por su intachable trayectoria operativa, horas de patrullaje canino acumuladas y liderazgo táctico..."
+              required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer-tactical">
+          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+            onclick="closeModal('modalNewPromotion')">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-tactical btn-tactical-gold btn-tactical-sm">
+            🎖️ Promover & Publicar Orden
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: MENÚ TÁCTICO DE ELIMINACIÓN DE ORDEN DE ASCENSO
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalDeletePromotion">
+    <div class="tactical-modal-card" style="max-width: 520px;">
+      <div class="modal-header-tactical" style="border-bottom-color: var(--tactical-red);">
+        <div class="modal-title-tactical" style="color: var(--tactical-red);">
+          <span>🗑️</span> RETIRAR PUBLICACIÓN DE ASCENSO
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalDeletePromotion')">✕</button>
+      </div>
+      <div class="modal-body-tactical" style="padding: 1.5rem;">
+        <div
+          style="background: rgba(255, 42, 95, 0.08); border: 1px solid var(--border-danger); border-radius: 12px; padding: 1rem; margin-bottom: 1.25rem;">
+          <h4 id="delPromoAgent" style="color: #fff; font-size: 1.05rem; font-family: var(--font-tactical);">Agente</h4>
+          <div id="delPromoRanks" style="font-size: 0.85rem; color: var(--tactical-gold); margin-top: 0.2rem;">Ascenso
+          </div>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+          ¿Estás seguro de que deseas retirar este registro público de ascenso?
+        </p>
+      </div>
+      <div class="modal-footer-tactical">
+        <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
+          onclick="closeModal('modalDeletePromotion')">
+          Cancelar
+        </button>
+        <button type="button" class="btn-tactical btn-tactical-danger btn-tactical-sm" id="btnConfirmDeletePromoAction"
+          onclick="window._confirmDeletePromotion()">
+          🗑️ Retirar Publicación
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: BUSCADOR GLOBAL K9 (SPOTLIGHT)
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalGlobalSearch">
+    <div class="tactical-modal-card search-modal-card">
+      <div class="search-modal-header">
+        <span class="search-input-icon">🔍</span>
+        <input type="text" id="globalSearchInput" class="global-search-input" placeholder="Buscar miembros, canes, normativas, cursos, tareas..." autocomplete="off">
+        <kbd class="search-esc-kbd" onclick="closeModal('modalGlobalSearch')">ESC</kbd>
+      </div>
+      <div class="search-category-filter-bar" id="searchCategoryBar">
+        <button class="search-cat-btn active" data-cat="todos">Todos</button>
+        <button class="search-cat-btn" data-cat="miembros">Miembros</button>
+        <button class="search-cat-btn" data-cat="canes">Canes</button>
+        <button class="search-cat-btn" data-cat="normativas">Normativas</button>
+        <button class="search-cat-btn" data-cat="formacion">Formación</button>
+        <button class="search-cat-btn" data-cat="tareas">Tareas & Agenda</button>
+        <button class="search-cat-btn" data-cat="anuncios">Anuncios</button>
+      </div>
+      <div class="search-results-container" id="globalSearchResultsList">
+        <!-- Renderizado dinámicamente -->
+      </div>
+      <div class="search-modal-footer" style="padding: 0.65rem 1.4rem; background: rgba(0,0,0,0.4); border-top: 1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; color:var(--text-subtle);">
+        <span>Navega con <kbd style="background:rgba(255,255,255,0.1); padding:0.1rem 0.35rem; border-radius:3px;">↑</kbd> <kbd style="background:rgba(255,255,255,0.1); padding:0.1rem 0.35rem; border-radius:3px;">↓</kbd> y pulsa <kbd style="background:rgba(255,255,255,0.1); padding:0.1rem 0.35rem; border-radius:3px;">Enter</kbd> para abrir</span>
+        <span style="color:var(--police-cyan);">Unidad K9 • Búsqueda Segura</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: FORMULARIO DE TAREA (CREAR / EDITAR)
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalTaskForm">
+    <div class="tactical-modal-card" style="max-width: 580px;">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical" id="modalTaskTitle">
+          <span>📋</span> NUEVA TAREA OPERATIVA
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalTaskForm')">✕</button>
+      </div>
+      <form id="taskForm" onsubmit="window.handleTaskFormSubmit(event)">
+        <input type="hidden" id="taskFormId" value="">
+        <div class="modal-body-tactical" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1.15rem;">
+          
+          <div class="tactical-form-group">
+            <label class="tactical-form-label" for="taskTitleInput">Título de la Tarea *</label>
+            <input type="text" id="taskTitleInput" class="tactical-input" required placeholder="Ej: Revisión veterinaria periódica de Thor" maxlength="120">
+          </div>
+
+          <div class="tactical-form-group">
+            <label class="tactical-form-label" for="taskDescInput">Descripción / Instrucciones Operativas</label>
+            <textarea id="taskDescInput" class="tactical-input" rows="3" placeholder="Detalles, ubicación o requerimientos para cumplir la tarea..."></textarea>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="tactical-form-group">
+              <label class="tactical-form-label" for="taskCategoryInput">Categoría</label>
+              <select id="taskCategoryInput" class="tactical-input">
+                <option value="General">General</option>
+                <option value="Patrulla">Patrulla K9</option>
+                <option value="Adiestramiento">Adiestramiento</option>
+                <option value="Veterinaria">Veterinaria / Canes</option>
+                <option value="Administrativo">Administrativo</option>
+                <option value="Oficial">Oficial / Jefatura</option>
+              </select>
+            </div>
+
+            <div class="tactical-form-group">
+              <label class="tactical-form-label" for="taskPriorityInput">Prioridad *</label>
+              <select id="taskPriorityInput" class="tactical-input">
+                <option value="baja">Baja</option>
+                <option value="normal" selected>Normal</option>
+                <option value="alta">Alta</option>
+                <option value="urgente">Urgente</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="tactical-form-group">
+              <label class="tactical-form-label" for="taskStatusInput">Estado</label>
+              <select id="taskStatusInput" class="tactical-input">
+                <option value="pendiente" selected>Pendiente</option>
+                <option value="en_progreso">En Progreso</option>
+                <option value="completada">Completada</option>
+                <option value="cancelada">Cancelada</option>
+              </select>
+            </div>
+
+            <div class="tactical-form-group">
+              <label class="tactical-form-label" for="taskDueDateInput">Fecha Límite (Opcional)</label>
+              <input type="datetime-local" id="taskDueDateInput" class="tactical-input">
+            </div>
+          </div>
+
+          <div id="taskOfficialCheckboxWrap" style="display:none; padding: 0.75rem; background: rgba(255, 184, 0, 0.08); border: 1px solid var(--border-gold); border-radius: 8px;">
+            <label style="display:flex; align-items:center; gap:0.55rem; cursor:pointer; color:var(--tactical-gold); font-size:0.85rem; font-weight:600;">
+              <input type="checkbox" id="taskIsOfficialInput">
+              <span>👑 Tarea Oficial de Mando (Asignada por Jefatura / Visible a toda la Unidad)</span>
+            </label>
+          </div>
+
+        </div>
+        <div class="modal-footer-tactical">
+          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="closeModal('modalTaskForm')">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-tactical btn-tactical-primary btn-tactical-sm" id="btnSaveTask">
+            💾 Guardar Tarea
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: FORMULARIO DE EVENTO / AGENDAR TAREA
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalEventForm">
+    <div class="tactical-modal-card" style="max-width: 540px;">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical" id="modalEventTitle">
+          <span>📅</span> CONVERTIR A EVENTO EN AGENDA
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalEventForm')">✕</button>
+      </div>
+      <form id="eventForm" onsubmit="window.handleEventFormSubmit(event)">
+        <input type="hidden" id="eventFormTaskId" value="">
+        <input type="hidden" id="eventFormEventId" value="">
+        <div class="modal-body-tactical" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1.15rem;">
+          <div class="tactical-form-group">
+            <label class="tactical-form-label" for="eventTitleInput">Título del Evento *</label>
+            <input type="text" id="eventTitleInput" class="tactical-input" required placeholder="Ej: Convocatoria Operativa">
+          </div>
+          <div class="tactical-form-group">
+            <label class="tactical-form-label" for="eventDateInput">Fecha y Hora de la Convocatoria *</label>
+            <input type="datetime-local" id="eventDateInput" class="tactical-input" required>
+          </div>
+          <div class="tactical-form-group">
+            <label class="tactical-form-label" for="eventLocationInput">Lugar / Sector Táctico</label>
+            <input type="text" id="eventLocationInput" class="tactical-input" placeholder="Ej: Caniles Centrales / Sector Norte">
+          </div>
+          <div class="tactical-form-group">
+            <label class="tactical-form-label" for="eventNotesInput">Notas Adicionales</label>
+            <textarea id="eventNotesInput" class="tactical-input" rows="2" placeholder="Detalles de asistencia o material..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer-tactical">
+          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="closeModal('modalEventForm')">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-tactical btn-tactical-gold btn-tactical-sm">
+            📅 Programar en Agenda
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: REGISTRAR / EDITAR PUNTO EN EL MAPA TÁCTICO
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalMapMarker">
+    <div class="tactical-modal-card" style="max-width: 580px;">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical" id="modalMapMarkerTitle">
+          <span>📍</span> REGISTRAR PUNTO EN EL MAPA
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalMapMarker')">✕</button>
+      </div>
+      <form id="formMapMarker">
+        <input type="hidden" id="markerId" value="">
+        <div class="modal-body-tactical" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; max-height: 70vh; overflow-y: auto;">
+          <div class="tactical-form-group">
+            <label class="tactical-form-label" for="markerTitle">Título o Lugar del Punto *</label>
+            <input type="text" id="markerTitle" class="tactical-input" required placeholder="Ej: Adiestramiento Canino · Sandy Shores">
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <div class="tactical-form-group">
+              <label class="tactical-form-label" for="markerCategory">Categoría *</label>
+              <select id="markerCategory" class="tactical-input">
+                <option value="entrenamiento">🐕 Entrenamiento Canino</option>
+                <option value="operativo">🚨 Operativo Táctico</option>
+                <option value="control">🚧 Punto de Control</option>
+                <option value="busqueda">🔍 Búsqueda y Rastreo</option>
+                <option value="base">🏢 Base / Puesto K9</option>
+                <option value="riesgo">⚠️ Zona de Riesgo</option>
+              </select>
+            </div>
+            <div class="tactical-form-group">
+              <label class="tactical-form-label" for="markerPriority">Prioridad</label>
+              <select id="markerPriority" class="tactical-input">
+                <option value="oficial">Oficial / Rutinario</option>
+                <option value="importante">Importante</option>
+                <option value="urgente">Urgente / Alta</option>
+              </select>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <div class="tactical-form-group">
+              <label class="tactical-form-label" for="markerDate">Fecha</label>
+              <input type="text" id="markerDate" class="tactical-input" placeholder="Ej: Miércoles y Sábados">
+            </div>
+            <div class="tactical-form-group">
+              <label class="tactical-form-label" for="markerTime">Hora</label>
+              <input type="text" id="markerTime" class="tactical-input" placeholder="Ej: 20:00">
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <div class="tactical-form-group">
+              <label class="tactical-form-label" for="markerLat">Coordenada Y (Latitud)</label>
+              <input type="number" step="0.01" id="markerLat" class="tactical-input" placeholder="-500.00">
+            </div>
+            <div class="tactical-form-group">
+              <label class="tactical-form-label" for="markerLng">Coordenada X (Longitud)</label>
+              <input type="number" step="0.01" id="markerLng" class="tactical-input" placeholder="375.00">
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <div class="tactical-form-group">
+              <label class="tactical-form-label" for="markerStatus">Estado</label>
+              <select id="markerStatus" class="tactical-input">
+                <option value="programado">📅 Programado</option>
+                <option value="en_curso">🟢 En Curso</option>
+                <option value="finalizado">⚪ Finalizado</option>
+              </select>
+            </div>
+            <div class="tactical-form-group">
+              <label class="tactical-form-label" for="markerGuides">Convocatoria / Guías</label>
+              <input type="text" id="markerGuides" class="tactical-input" placeholder="Ej: Toda la plantilla K9">
+            </div>
+          </div>
+          <div class="tactical-form-group">
+            <label class="tactical-form-label" for="markerDescription">Descripción e Instrucciones</label>
+            <textarea id="markerDescription" class="tactical-input" rows="3" placeholder="Detalles de la sesión, equipo necesario, pautas operativas..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer-tactical">
+          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="closeModal('modalMapMarker')">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-tactical btn-tactical-gold btn-tactical-sm">
+            💾 Guardar Punto
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       WIDGET FLOTANTE INFERIOR DERECHO (ESTILO "MEET GLAZE" DE RAYCAST)
+       ==================================================================== -->
+  <aside class="raycast-floating-card" id="raycastFloatingPromo" role="complementary" aria-label="Aviso destacado de Jefatura">
+    <button class="floating-card-close" onclick="document.getElementById('raycastFloatingPromo').style.display='none'" title="Cerrar aviso" aria-label="Cerrar">×</button>
+    <div class="floating-card-body">
+      <div class="floating-card-thumb">
+        <img src="assets/images/emblem.jpg" alt="Emblema K9" class="floating-card-thumb-img">
+      </div>
+      <div class="floating-card-info">
+        <div class="floating-card-title">Aviso de Jefatura</div>
+        <div class="floating-card-desc">Comunicados oficiales, directrices operativas y agenda canina en tiempo real.</div>
+        <button class="floating-card-pill" onclick="switchGeneralSubtab('anuncios'); document.getElementById('raycastFloatingPromo').style.display='none';">
+          <span>Ver Comunicados</span>
+          <span>→</span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Configuración de Base de Datos Privada (Protegida por .gitignore) -->
+  <script src="js/config.local.js"></script>
+  <!-- Base de Datos Supabase (PostgreSQL en la Nube y WebSockets en Vivo) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+
+  <!-- Scripts de la Aplicación -->
+  <script src="js/data.js"></script>
+  <script src="js/sync.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/webhook.js"></script>
+  <script src="js/auth.js"></script>
+  <!-- Mapa Leaflet (Local, sin dependencia de CDN externos ni errores SRI) -->
+  <script src="js/vendor/leaflet.js"></script>
+  <script src="js/app.js"></script>
+</body>
+
+</html>

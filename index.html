@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 
 <head>
@@ -26,11 +26,206 @@
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="icon" type="image/jpeg" href="assets/images/emblem.jpg">
+  <style>
+    /* ====================================================================
+       SIDEBAR LAYOUT - NUEVA ESTRUCTURA DE PÁGINA
+       ==================================================================== */
+    .top-hud-bar { display: none !important; }
+    body { display: flex; min-height: 100vh; overflow-x: hidden; }
+
+    .k9-sidebar {
+      position: fixed; top: 0; left: 0; height: 100vh; width: 72px;
+      background: rgba(4, 5, 6, 0.97); backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px); border-right: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex; flex-direction: column; align-items: center;
+      padding: 1rem 0 1.25rem; z-index: 1100;
+      box-shadow: 4px 0 32px rgba(0, 0, 0, 0.6), inset -1px 0 0 rgba(255,255,255,0.04);
+      transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1); overflow: hidden;
+    }
+    .k9-sidebar:hover { width: 220px; }
+
+    .sidebar-brand {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.5rem 0.9rem 1.25rem; width: 100%; cursor: pointer;
+      flex-shrink: 0; overflow: hidden; min-width: 0;
+    }
+    .sidebar-brand-emblem {
+      width: 38px; height: 38px; min-width: 38px; border-radius: 50%;
+      overflow: hidden; border: 1.5px solid rgba(0, 229, 255, 0.5);
+      box-shadow: 0 0 16px rgba(0, 229, 255, 0.3); flex-shrink: 0;
+    }
+    .sidebar-brand-emblem img { width: 100%; height: 100%; object-fit: cover; }
+    .sidebar-brand-text {
+      overflow: hidden; white-space: nowrap; opacity: 0;
+      transform: translateX(-8px); transition: opacity 0.25s ease, transform 0.25s ease; min-width: 0;
+    }
+    .k9-sidebar:hover .sidebar-brand-text { opacity: 1; transform: translateX(0); }
+    .sidebar-brand-name {
+      font-family: 'Gobold', 'Barlow Condensed', sans-serif; font-size: 0.88rem;
+      font-weight: 700; color: #fff; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1.1;
+    }
+    .sidebar-brand-sub { font-size: 0.62rem; color: var(--police-cyan); letter-spacing: 0.05em; text-transform: uppercase; margin-top: 1px; }
+    .sidebar-divider { width: calc(100% - 16px); height: 1px; background: rgba(255, 255, 255, 0.07); margin: 0.35rem 8px; flex-shrink: 0; }
+    .sidebar-nav {
+      display: flex; flex-direction: column; gap: 0.2rem; width: 100%;
+      padding: 0 0.5rem; flex: 1; overflow-y: auto; overflow-x: hidden; scrollbar-width: none;
+    }
+    .sidebar-nav::-webkit-scrollbar { display: none; }
+    .sidebar-nav-btn {
+      display: flex; align-items: center; gap: 0.75rem; width: 100%;
+      padding: 0.6rem 0.75rem; border: 1px solid transparent; border-radius: 10px;
+      background: transparent; color: var(--color-ash); cursor: pointer;
+      font-family: var(--font-body); font-size: 0.82rem; font-weight: 500;
+      transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative; white-space: nowrap; overflow: hidden; min-width: 0; flex-shrink: 0;
+    }
+    .sidebar-nav-btn .snb-icon { font-size: 1.15rem; min-width: 22px; text-align: center; flex-shrink: 0; transition: transform 0.18s ease; }
+    .sidebar-nav-btn .snb-label {
+      overflow: hidden; white-space: nowrap; opacity: 0; transform: translateX(-6px);
+      transition: opacity 0.22s ease, transform 0.22s ease;
+      font-family: 'Gobold', 'Barlow Condensed', sans-serif; font-size: 0.78rem;
+      letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .k9-sidebar:hover .sidebar-nav-btn .snb-label { opacity: 1; transform: translateX(0); }
+    .sidebar-nav-btn .snb-badge {
+      position: absolute; top: 6px; left: 22px; background: var(--police-cyan); color: #000;
+      font-size: 0.58rem; font-weight: 800; min-width: 15px; height: 15px; line-height: 15px;
+      text-align: center; border-radius: 9999px; padding: 0 3px; box-shadow: 0 0 8px rgba(0, 229, 255, 0.6);
+    }
+    .sidebar-nav-btn .snb-lock { position: absolute; top: 6px; left: 22px; font-size: 0.6rem; }
+    .sidebar-nav-btn:hover { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.1); color: #fff; }
+    .sidebar-nav-btn:hover .snb-icon { transform: scale(1.1); }
+    .sidebar-nav-btn.active {
+      background: rgba(0, 229, 255, 0.12); border-color: rgba(0, 229, 255, 0.35); color: #fff;
+      box-shadow: 0 0 18px rgba(0, 229, 255, 0.18);
+    }
+    .sidebar-nav-btn.active::before {
+      content: ''; position: absolute; left: 0; top: 20%; height: 60%; width: 3px;
+      background: var(--police-cyan); border-radius: 0 3px 3px 0; box-shadow: 0 0 8px rgba(0, 229, 255, 0.8);
+    }
+    .sidebar-nav-btn.jefatura-sidebar { color: #fbbf24; }
+    .sidebar-nav-btn.jefatura-sidebar:hover { background: rgba(251, 191, 36, 0.1); border-color: rgba(251, 191, 36, 0.3); color: #fde68a; }
+    .sidebar-nav-btn.jefatura-sidebar.active {
+      background: rgba(251, 191, 36, 0.15); border-color: rgba(251, 191, 36, 0.5); color: #fde68a;
+      box-shadow: 0 0 18px rgba(251, 191, 36, 0.2);
+    }
+    .sidebar-nav-btn.jefatura-sidebar.active::before { background: #fbbf24; box-shadow: 0 0 8px rgba(251, 191, 36, 0.8); }
+    .sidebar-bottom {
+      display: flex; flex-direction: column; align-items: flex-start; gap: 0.4rem;
+      width: 100%; padding: 0.5rem; overflow: hidden;
+    }
+    .sidebar-util-btn {
+      display: flex; align-items: center; gap: 0.75rem; width: 100%;
+      padding: 0.5rem 0.75rem; border: 1px solid transparent; border-radius: 8px;
+      background: transparent; color: var(--color-ash); cursor: pointer;
+      font-size: 0.8rem; transition: all 0.18s ease; white-space: nowrap; overflow: hidden;
+    }
+    .sidebar-util-btn .sub-icon { font-size: 1rem; min-width: 22px; text-align: center; flex-shrink: 0; }
+    .sidebar-util-btn .sub-label {
+      opacity: 0; transform: translateX(-6px);
+      transition: opacity 0.22s ease, transform 0.22s ease; font-size: 0.78rem;
+    }
+    .k9-sidebar:hover .sidebar-util-btn .sub-label { opacity: 1; transform: translateX(0); }
+    .sidebar-util-btn:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1); color: #fff; }
+    .sidebar-status { display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0.75rem; width: 100%; overflow: hidden; }
+    .sidebar-status .pulse-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: var(--tactical-green);
+      box-shadow: 0 0 6px rgba(0, 230, 118, 0.8); animation: pulseDot 2s infinite; flex-shrink: 0; margin-left: 7px;
+    }
+    .sidebar-status-label {
+      font-size: 0.68rem; font-family: 'Conthrax', monospace; color: var(--tactical-green);
+      letter-spacing: 0.06em; opacity: 0; transform: translateX(-6px);
+      transition: opacity 0.22s ease, transform 0.22s ease; white-space: nowrap;
+    }
+    .k9-sidebar:hover .sidebar-status-label { opacity: 1; transform: translateX(0); }
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; box-shadow: 0 0 6px rgba(0, 230, 118, 0.8); }
+      50% { opacity: 0.6; box-shadow: 0 0 12px rgba(0, 230, 118, 0.5); }
+    }
+    .k9-content-area {
+      margin-left: 72px; flex: 1; min-height: 100vh;
+      display: flex; flex-direction: column;
+      transition: margin-left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .k9-topbar {
+      position: sticky; top: 0; z-index: 900;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.6rem 1.5rem; background: rgba(4, 5, 6, 0.85);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06); gap: 1rem;
+    }
+    .topbar-page-title {
+      font-family: 'Gobold', 'Barlow Condensed', sans-serif; font-size: 0.8rem;
+      letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-subtle);
+    }
+    .k9-main-content { flex: 1; padding: 0; position: relative; }
+    .main-wrapper { padding: 0; }
+    .notification-hud-wrapper { position: relative; }
+    @media (max-width: 768px) { .k9-sidebar { width: 56px; } .k9-content-area { margin-left: 56px; } }
+    .view-container { padding: 2rem 2.5rem; }
+    .view-container.active { animation: fadeSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+    @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
 </head>
 
 <body>
 
-  <!-- ====================================================================
+  
+  <!-- SIDEBAR LATERAL FIJO (NUEVA NAVEGACIÓN) -->
+  <aside class="k9-sidebar" id="k9Sidebar" aria-label="Navegación principal K9">
+    <div class="sidebar-brand" onclick="switchMainView('inicio')">
+      <div class="sidebar-brand-emblem"><img src="assets/images/emblem.jpg" alt="K9"></div>
+      <div class="sidebar-brand-text">
+        <div class="sidebar-brand-name">UNIDAD K9</div>
+        <div class="sidebar-brand-sub">LSPD · DIVISIÓN CANINA</div>
+      </div>
+    </div>
+    <div class="sidebar-divider"></div>
+    <nav class="sidebar-nav">
+      <button class="sidebar-nav-btn active" data-view="inicio" id="navBtnInicio"><span class="snb-icon">⚖️</span><span class="snb-label">Normativa</span></button>
+      <button class="sidebar-nav-btn" data-view="miembros" id="navBtnMiembros"><span class="snb-icon">👥</span><span class="snb-label">Miembros</span></button>
+      <button class="sidebar-nav-btn" data-view="ascensos" id="navBtnAscensos"><span class="snb-icon">🎖️</span><span class="snb-label">Ascensos</span></button>
+      <button class="sidebar-nav-btn" data-view="condecoraciones" id="navBtnCondecoraciones"><span class="snb-icon">🏅</span><span class="snb-label">Condecoraciones</span></button>
+      <button class="sidebar-nav-btn" data-view="tareas" id="navBtnTareas"><span class="snb-icon">📋</span><span class="snb-label">Tareas</span><span class="snb-badge" id="navTasksBadge" style="display:none;">0</span><span class="snb-lock" id="tasksLockMini" style="display:none;">🔒</span></button>
+      <button class="sidebar-nav-btn" data-view="vestimenta" id="navBtnVestimenta"><span class="snb-icon">🥋</span><span class="snb-label">Vestimenta</span><span class="snb-lock" id="vestimentaLockMini" style="display:none;">🔒</span></button>
+      <button class="sidebar-nav-btn" data-view="perfil" id="navBtnPerfil"><span class="snb-icon">🐕</span><span class="snb-label">Mi Perfil</span></button>
+      <button class="sidebar-nav-btn" data-view="mapa" id="navBtnMapa"><span class="snb-icon">🗺️</span><span class="snb-label">Mapa</span><span class="snb-lock" id="mapaLockMini" style="display:none;">🔒</span></button>
+      <div class="sidebar-divider" style="margin:0.5rem 0;"></div>
+      <button class="sidebar-nav-btn jefatura-sidebar" data-view="jefatura" id="navBtnJefatura"><span class="snb-icon">👑</span><span class="snb-label">Jefatura</span></button>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="sidebar-status"><span class="pulse-dot dot-online" id="cloudSyncDot"></span><span class="sidebar-status-label" id="cloudSyncLabel">EN LÍNEA</span></div>
+      <button class="sidebar-util-btn" id="globalSearchTriggerBtn"><span class="sub-icon">🔍</span><span class="sub-label">Buscar...</span></button>
+      <div class="notification-hud-wrapper" id="notificationHudWrap" style="width:100%;">
+        <button class="sidebar-util-btn notification-bell-btn" id="notificationBellBtn" style="width:100%;"><span class="sub-icon">🔔</span><span class="sub-label">Notificaciones</span><span class="notification-badge" id="notificationBadge" style="display:none;position:absolute;top:6px;left:22px;min-width:15px;height:15px;line-height:15px;font-size:0.58rem;font-weight:800;background:var(--police-cyan);color:#000;border-radius:9999px;text-align:center;padding:0 3px;">0</span></button>
+        <div class="notification-dropdown-panel" id="notificationDropdownPanel" style="display:none;position:fixed;left:80px;bottom:160px;z-index:9999;">
+          <div class="notif-panel-header">
+            <div class="notif-header-title"><span class="notif-header-icon">🔔</span><span class="notif-header-text font-tactical">CENTRO DE NOTIFICACIONES</span><span class="notif-unread-count" id="notifHeaderCount">0 sin leer</span></div>
+            <div class="notif-header-actions"><button class="notif-action-btn" id="notifMarkAllReadBtn">✓ Leer todas</button><button class="notif-action-btn" id="notifClearReadBtn">🗑️ Limpiar</button></div>
+          </div>
+          <div class="notif-filters-bar">
+            <button class="notif-filter-chip active" data-filter="todas">Todas</button>
+            <button class="notif-filter-chip" data-filter="unread">No leídas</button>
+            <button class="notif-filter-chip" data-filter="tareas">Tareas</button>
+            <button class="notif-filter-chip" data-filter="agenda">Agenda</button>
+            <button class="notif-filter-chip" data-filter="formacion">Formación</button>
+            <button class="notif-filter-chip" data-filter="avisos">Avisos</button>
+          </div>
+          <div class="notif-items-list" id="notifItemsList"></div>
+        </div>
+      </div>
+      <button class="sidebar-util-btn audio-toggle-btn sound-on" id="audioToggleBtn" style="width:100%;"><span class="sub-icon">🔊</span><span class="sub-label">Audio Táctico</span></button>
+      <div id="authControlsWrap" style="width:100%;padding:0 0.25rem;"></div>
+    </div>
+  </aside>
+
+  <!-- WRAPPER DE CONTENIDO CON TOPBAR -->
+  <div class="k9-content-area" id="k9ContentArea">
+    <header class="k9-topbar">
+      <div class="topbar-page-title" id="topbarPageTitle">UNIDAD K9 · PORTAL TÁCTICO</div>
+    </header>
+    <main class="k9-main-content">
+<!-- ====================================================================
        MARCA DE AGUA / LOGO DE FONDO OFICIAL K9
        ==================================================================== -->
   <div class="k9-background-watermark" aria-hidden="true"></div>
@@ -1851,7 +2046,10 @@
     </div>
   </aside>
 
-  <!-- Configuración de Base de Datos Privada (Protegida por .gitignore) -->
+    </main>
+  </div><!-- /k9-content-area -->
+
+ (Protegida por .gitignore) -->
   <script src="js/config.local.js"></script>
   <!-- Base de Datos Supabase (PostgreSQL en la Nube y WebSockets en Vivo) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1866,6 +2064,24 @@
   <!-- Mapa Leaflet (Local, sin dependencia de CDN externos ni errores SRI) -->
   <script src="js/vendor/leaflet.js"></script>
   <script src="js/app.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('.sidebar-nav-btn[data-view]').forEach(btn => {
+        btn.addEventListener('click', function() {
+          var view = this.getAttribute('data-view');
+          if (typeof switchMainView === 'function') switchMainView(view);
+        });
+      });
+      var _orig = window.switchMainView;
+      window.switchMainView = function(view) {
+        if (_orig) _orig(view);
+        document.querySelectorAll('.sidebar-nav-btn').forEach(function(b){ b.classList.remove('active'); if(b.getAttribute('data-view')===view) b.classList.add('active'); });
+        var titles = {inicio:'NORMATIVA OFICIAL · INICIO',miembros:'DIRECTORIO DE MIEMBROS K9',ascensos:'TABLÓN OFICIAL DE ASCENSOS',condecoraciones:'CONDECORACIONES & MEDALLAS',tareas:'CENTRO DE TAREAS OPERATIVAS',vestimenta:'UNIFORMIDAD & VESTIMENTA K9',perfil:'MI PERFIL DE AGENTE',mapa:'MAPA OPERATIVO DE LOS SANTOS',jefatura:'CENTRO DE MANDO · JEFATURA K9'};
+        var el = document.getElementById('topbarPageTitle'); if(el && titles[view]) el.textContent = titles[view];
+      };
+    });
+  </script>
 </body>
 
 </html>
