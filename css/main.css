@@ -31,11 +31,16 @@
   --border-raycast: #363739;
 
   /* ========================================================================
-     TIPOGRAFÍA OFICIAL PRESERVADA
+     TIPOGRAFÍAS OFICIALES K9 SOLICITADAS: GOBOLD & CONTHRAX
+     1. GOBOLD: Encabezados, títulos de expedientes, estadísticas, nombres de secciones y elementos destacados.
+     2. CONTHRAX: Párrafos, formularios, normativas, botones y tablas (lectura administrativa clara).
      ======================================================================== */
-  --font-tactical: 'Conthrax', 'Chakra Petch', monospace, sans-serif;
-  --font-headline: 'Gobold', 'Barlow Condensed', sans-serif;
-  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-gobold: 'Gobold', 'GoBold', 'Barlow Condensed', sans-serif;
+  --font-conthrax: 'Conthrax', 'Chakra Petch', sans-serif;
+  --font-headline: 'Gobold', 'GoBold', 'Barlow Condensed', sans-serif;
+  --font-tactical: 'Conthrax', 'Chakra Petch', sans-serif;
+  --font-body: 'Conthrax', 'Chakra Petch', sans-serif;
+  --font-admin: 'Conthrax', 'Chakra Petch', sans-serif;
 
   /* ========================================================================
      PALETA DE COLORES PRESERVADA DE LA WEB K9
@@ -151,16 +156,26 @@ body::before {
   transform: translateZ(0);
 }
 
-/* Utilidades Tipográficas Oficiales: GOBOLD para todos los títulos */
+/* ==========================================================================
+   1. GOBOLD: Encabezados, Títulos de Expedientes, Estadísticas, Nombres de Secciones y Elementos Destacados
+   ========================================================================== */
+/* Encabezados y títulos principales */
 h1, h2, h3, h4, h5, h6,
 .hero-title,
 .section-title,
 .section-main-title,
+.modal-title,
 .modal-title-tactical,
 .brand-title,
 .brand-subtitle,
 .k9-centerpiece-title,
 .k9-centerpiece-motto,
+.subtab-title,
+.panel-header h3,
+.panel-header h4,
+.dossier-header-title,
+.chat-dispatch-header h3,
+.card-title,
 .font-gobold,
 .font-headline {
   font-family: 'Gobold', 'GoBold', 'Barlow Condensed', sans-serif !important;
@@ -169,9 +184,176 @@ h1, h2, h3, h4, h5, h6,
   text-transform: uppercase;
 }
 
-.font-tactical {
-  font-family: 'Gobold', 'GoBold', 'Conthrax', 'Chakra Petch', sans-serif !important;
-  letter-spacing: 0.06em;
+/* Títulos de expedientes (agentes, canes, fichas y registros) */
+.member-card-info h4,
+.member-tactical-card h4,
+.dog-card-info h4,
+.agent-dossier-name,
+.expediente-title,
+.dossier-title,
+.dossier-agent-title,
+.id-card-name,
+.member-dog-assignment strong,
+.record-card-title,
+.profile-name,
+.member-name,
+.chat-author-name {
+  font-family: 'Gobold', 'GoBold', 'Barlow Condensed', sans-serif !important;
+  letter-spacing: 0.04em;
+}
+
+/* Estadísticas y métricas operativas */
+.hero-stat-value,
+.stat-value,
+.metric-value,
+.stat-number,
+.k9-stat-val,
+.counter-value,
+#heroCountAgents,
+#heroCountDogs,
+#heroCountReports,
+#heroCountPatrol,
+.dog-stat-val,
+.agent-stat-number,
+.stat-pill-val,
+.hero-stat-card .hero-stat-value,
+.stat-card .stat-value,
+.counter-num {
+  font-family: 'Gobold', 'GoBold', 'Barlow Condensed', sans-serif !important;
+  letter-spacing: 0.04em;
+}
+
+/* Nombres de secciones y navegación */
+.sidebar-nav-btn,
+.sidebar-nav-btn .snb-label,
+.nav-tab-btn,
+.subnav-pill-btn,
+.sidebar-section-title,
+.subtab-btn,
+.sidebar-brand-title,
+.view-title,
+.tab-label,
+.sidebar-nav-category,
+.k9-centerpiece-badge {
+  font-family: 'Gobold', 'GoBold', 'Barlow Condensed', sans-serif !important;
+  letter-spacing: 0.05em;
+}
+
+/* Elementos destacados e insignias */
+.member-card-placa,
+.auth-role-tag,
+.chat-badge-jefatura,
+.priority-pill,
+.rank-flow-pill,
+.badge-featured,
+.highlight-pill,
+.status-badge-tactical,
+.id-card-rank,
+.id-card-number,
+.member-card-rank-badge,
+.chat-author-badge {
+  font-family: 'Gobold', 'GoBold', 'Barlow Condensed', sans-serif !important;
+  letter-spacing: 0.05em;
+}
+
+/* ==========================================================================
+   2. CONTHRAX: Párrafos, Formularios, Normativas, Botones y Tablas
+   ========================================================================== */
+/* Párrafos e información administrativa general */
+body,
+p,
+.hero-subtitle,
+.section-desc,
+.member-card-info p,
+.dog-card-info p,
+.announcement-body,
+.modal-desc,
+.text-muted,
+.text-subtle,
+.info-text,
+.alert-box p,
+.dossier-body,
+.administrative-text,
+.font-conthrax {
+  font-family: 'Conthrax', 'Chakra Petch', sans-serif !important;
+}
+
+/* Formularios */
+input,
+select,
+textarea,
+label,
+.form-group,
+.form-label,
+.form-label-tactical,
+.form-input-tactical,
+.form-select-tactical,
+.form-textarea-tactical,
+.table-search-box input,
+.global-search-input,
+.filter-select,
+.form-control,
+.input-tactical,
+.modal-form label,
+.modal-form input,
+.modal-form select,
+.modal-form textarea {
+  font-family: 'Conthrax', 'Chakra Petch', sans-serif !important;
+}
+
+/* Normativas y reglamentos */
+.normative-card,
+.normative-body,
+.normative-article,
+.rule-item,
+.manual-content,
+.normative-item,
+.manual-card,
+.normative-text,
+.article-content,
+.reglamento-box,
+.normative-article p,
+.normatives-container {
+  font-family: 'Conthrax', 'Chakra Petch', sans-serif !important;
+}
+
+/* Botones */
+button,
+.btn-tactical,
+.btn,
+.btn-action,
+.search-cat-btn,
+.modal-close-btn,
+.login-btn-discord,
+.btn-tactical-mist,
+.btn-tactical-primary,
+.btn-tactical-outline,
+.btn-tactical-ghost,
+.btn-tactical-gold,
+.btn-tactical-danger,
+.btn-tactical-sm,
+.audio-toggle-btn {
+  font-family: 'Conthrax', 'Chakra Petch', sans-serif !important;
+}
+
+/* Tablas */
+table,
+th,
+td,
+tr,
+thead,
+tbody,
+tfoot,
+.tactical-table-element,
+.tactical-table-element th,
+.tactical-table-element td,
+.tactical-table-wrapper,
+.table-container,
+.table-tactical,
+.roster-table,
+.log-table-wrap,
+.log-table {
+  font-family: 'Conthrax', 'Chakra Petch', sans-serif !important;
 }
 
 /* ==========================================================================
