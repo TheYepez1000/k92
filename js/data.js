@@ -643,8 +643,8 @@ const DEFAULT_MAP_MARKERS = [
     description: 'Cuartel general de la División Canina K9. Perreras climatizadas, sala de briefing táctico y armero oficial.',
     date: 'Permanente',
     time: '24/7',
-    lat: -700,
-    lng: 380,
+    lat: -40.0,
+    lng: -20.0,
     priority: 'oficial',
     status: 'en_curso',
     guides: 'Toda la plantilla K9',
@@ -659,8 +659,8 @@ const DEFAULT_MAP_MARKERS = [
     description: 'Circuito de saltos y obstáculos, detección de narcóticos y explosivos en naves industriales, y prácticas de presa y mordida controlada.',
     date: 'Miércoles y Sábados',
     time: '19:00',
-    lat: -280,
-    lng: 520,
+    lat: 25.0,
+    lng: 15.0,
     priority: 'importante',
     status: 'programado',
     guides: 'Instructores y Guías K9',
@@ -675,8 +675,8 @@ const DEFAULT_MAP_MARKERS = [
     description: 'Dispositivo estático de inspección vehicular canina. Búsqueda de sustancias ilícitas y armamento en maleteros y dobles fondos.',
     date: 'Convocatoria Oficial',
     time: '21:30',
-    lat: -750,
-    lng: 180,
+    lat: -42.0,
+    lng: -55.0,
     priority: 'urgente',
     status: 'programado',
     guides: 'Binomios de Intervención',
@@ -1301,7 +1301,17 @@ class K9DataStore {
   // ─── MAPA TÁCTICO DE LOS SANTOS (OPERACIONES & ENTRENAMIENTOS) ───
   getMapMarkers() {
     const list = this.get(STORAGE_KEYS.MAP_MARKERS);
-    return Array.isArray(list) ? list : DEFAULT_MAP_MARKERS;
+    if (!Array.isArray(list) || list.length === 0) return DEFAULT_MAP_MARKERS;
+    // Migración automática de coordenadas de versiones anteriores
+    return list.map(m => {
+      if (m.lat < -100) {
+        if (m.id === 'marker_k9_hq') return Object.assign({}, m, { lat: -40.0, lng: -20.0 });
+        if (m.id === 'marker_k9_train') return Object.assign({}, m, { lat: 25.0, lng: 15.0 });
+        if (m.id === 'marker_k9_check') return Object.assign({}, m, { lat: -42.0, lng: -55.0 });
+        return Object.assign({}, m, { lat: -40.0, lng: -20.0 });
+      }
+      return m;
+    });
   }
 
   saveMapMarker(markerData) {

@@ -7268,40 +7268,26 @@ function initTacticalLeafletMap(isJef) {
     try { window.k9TacticalMap.remove(); } catch (e) {}
     window.k9TacticalMap = null;
     window.k9MapTileLayer = null;
-    window.k9CurrentBaseLayer = null;
     window.k9MapMarkersGroup = null;
   }
 
-  // -------------------------------------------------------
-  // Mapa de Los Santos con imagen oficial local (sin dependencias externas)
-  // Bounds en coordenadas CRS.Simple: [lat, lng]
-  // lat va de -1000 (puerto/sur) a 0 (Paleto/norte)
-  // lng va de 0 (oeste/océano) a 750 (este)
-  // -------------------------------------------------------
-  window.k9MapImageBounds = [[-1000, 0], [0, 750]];
-  window.k9MapCenter = [-500, 375]; // centro exacto
-
+  // Mapa GTA V de Ultra Alta Resolución (Zoom 2 a 7, renderizado por tiles en HD)
   const map = L.map('tacticalK9Map', {
-    crs: L.CRS.Simple,
-    minZoom: -1,
-    maxZoom: 4,
+    minZoom: 2,
+    maxZoom: 7,
     zoomControl: false,
     attributionControl: false,
     preferCanvas: true,
-    maxBounds: [[-1150, -80], [150, 830]],
-    maxBoundsViscosity: 0.85
-  });
+    noWrap: true
+  }).setView([0, 0], 2);
 
   window.k9TacticalMap = map;
   window.k9MapIsJef = isJef;
 
   L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-  // Imagen base del mapa de Los Santos
-  setTacticalMapTileLayer(currentMapLayer);
-
-  // Ajustar vista inicial al mapa completo
-  map.fitBounds(window.k9MapImageBounds);
+  // Inicializar capa de tiles en HD (Satélite por defecto)
+  setTacticalMapTileLayer(currentMapLayer || 'satellite');
 
   // Grupo de marcadores tácticos
   window.k9MapMarkersGroup = L.layerGroup().addTo(map);
@@ -7317,43 +7303,48 @@ function initTacticalLeafletMap(isJef) {
 
   // Forzar redibujado para evitar áreas grises
   setTimeout(() => { if (map) map.invalidateSize(); }, 120);
-  setTimeout(() => { if (map) { map.invalidateSize(); map.fitBounds(window.k9MapImageBounds); } }, 350);
+  setTimeout(() => { if (map) { map.invalidateSize(); map.setView([0, 0], 2); } }, 350);
 }
 
+const TACTICAL_MAP_TILE_URLS = {
+  atlas: 'https://compromit.github.io/gta5-map/assets/map/tiles-atlas/{z}/{x}/{y}.png',
+  satellite: 'https://compromit.github.io/gta5-map/assets/map/tiles-satellite/{z}/{x}/{y}.png',
+  road: 'https://compromit.github.io/gta5-map/assets/map/tiles-terrain/{z}/{x}/{y}.png'
+};
+
+const TACTICAL_MAP_BG_COLORS = {
+  atlas: '#12a7d2',
+  satellite: '#0a1d33',
+  road: '#1862ad'
+};
+
 function setTacticalMapTileLayer(layerType) {
-  currentMapLayer = layerType || 'atlas';
+  currentMapLayer = layerType || 'satellite';
   if (!window.k9TacticalMap) return;
 
-  // Imagen local del mapa de Los Santos con cache buster
-  const localMapUrl = 'assets/images/los_santos_map.png?v=20261027';
-  const bounds = window.k9MapImageBounds || [[-1000, 0], [0, 750]];
+  const url = TACTICAL_MAP_TILE_URLS[currentMapLayer] || TACTICAL_MAP_TILE_URLS.satellite;
+  const bgColor = TACTICAL_MAP_BG_COLORS[currentMapLayer] || '#0a1d33';
 
-  if (window.k9CurrentBaseLayer) {
-    // Aplicar filtro según la capa seleccionada
-    const el = window.k9CurrentBaseLayer.getElement && window.k9CurrentBaseLayer.getElement();
-    if (el) {
-      el.style.filter = layerType === 'satellite'
-        ? 'saturate(1.35) contrast(1.1) brightness(0.95)'
-        : layerType === 'road'
-        ? 'grayscale(0.55) contrast(1.15) brightness(1.05)'
-        : 'none';
-    }
-    return;
+  const mapEl = document.getElementById('tacticalK9Map');
+  if (mapEl) mapEl.style.backgroundColor = bgColor;
+
+  if (window.k9MapTileLayer) {
+    window.k9TacticalMap.removeLayer(window.k9MapTileLayer);
+    window.k9MapTileLayer = null;
   }
 
-  // Primera carga: crear imageOverlay con la imagen local
-  window.k9CurrentBaseLayer = L.imageOverlay(localMapUrl, bounds, {
-    opacity: 1,
-    className: 'k9-map-base-image',
-    errorOverlayUrl: 'assets/images/los_santos_map.jpg'
+  window.k9MapTileLayer = L.tileLayer(url, {
+    minZoom: 2,
+    maxZoom: 7,
+    tileSize: 256,
+    noWrap: true,
+    detectRetina: true
   }).addTo(window.k9TacticalMap);
-
-  window.k9MapTileLayer = window.k9CurrentBaseLayer;
 }
 
 window.centerMapOnLosSantos = function () {
-  if (window.k9TacticalMap && window.k9MapImageBounds) {
-    window.k9TacticalMap.fitBounds(window.k9MapImageBounds);
+  if (window.k9TacticalMap) {
+    window.k9TacticalMap.setView([0, 0], 2);
   }
 };
 
@@ -7536,7 +7527,7 @@ function renderMapMarkersSidebarList(markers, isJef) {
 
 window.centerMapOnMarker = function (lat, lng, markerId) {
   if (window.k9TacticalMap) {
-    window.k9TacticalMap.setView([lat, lng], 4, { animate: true });
+    window.k9TacticalMap.setView([lat, lng], 5, { animate: true });
     if (window._k9MapMarkerInstances && window._k9MapMarkerInstances[markerId]) {
       setTimeout(() => {
         window._k9MapMarkerInstances[markerId].openPopup();
@@ -7557,8 +7548,8 @@ window.openNewMapMarkerModal = function (defaultLat = null, defaultLng = null) {
   document.getElementById('markerPriority').value = 'oficial';
   document.getElementById('markerDate').value = new Date().toLocaleDateString('es-ES');
   document.getElementById('markerTime').value = '20:00';
-  document.getElementById('markerLat').value = defaultLat !== null ? Number(defaultLat).toFixed(2) : '-500.00';
-  document.getElementById('markerLng').value = defaultLng !== null ? Number(defaultLng).toFixed(2) : '375.00';
+  document.getElementById('markerLat').value = defaultLat !== null ? Number(defaultLat).toFixed(2) : '-40.00';
+  document.getElementById('markerLng').value = defaultLng !== null ? Number(defaultLng).toFixed(2) : '-20.00';
   document.getElementById('markerStatus').value = 'programado';
   document.getElementById('markerGuides').value = 'Toda la plantilla K9';
   document.getElementById('markerDescription').value = '';
@@ -7623,8 +7614,8 @@ function setupMapMarkerFormListener() {
     const priority = document.getElementById('markerPriority').value;
     const date = (document.getElementById('markerDate').value || '').trim();
     const time = (document.getElementById('markerTime').value || '').trim();
-    const lat = parseFloat(document.getElementById('markerLat').value) || -500.0;
-    const lng = parseFloat(document.getElementById('markerLng').value) || 375.0;
+    const lat = parseFloat(document.getElementById('markerLat').value) || -40.0;
+    const lng = parseFloat(document.getElementById('markerLng').value) || -20.0;
     const status = document.getElementById('markerStatus').value;
     const guides = (document.getElementById('markerGuides').value || '').trim();
     const description = (document.getElementById('markerDescription').value || '').trim();
@@ -7665,7 +7656,7 @@ function setupMapMarkerFormListener() {
 
     // Centrar mapa en el punto recién guardado
     if (window.k9TacticalMap) {
-      window.k9TacticalMap.setView([lat, lng], 4, { animate: true });
+      window.k9TacticalMap.setView([lat, lng], 5, { animate: true });
     }
   });
 }
