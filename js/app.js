@@ -7228,71 +7228,92 @@ function renderTacticalMapSection(container) {
 
 function initTacticalLeafletMap(isJef) {
   if (typeof L === 'undefined') {
-    console.warn('Leaflet aún no cargado');
+    console.warn('[K9Map] Leaflet no est\u00e1 cargado');
+    const mapEl = document.getElementById('tacticalK9Map');
+    if (mapEl) mapEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#8899aa;font-family:var(--font-headline);gap:.5rem;"><span>\u26a0\ufe0f</span>Mapa no disponible — comprueba tu conexi\u00f3n.</div>';
     return;
   }
 
   const mapEl = document.getElementById('tacticalK9Map');
   if (!mapEl) return;
 
+  // Destruir instancia previa
   if (window.k9TacticalMap) {
-    try {
-      window.k9TacticalMap.remove();
-    } catch (e) {
-      console.warn('Error reiniciando mapa Leaflet:', e);
-    }
+    try { window.k9TacticalMap.remove(); } catch (e) {}
     window.k9TacticalMap = null;
+    window.k9MapTileLayer = null;
+    window.k9CurrentBaseLayer = null;
+    window.k9MapMarkersGroup = null;
   }
 
-  // Inicializar Leaflet con CRS.Simple
+  // L\u00edmites de la imagen en el espacio CRS.Simple
+  // El mapa de Los Santos ocupa [-4096,-4096] a [4096,4096]
+  window.k9MapImageBounds = [[-4096, -4096], [4096, 4096]];
+
+  // Inicializar Leaflet con coordenadas planas (sin proyecci\u00f3n esf\u00e9rica)
   const map = L.map('tacticalK9Map', {
     crs: L.CRS.Simple,
-    minZoom: 1,
-    maxZoom: 6,
+    minZoom: -2,
+    maxZoom: 4,
     zoomControl: false,
-    attributionControl: false
+    attributionControl: false,
+    preferCanvas: true
   });
 
   window.k9TacticalMap = map;
+  window.k9MapIsJef = isJef;
 
   L.control.zoom({ position: 'bottomright' }).addTo(map);
 
+  // Cargar imagen base del mapa (imageOverlay funciona correctamente con CRS.Simple)
   setTacticalMapTileLayer(currentMapLayer);
 
-  // Centrar en Los Santos City / San Andreas
-  map.setView([-140, 110], 2);
+  // Ajustar vista inicial para mostrar todo el mapa de Los Santos
+  map.fitBounds(window.k9MapImageBounds);
 
-  // Click en el mapa para marcar punto (sólo Jefatura)
+  // Grupo de marcadores t\u00e1cticos (sobre la imagen base)
+  window.k9MapMarkersGroup = L.layerGroup().addTo(map);
+
+  // Click en el mapa: solo Jefatura puede a\u00f1adir puntos
   map.on('click', (e) => {
     if (!isJef) return;
     window.openNewMapMarkerModal(e.latlng.lat, e.latlng.lng);
   });
 
-  // Renderizar marcadores
+  // Renderizar marcadores existentes
   refreshMapMarkers();
 
-  // Forzar redibujado de tiles tras montaje en DOM
-  setTimeout(() => {
-    map.invalidateSize();
-  }, 120);
+  // Forzar redibujado tras montaje en DOM
+  setTimeout(() => { map.invalidateSize(); }, 150);
 }
 
 function setTacticalMapTileLayer(layerType) {
   currentMapLayer = layerType || 'atlas';
   if (!window.k9TacticalMap) return;
 
-  if (window.k9MapTileLayer) {
-    window.k9TacticalMap.removeLayer(window.k9MapTileLayer);
+  // URLs de imagen completa del mapa de Los Santos por estilo
+  const mapImageUrls = {
+    atlas:     'https://gta5-map.github.io/img/atlas.jpg',
+    satellite: 'https://gta5-map.github.io/img/satellite.jpg',
+    road:      'https://gta5-map.github.io/img/roads.jpg'
+  };
+
+  const imgUrl = mapImageUrls[currentMapLayer] || mapImageUrls.atlas;
+  const bounds = window.k9MapImageBounds || [[-4096, -4096], [4096, 4096]];
+
+  if (window.k9CurrentBaseLayer) {
+    // Solo cambiar la URL de la imagen existente (preserva el z-order de marcadores)
+    window.k9CurrentBaseLayer.setUrl(imgUrl);
+  } else {
+    // Primera carga: crear la capa de imagen base
+    window.k9CurrentBaseLayer = L.imageOverlay(imgUrl, bounds, {
+      opacity: 1,
+      className: 'k9-map-base-image'
+    }).addTo(window.k9TacticalMap);
   }
 
-  const tileUrl = `https://gta5-map.github.io/tiles/${currentMapLayer}/{z}-{x}_{y}.png`;
-  window.k9MapTileLayer = L.tileLayer(tileUrl, {
-    minZoom: 1,
-    maxZoom: 6,
-    tileSize: 256,
-    noWrap: true,
-    errorTileUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"><rect width="256" height="256" fill="%230a1122"/></svg>'
-  }).addTo(window.k9TacticalMap);
+  // Guardar referencia legacy por compatibilidad con c\u00f3digo anterior
+  window.k9MapTileLayer = window.k9CurrentBaseLayer;
 }
 
 window.switchMapLayerStyle = function (layerType) {
