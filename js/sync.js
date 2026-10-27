@@ -425,6 +425,20 @@ class K9CloudSyncManager {
         if (setIfChanged(K9_SYNC_KEYS.PROMOTIONS, remote.promotions)) hasChanges = true;
       }
 
+      // 11b. Presets de Agentes (Nombre IC, foto personalizada, rango, etc.)
+      if (Array.isArray(remote.presets) && remote.presets.length > 0) {
+        const localPresets = (window.K9Store.getAgentPresets ? window.K9Store.getAgentPresets() : window.K9Store.get(K9_SYNC_KEYS.AGENT_PRESETS)) || [];
+        const presetMap = new Map();
+        localPresets.forEach(p => { if (p && p.discordId) presetMap.set(p.discordId, p); });
+        remote.presets.forEach(p => {
+          if (p && p.discordId) {
+            presetMap.set(p.discordId, { ...(presetMap.get(p.discordId) || {}), ...p });
+          }
+        });
+        const mergedPresets = Array.from(presetMap.values());
+        if (setIfChanged(K9_SYNC_KEYS.AGENT_PRESETS, mergedPresets)) hasChanges = true;
+      }
+
       // 12. Logs tácticos internos
       if (Array.isArray(remote.logs)) {
         if (setIfChanged(K9_SYNC_KEYS.LOGS, remote.logs)) hasChanges = true;

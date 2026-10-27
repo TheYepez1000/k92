@@ -648,6 +648,30 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
 }
 
+.avatar-edit-overlay {
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  background: rgba(5, 9, 20, 0.72);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-family: var(--font-tactical);
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  cursor: pointer;
+  backdrop-filter: blur(3px);
+  z-index: 2;
+}
+
+.id-card-avatar-wrap:hover .avatar-edit-overlay {
+  opacity: 1;
+}
+
 .id-card-name {
   font-family: var(--font-tactical);
   font-size: 1.45rem;

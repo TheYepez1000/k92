@@ -109,6 +109,8 @@ class K9AuthManager {
       const grantJefatura = (hasPreset && (!!preset.isJefatura || preset.rank === 'Jefatura LSPD')) || isAdminId;
       const isVerified = (hasPreset && preset.rank !== 'Sin Rango') || isAdminId;
 
+      const assignedAvatar = (hasPreset && preset.avatar) ? preset.avatar : (profileData.avatar || 'assets/images/emblem.jpg');
+
       matched = {
         id: 'user_' + (profileData.discordId ? profileData.discordId.slice(-6) : Math.random().toString(36).substring(2, 8)),
         name: assignedName,
@@ -116,7 +118,7 @@ class K9AuthManager {
         rank: assignedRank,
         discordUsername: profileData.discordUsername,
         discordId: profileData.discordId || Math.floor(100000000000000000 + Math.random() * 900000000000000000).toString(),
-        avatar: profileData.avatar || 'assets/images/emblem.jpg',
+        avatar: assignedAvatar,
         isJefatura: grantJefatura,
         isVerified: isVerified,
         isExpelled: false,
@@ -135,6 +137,7 @@ class K9AuthManager {
       matched.isExpelled = false;
       if (preset) {
         if (preset.name) matched.name = preset.name;
+        if (preset.avatar) matched.avatar = preset.avatar;
         matched.rank = preset.rank;
         matched.placa = preset.placa;
         matched.isJefatura = !!preset.isJefatura || preset.rank === 'Jefatura LSPD';
@@ -155,7 +158,11 @@ class K9AuthManager {
         matched.isVerified = matched.rank !== 'Sin Rango';
         matched.serviceStatus = 'En Activo';
       }
-      if (profileData.avatar) matched.avatar = profileData.avatar;
+      if (preset && preset.avatar) {
+        matched.avatar = preset.avatar;
+      } else if (!matched.avatar || matched.avatar === 'assets/images/emblem.jpg') {
+        if (profileData.avatar) matched.avatar = profileData.avatar;
+      }
       if (profileData.discordUsername) matched.discordUsername = profileData.discordUsername;
       if (profileData.discordId) matched.discordId = profileData.discordId;
       window.K9Store.save(AUTH_STORAGE_KEYS.USERS, allUsers);

@@ -1609,9 +1609,18 @@ function renderMemberProfile() {
       <!-- Columna Izquierda: Credencial Táctica Oficial -->
       <div class="tactical-id-card">
         <div class="id-card-body">
-          <div class="id-card-avatar-wrap">
+          <div class="id-card-avatar-wrap" onclick="window.openChangeAvatarModal('${user.id}')" title="Clic para cambiar foto de perfil" style="cursor:pointer;">
             <img src="${user.avatar}" alt="${user.name}" class="id-card-avatar-img" onerror="this.src='assets/images/emblem.jpg'">
             <div class="id-card-badge-chip">#${user.placa}</div>
+            <div class="avatar-edit-overlay">
+              <span style="font-size:1.25rem; line-height:1;">📷</span>
+              <span style="font-size:0.62rem; margin-top:3px; font-weight:700;">CAMBIAR</span>
+            </div>
+          </div>
+          <div style="margin-bottom:0.75rem;">
+            <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="window.openChangeAvatarModal('${user.id}')" style="font-size:0.72rem; padding:0.3rem 0.8rem; display:inline-flex; align-items:center; gap:0.4rem; justify-content:center; border-radius:6px; margin:0 auto;">
+              <span>📷</span> Cambiar Foto
+            </button>
           </div>
           <h3 class="id-card-name">${user.name}</h3>
           <div class="id-card-rank">${user.rank}</div>
@@ -2752,6 +2761,23 @@ window.editAgentRank = function (userId) {
         <span style="font-size:0.7rem;color:var(--text-subtle);margin-top:0.3rem;display:block;">Este nombre es el que se verá en el Directorio de Miembros, Perfil y en toda la plataforma.</span>
       </div>
 
+      <!-- Foto de Perfil / Avatar -->
+      <div style="margin-bottom:1.15rem;">
+        <label style="display:block;font-family:var(--font-headline);font-size:0.72rem;color:var(--police-cyan);letter-spacing:0.06em;margin-bottom:0.35rem;">FOTO DE PERFIL / AVATAR</label>
+        <div style="display:flex;align-items:center;gap:0.75rem;">
+          <img id="editAgentAvatarPreview" src="${user.avatar || 'assets/images/emblem.jpg'}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid var(--police-cyan);background:#000;flex-shrink:0;" onerror="this.src='assets/images/emblem.jpg'">
+          <div style="flex:1;">
+            <input type="text" id="editAgentAvatar" value="${user.avatar && !user.avatar.startsWith('data:') ? escapeHtml(user.avatar) : ''}" placeholder="https://... o subir desde dispositivo" style="width:100%;padding:0.5rem 0.75rem;background:rgba(10,14,23,0.85);border:1px solid var(--border-tactical);border-radius:6px;color:#fff;font-family:var(--font-headline);font-size:0.85rem;box-sizing:border-box;margin-bottom:0.35rem;">
+            <div style="display:flex;gap:0.4rem;align-items:center;">
+              <input type="file" id="editAgentAvatarFile" accept="image/*" style="display:none;">
+              <button type="button" id="btnUploadEditAgentAvatar" style="background:rgba(255,255,255,0.06);border:1px solid var(--border-tactical);border-radius:5px;color:#cbd5e1;font-size:0.72rem;padding:0.25rem 0.55rem;cursor:pointer;">📁 Subir imagen</button>
+              <button type="button" id="btnResetEditAgentAvatar" style="background:none;border:none;color:var(--text-muted);font-size:0.72rem;cursor:pointer;text-decoration:underline;">Restablecer</button>
+              <span id="editAgentAvatarStatus" style="font-size:0.68rem;color:var(--police-cyan);display:none;"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div style="margin-bottom:1rem;">
         <label style="display:block;font-family:var(--font-headline);font-size:0.72rem;color:var(--police-cyan);letter-spacing:0.06em;margin-bottom:0.5rem;">RANGO OFICIAL</label>
         <div id="rankPickerGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;">
@@ -2788,6 +2814,53 @@ window.editAgentRank = function (userId) {
   `;
 
   document.body.appendChild(overlay);
+
+  // Manejo de avatar en tiempo real en modal de edición de agente
+  let selectedAgentAvatarData = null;
+  const agentAvatarInput = document.getElementById('editAgentAvatar');
+  const agentAvatarPreview = document.getElementById('editAgentAvatarPreview');
+  const agentAvatarFileInput = document.getElementById('editAgentAvatarFile');
+  const btnUploadAgentAvatar = document.getElementById('btnUploadEditAgentAvatar');
+  const btnResetAgentAvatar = document.getElementById('btnResetEditAgentAvatar');
+  const agentAvatarStatus = document.getElementById('editAgentAvatarStatus');
+
+  agentAvatarInput.addEventListener('input', () => {
+    selectedAgentAvatarData = null;
+    agentAvatarStatus.style.display = 'none';
+    const val = agentAvatarInput.value.trim();
+    agentAvatarPreview.src = val || 'assets/images/emblem.jpg';
+  });
+
+  btnUploadAgentAvatar.addEventListener('click', () => agentAvatarFileInput.click());
+  agentAvatarFileInput.addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      showToast('Por favor selecciona una imagen válida.', 'warning');
+      return;
+    }
+    if (file.size > 3 * 1024 * 1024) {
+      showToast('La imagen supera el límite de 3MB.', 'warning');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      selectedAgentAvatarData = event.target.result;
+      agentAvatarPreview.src = selectedAgentAvatarData;
+      agentAvatarInput.value = '';
+      agentAvatarStatus.textContent = '✓ Archivo: ' + file.name;
+      agentAvatarStatus.style.display = 'inline';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  btnResetAgentAvatar.addEventListener('click', () => {
+    selectedAgentAvatarData = 'assets/images/emblem.jpg';
+    agentAvatarInput.value = '';
+    agentAvatarPreview.src = 'assets/images/emblem.jpg';
+    agentAvatarStatus.textContent = '↺ Restablecida';
+    agentAvatarStatus.style.display = 'inline';
+  });
 
   // Estado de selección de rango
   let selectedRank = user.rank || 'Agente Guia';
@@ -2829,6 +2902,12 @@ window.editAgentRank = function (userId) {
     user.isVerified    = selectedRank !== 'Sin Rango';
     user.permissions   = isStaffOrJef ? ['*'] : [];
     user.serviceStatus = selectedRank === 'Sin Rango' ? 'Pendiente de Asignación por Jefatura' : (isStaffOrJef ? 'En Activo / Mando' : 'En Activo');
+
+    const newAvatar = selectedAgentAvatarData || agentAvatarInput.value.trim();
+    if (newAvatar) {
+      user.avatar = newAvatar;
+    }
+
     window.K9Store.save(STORAGE_KEYS.USERS, allUsers);
 
     // Actualizar sesión activa si es el usuario actual
@@ -2838,6 +2917,7 @@ window.editAgentRank = function (userId) {
       currentUser.placa = newPlaca;
       currentUser.rank = selectedRank;
       currentUser.isJefatura = isStaffOrJef;
+      if (newAvatar) currentUser.avatar = newAvatar;
       window.K9Store.save(STORAGE_KEYS.CURRENT_USER, currentUser);
     }
 
@@ -2849,6 +2929,7 @@ window.editAgentRank = function (userId) {
         discordId: user.discordId,
         discordUsername: user.discordUsername,
         name: user.name,
+        avatar: user.avatar,
         placa: user.placa,
         rank: user.rank,
         isJefatura: user.isJefatura,
@@ -2882,6 +2963,184 @@ window.editAgentRank = function (userId) {
     showToast(`✅ Agente actualizado: ${user.name} (${selectedRank} [${newPlaca}])`, 'success');
     closeModal();
     renderJefaturaSubtab('agentes');
+  });
+};
+
+// ─── Modal para Cambiar Foto de Perfil / Avatar (Usuario o Jefatura) ───
+window.openChangeAvatarModal = function (targetUserId) {
+  const allUsers = window.K9Store.getAllUsers ? window.K9Store.getAllUsers() : window.K9Store.getUsers();
+  const currentUser = window.K9Auth ? window.K9Auth.getCurrentUser() : null;
+  const uid = targetUserId || (currentUser ? currentUser.id : null);
+  const user = allUsers.find(u => u.id === uid) || currentUser;
+  if (!user) {
+    showToast('Debes iniciar sesión para cambiar tu foto de perfil.', 'warning');
+    return;
+  }
+
+  const existing = document.getElementById('modalChangeAvatar');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'modalChangeAvatar';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(5,9,20,0.85);backdrop-filter:blur(6px);z-index:10000;display:flex;align-items:center;justify-content:center;padding:1rem;animation:fadeIn 0.18s ease;';
+
+  const currentAvatar = user.avatar || 'assets/images/emblem.jpg';
+
+  overlay.innerHTML = `
+    <div style="background:linear-gradient(135deg,#0d1424,#111827);border:1px solid rgba(0,229,255,0.3);border-radius:14px;padding:2rem;width:100%;max-width:480px;box-shadow:0 25px 60px rgba(0,0,0,0.8);position:relative;">
+      <button id="closeChangeAvatarModal" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:#64748b;font-size:1.4rem;cursor:pointer;line-height:1;">&times;</button>
+      
+      <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem;">
+        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#00e5ff22,#7c3aed22);border:1px solid rgba(0,229,255,0.3);display:flex;align-items:center;justify-content:center;font-size:1.3rem;">📷</div>
+        <div>
+          <h3 style="margin:0;color:#fff;font-family:var(--font-tactical);font-size:1.05rem;letter-spacing:0.04em;">CAMBIAR FOTO DE PERFIL</h3>
+          <p style="margin:0;font-size:0.78rem;color:var(--text-muted);">${escapeHtml(user.name)} <span style="color:var(--police-cyan);">[${user.placa || 'S/P'}]</span></p>
+        </div>
+      </div>
+
+      <!-- Preview de la foto -->
+      <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:1.5rem;">
+        <div style="width:110px;height:110px;border-radius:50%;padding:4px;background:linear-gradient(135deg,var(--police-cyan),var(--police-blue));box-shadow:0 0 20px rgba(0,229,255,0.35);margin-bottom:0.75rem;">
+          <img id="avatarModalPreview" src="${currentAvatar}" alt="Vista previa" style="width:100%;height:100%;border-radius:50%;object-fit:cover;background:#000;" onerror="this.src='assets/images/emblem.jpg'">
+        </div>
+        <span style="font-size:0.72rem;color:var(--text-muted);font-family:var(--font-mono);">Vista Previa en Tiempo Real</span>
+      </div>
+
+      <!-- Opción A: Enlace URL -->
+      <div style="margin-bottom:1.25rem;">
+        <label style="display:block;font-family:var(--font-headline);font-size:0.72rem;color:var(--police-cyan);letter-spacing:0.06em;margin-bottom:0.4rem;">ENLACE / URL DE LA IMAGEN (HTTPS)</label>
+        <input type="url" id="avatarModalUrlInput" value="${user.avatar && !user.avatar.startsWith('data:') ? escapeHtml(user.avatar) : ''}" placeholder="https://ejemplo.com/mi-foto.png" style="width:100%;padding:0.6rem 0.8rem;background:rgba(10,14,23,0.85);border:1px solid var(--border-tactical);border-radius:6px;color:#fff;font-family:var(--font-headline);font-size:0.88rem;box-sizing:border-box;">
+      </div>
+
+      <!-- Opción B: Subir Archivo Local -->
+      <div style="margin-bottom:1.5rem;padding:0.9rem;border:1px dashed rgba(0,229,255,0.25);border-radius:8px;background:rgba(0,229,255,0.02);text-align:center;">
+        <input type="file" id="avatarModalFileInput" accept="image/*" style="display:none;">
+        <p style="margin:0 0 0.5rem;font-size:0.78rem;color:var(--text-muted);">O selecciona una imagen directamente de tu dispositivo:</p>
+        <div style="display:flex;justify-content:center;gap:0.5rem;">
+          <button type="button" id="btnAvatarModalChooseFile" class="btn-tactical btn-tactical-outline btn-tactical-sm" style="font-size:0.75rem;">
+            📁 Elegir Archivo Local
+          </button>
+          <button type="button" id="btnAvatarModalReset" class="btn-tactical btn-tactical-sm" style="background:rgba(255,255,255,0.05);color:var(--text-muted);font-size:0.75rem;border:1px solid rgba(255,255,255,0.1);">
+            🔄 Por Defecto
+          </button>
+        </div>
+        <div id="avatarModalFileName" style="font-size:0.7rem;color:var(--police-cyan);margin-top:0.4rem;display:none;"></div>
+      </div>
+
+      <div style="display:flex;gap:0.75rem;">
+        <button id="cancelChangeAvatar" type="button" class="btn-tactical btn-tactical-outline" style="flex:1;justify-content:center;">Cancelar</button>
+        <button id="confirmChangeAvatar" type="button" class="btn-tactical btn-tactical-gold" style="flex:1;justify-content:center;">💾 Guardar Foto</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const previewEl = document.getElementById('avatarModalPreview');
+  const urlInput = document.getElementById('avatarModalUrlInput');
+  const fileInput = document.getElementById('avatarModalFileInput');
+  const chooseFileBtn = document.getElementById('btnAvatarModalChooseFile');
+  const resetBtn = document.getElementById('btnAvatarModalReset');
+  const fileNameEl = document.getElementById('avatarModalFileName');
+  let selectedDataUrl = null;
+
+  // Actualización en vivo al escribir URL
+  urlInput.addEventListener('input', () => {
+    selectedDataUrl = null;
+    fileNameEl.style.display = 'none';
+    const val = urlInput.value.trim();
+    previewEl.src = val || 'assets/images/emblem.jpg';
+  });
+
+  // Elegir archivo
+  chooseFileBtn.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      showToast('Por favor selecciona un archivo de imagen válido.', 'warning');
+      return;
+    }
+    if (file.size > 3 * 1024 * 1024) {
+      showToast('La imagen es demasiado pesada (máx 3MB).', 'warning');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      selectedDataUrl = event.target.result;
+      previewEl.src = selectedDataUrl;
+      urlInput.value = '';
+      fileNameEl.textContent = '✓ Archivo cargado: ' + file.name;
+      fileNameEl.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Restablecer por defecto / Discord
+  resetBtn.addEventListener('click', () => {
+    selectedDataUrl = 'assets/images/emblem.jpg';
+    urlInput.value = '';
+    previewEl.src = 'assets/images/emblem.jpg';
+    fileNameEl.textContent = '↺ Restablecido a imagen por defecto';
+    fileNameEl.style.display = 'block';
+  });
+
+  // Cerrar modal
+  const closeModal = () => overlay.remove();
+  document.getElementById('closeChangeAvatarModal').addEventListener('click', closeModal);
+  document.getElementById('cancelChangeAvatar').addEventListener('click', closeModal);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+
+  // Guardar cambios
+  document.getElementById('confirmChangeAvatar').addEventListener('click', () => {
+    let finalAvatar = selectedDataUrl || urlInput.value.trim();
+    if (!finalAvatar) finalAvatar = 'assets/images/emblem.jpg';
+
+    // 1. Actualizar usuario en allUsers
+    user.avatar = finalAvatar;
+    window.K9Store.save(STORAGE_KEYS.USERS, allUsers);
+
+    // 2. Si es el usuario actual, actualizar sesión activa
+    if (currentUser && (currentUser.id === user.id || currentUser.discordId === user.discordId)) {
+      currentUser.avatar = finalAvatar;
+      window.K9Store.save(STORAGE_KEYS.CURRENT_USER, currentUser);
+    }
+
+    // 3. Persistir preset para Discord logins
+    if (user.discordId) {
+      const presets = window.K9Store.getAgentPresets ? window.K9Store.getAgentPresets() : [];
+      const cleanPresets = presets.filter(p => p.discordId !== user.discordId);
+      cleanPresets.push({
+        discordId: user.discordId,
+        discordUsername: user.discordUsername,
+        name: user.name,
+        placa: user.placa,
+        rank: user.rank,
+        avatar: finalAvatar,
+        isJefatura: user.isJefatura,
+        permissions: user.permissions,
+        serviceStatus: user.serviceStatus,
+        createdAt: new Date().toLocaleDateString('es-ES')
+      });
+      window.K9Store.save(STORAGE_KEYS.AGENT_PRESETS, cleanPresets);
+    }
+
+    // 4. Sincronizar en la nube
+    if (window.K9CloudSync) window.K9CloudSync.push();
+
+    // 5. Actualizar interfaz de usuario inmediatamente
+    if (window.K9Audio) window.K9Audio.playTacticalBeep(1100, 0.1);
+    showToast('✅ Foto de perfil actualizada con éxito', 'success');
+    closeModal();
+
+    // Refrescar vistas activas
+    if (typeof currentView !== 'undefined') {
+      if (currentView === 'perfil') renderMemberProfile();
+      else if (currentView === 'general') renderGeneralSubtab('miembros');
+      else if (currentView === 'jefatura') renderJefaturaSubtab('agentes');
+    }
+    // Refrescar avatar en Top HUD si está presente
+    document.querySelectorAll('.auth-avatar-img').forEach(img => { img.src = finalAvatar; });
   });
 };
 
@@ -4642,6 +4901,37 @@ ON CONFLICT (id) DO NOTHING;
         });
         window.K9Store.save(STORAGE_KEYS.DOGS, dogs);
         window.K9Store.save(STORAGE_KEYS.USERS, users);
+
+        // Persistir preset para futuros logins con Discord
+        if (member.discordId) {
+          const presets = window.K9Store.getAgentPresets ? window.K9Store.getAgentPresets() : [];
+          const cleanPresets = presets.filter(p => p.discordId !== member.discordId);
+          cleanPresets.push({
+            discordId: member.discordId,
+            discordUsername: member.discordUsername,
+            name: member.name,
+            avatar: member.avatar,
+            placa: member.placa,
+            rank: member.rank,
+            isJefatura: member.isJefatura,
+            permissions: member.permissions,
+            serviceStatus: member.serviceStatus,
+            createdAt: new Date().toLocaleDateString('es-ES')
+          });
+          window.K9Store.save(STORAGE_KEYS.AGENT_PRESETS, cleanPresets);
+        }
+
+        // Actualizar sesión activa si corresponde
+        const currentUser = window.K9Auth ? window.K9Auth.getCurrentUser() : null;
+        if (currentUser && (currentUser.id === member.id || currentUser.discordId === member.discordId)) {
+          currentUser.name = member.name;
+          currentUser.placa = member.placa;
+          currentUser.rank = member.rank;
+          currentUser.avatar = member.avatar;
+          currentUser.isJefatura = member.isJefatura;
+          window.K9Store.save(STORAGE_KEYS.CURRENT_USER, currentUser);
+        }
+
         if (window.K9CloudSync) window.K9CloudSync.push();
         closeModal('modalEditMember');
         showToast(`Ficha del agente ${member.name} actualizada con éxito`, 'success');
