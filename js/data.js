@@ -643,8 +643,8 @@ const DEFAULT_MAP_MARKERS = [
     description: 'Cuartel general de la División Canina K9. Perreras climatizadas, sala de briefing táctico y armero oficial.',
     date: 'Permanente',
     time: '24/7',
-    lat: -155.5,
-    lng: 118.2,
+    lat: 3900,
+    lng: 4200,
     priority: 'oficial',
     status: 'en_curso',
     guides: 'Toda la plantilla K9',
@@ -659,8 +659,8 @@ const DEFAULT_MAP_MARKERS = [
     description: 'Circuito de saltos y obstáculos, detección de narcóticos y explosivos en naves industriales, y prácticas de presa y mordida controlada.',
     date: 'Miércoles y Sábados',
     time: '19:00',
-    lat: -108.4,
-    lng: 122.8,
+    lat: 2800,
+    lng: 5500,
     priority: 'importante',
     status: 'programado',
     guides: 'Instructores y Guías K9',
@@ -675,8 +675,8 @@ const DEFAULT_MAP_MARKERS = [
     description: 'Dispositivo estático de inspección vehicular canina. Búsqueda de sustancias ilícitas y armamento en maleteros y dobles fondos.',
     date: 'Convocatoria Oficial',
     time: '21:30',
-    lat: -142.2,
-    lng: 95.6,
+    lat: 4200,
+    lng: 3600,
     priority: 'urgente',
     status: 'programado',
     guides: 'Binomios de Intervención',
@@ -685,6 +685,7 @@ const DEFAULT_MAP_MARKERS = [
     createdAt: new Date().toISOString()
   }
 ];
+
 
 // Clase Gestora del Estado
 class K9DataStore {
