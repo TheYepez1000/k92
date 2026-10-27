@@ -7095,19 +7095,15 @@ function renderTacticalMapSection(container) {
   if (!container) return;
 
   const access = checkUserRankAccess();
-  if (!access.allowed) {
-    if (access.reason === 'no_auth') {
-      container.innerHTML = getTacticalAuthBlockedHtml('Mapa Operativo de Los Santos', 'Debes autenticarte con tu cuenta de Discord para acceder al mapa táctico de Los Santos y consultar las directrices de despliegue y entrenamiento de la Unidad K9.');
-    } else if (access.reason === 'expelled') {
-      container.innerHTML = getTacticalExpelledBlockedHtml(access.user);
-    } else if (access.reason === 'no_rank') {
-      container.innerHTML = getTacticalNoRankBlockedHtml(access.user, 'Mapa Operativo de Los Santos', 'el Mapa Operativo y el registro de entrenamientos permanecerán bloqueados');
-    }
+  // Si el usuario fue expulsado oficialmente, bloquear acceso
+  if (!access.allowed && access.reason === 'expelled') {
+    container.innerHTML = getTacticalExpelledBlockedHtml(access.user);
     return;
   }
 
-  const user = access.user;
-  const isJef = window.K9Auth.isJefaturaMember ? window.K9Auth.isJefaturaMember() : (user && user.isJefatura);
+  const user = access.user || (window.K9Auth ? window.K9Auth.getCurrentUser() : null);
+  const isJef = window.K9Auth && window.K9Auth.isJefaturaMember ? window.K9Auth.isJefaturaMember() : (user && user.isJefatura);
+  const isGuest = !access.allowed;
   const allMarkers = window.K9Store.getMapMarkers();
 
   container.innerHTML = `
@@ -7145,6 +7141,15 @@ function renderTacticalMapSection(container) {
           </button>
         </div>
       </div>
+
+      ${isGuest ? `
+        <div style="background:rgba(0,229,255,0.05); border:1px solid rgba(0,229,255,0.2); border-radius:10px; padding:0.65rem 1rem; margin-bottom:1.25rem; display:flex; align-items:center; gap:0.75rem; font-size:0.82rem; color:var(--text-muted);">
+          <span style="font-size:1.1rem;">👁️</span>
+          <div>
+            <strong style="color:var(--police-cyan);">Modo Consulta Pública:</strong> Visualización del mapa operativo y los puntos de adiestramiento fijados por Jefatura K9. Para registrar nuevos puntos debes iniciar sesión con una cuenta de Jefatura.
+          </div>
+        </div>
+      ` : ''}
 
       <!-- Barra de Filtros y Capas del Mapa -->
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; background:rgba(16,24,43,0.7); border:1px solid var(--border-tactical); padding:0.75rem 1rem; border-radius:12px; margin-bottom:1.25rem;">
@@ -7223,7 +7228,7 @@ function renderTacticalMapSection(container) {
   // Inicializar Leaflet tras inyectar el HTML
   setTimeout(() => {
     initTacticalLeafletMap(isJef);
-  }, 50);
+  }, 60);
 }
 
 function initTacticalLeafletMap(isJef) {
@@ -7237,7 +7242,7 @@ function initTacticalLeafletMap(isJef) {
   const mapEl = document.getElementById('tacticalK9Map');
   if (!mapEl) return;
 
-  // Destruir instancia previa
+  // Destruir instancia previa limpiamente
   if (window.k9TacticalMap) {
     try { window.k9TacticalMap.remove(); } catch (e) {}
     window.k9TacticalMap = null;
@@ -7247,15 +7252,13 @@ function initTacticalLeafletMap(isJef) {
   }
 
   // -------------------------------------------------------
-  // Mapa de Los Santos con imagen local (sin CDN, sin CORS)
-  // Imagen: assets/images/los_santos_map.jpg  ratio 3:4
+  // Mapa de Los Santos con imagen oficial local (sin dependencias externas)
   // Bounds en coordenadas CRS.Simple: [lat, lng]
-  // lat negativo = arriba (Leaflet invierte Y), lng positivo = derecha
+  // lat va de -1000 (puerto/sur) a 0 (Paleto/norte)
+  // lng va de 0 (oeste/océano) a 750 (este)
   // -------------------------------------------------------
-  //   Esquina superior izquierda: [-1000, 0]
-  //   Esquina inferior derecha:   [0, 750]   (ratio 3:4 → ancho=750, alto=1000)
   window.k9MapImageBounds = [[-1000, 0], [0, 750]];
-  window.k9MapCenter = [-500, 375]; // centro
+  window.k9MapCenter = [-500, 375]; // centro exacto
 
   const map = L.map('tacticalK9Map', {
     crs: L.CRS.Simple,
@@ -7264,7 +7267,7 @@ function initTacticalLeafletMap(isJef) {
     zoomControl: false,
     attributionControl: false,
     preferCanvas: true,
-    maxBounds: [[-1100, -50], [100, 800]], // evitar scroll demasiado lejos
+    maxBounds: [[-1150, -80], [150, 830]],
     maxBoundsViscosity: 0.85
   });
 
@@ -7273,16 +7276,16 @@ function initTacticalLeafletMap(isJef) {
 
   L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-  // Imagen base del mapa de Los Santos (local, sin CORS)
+  // Imagen base del mapa de Los Santos
   setTacticalMapTileLayer(currentMapLayer);
 
-  // Ajustar vista al mapa completo
+  // Ajustar vista inicial al mapa completo
   map.fitBounds(window.k9MapImageBounds);
 
-  // Grupo de marcadores tácticos (sobre la imagen)
+  // Grupo de marcadores tácticos
   window.k9MapMarkersGroup = L.layerGroup().addTo(map);
 
-  // Click en el mapa: solo Jefatura puede añadir puntos
+  // Click en el mapa: Jefatura puede añadir puntos
   map.on('click', (e) => {
     if (!isJef) return;
     window.openNewMapMarkerModal(e.latlng.lat, e.latlng.lng);
@@ -7291,27 +7294,28 @@ function initTacticalLeafletMap(isJef) {
   // Renderizar marcadores existentes
   refreshMapMarkers();
 
-  // Forzar redibujado tras montaje en DOM
-  setTimeout(() => { map.invalidateSize(); }, 150);
+  // Forzar redibujado para evitar áreas grises
+  setTimeout(() => { if (map) map.invalidateSize(); }, 120);
+  setTimeout(() => { if (map) { map.invalidateSize(); map.fitBounds(window.k9MapImageBounds); } }, 350);
 }
 
 function setTacticalMapTileLayer(layerType) {
   currentMapLayer = layerType || 'atlas';
   if (!window.k9TacticalMap) return;
 
-  // Imagen local del mapa de Los Santos (mismo archivo, diferentes estilos via CSS filter)
-  const localMapUrl = 'assets/images/los_santos_map.jpg';
+  // Imagen local del mapa de Los Santos con cache buster
+  const localMapUrl = 'assets/images/los_santos_map.png?v=20261027';
   const bounds = window.k9MapImageBounds || [[-1000, 0], [0, 750]];
 
   if (window.k9CurrentBaseLayer) {
-    // Cambiar solo el filtro CSS según el estilo seleccionado
+    // Aplicar filtro según la capa seleccionada
     const el = window.k9CurrentBaseLayer.getElement && window.k9CurrentBaseLayer.getElement();
     if (el) {
       el.style.filter = layerType === 'satellite'
-        ? 'saturate(1.3) brightness(0.95)'
+        ? 'saturate(1.35) contrast(1.1) brightness(0.95)'
         : layerType === 'road'
-        ? 'grayscale(0.6) contrast(1.1) brightness(1.05)'
-        : 'none'; // atlas: natural
+        ? 'grayscale(0.55) contrast(1.15) brightness(1.05)'
+        : 'none';
     }
     return;
   }
@@ -7319,7 +7323,8 @@ function setTacticalMapTileLayer(layerType) {
   // Primera carga: crear imageOverlay con la imagen local
   window.k9CurrentBaseLayer = L.imageOverlay(localMapUrl, bounds, {
     opacity: 1,
-    className: 'k9-map-base-image'
+    className: 'k9-map-base-image',
+    errorOverlayUrl: 'assets/images/los_santos_map.jpg'
   }).addTo(window.k9TacticalMap);
 
   window.k9MapTileLayer = window.k9CurrentBaseLayer;
@@ -7330,7 +7335,6 @@ window.centerMapOnLosSantos = function () {
     window.k9TacticalMap.fitBounds(window.k9MapImageBounds);
   }
 };
-
 
 window.switchMapLayerStyle = function (layerType) {
   currentMapLayer = layerType;
@@ -7351,12 +7355,6 @@ window.setMapCategoryFilter = function (cat) {
 window.setMapSearchTerm = function (term) {
   mapSearchTerm = term;
   refreshMapMarkers();
-};
-
-window.centerMapOnLosSantos = function () {
-  if (window.k9TacticalMap) {
-    window.k9TacticalMap.setView([-140, 110], 2);
-  }
 };
 
 window.toggleQuickMarkMode = function () {
@@ -7538,8 +7536,8 @@ window.openNewMapMarkerModal = function (defaultLat = null, defaultLng = null) {
   document.getElementById('markerPriority').value = 'oficial';
   document.getElementById('markerDate').value = new Date().toLocaleDateString('es-ES');
   document.getElementById('markerTime').value = '20:00';
-  document.getElementById('markerLat').value = defaultLat !== null ? Number(defaultLat).toFixed(2) : '-140.00';
-  document.getElementById('markerLng').value = defaultLng !== null ? Number(defaultLng).toFixed(2) : '110.00';
+  document.getElementById('markerLat').value = defaultLat !== null ? Number(defaultLat).toFixed(2) : '-500.00';
+  document.getElementById('markerLng').value = defaultLng !== null ? Number(defaultLng).toFixed(2) : '375.00';
   document.getElementById('markerStatus').value = 'programado';
   document.getElementById('markerGuides').value = 'Toda la plantilla K9';
   document.getElementById('markerDescription').value = '';
@@ -7585,8 +7583,11 @@ window.confirmDeleteMapMarker = function (markerId) {
 };
 
 // Formulario de guardar marcador
-const formMapMarkerEl = document.getElementById('formMapMarker');
-if (formMapMarkerEl) {
+function setupMapMarkerFormListener() {
+  const formMapMarkerEl = document.getElementById('formMapMarker');
+  if (!formMapMarkerEl || formMapMarkerEl.dataset.bound === 'true') return;
+  formMapMarkerEl.dataset.bound = 'true';
+
   formMapMarkerEl.addEventListener('submit', (e) => {
     e.preventDefault();
     if (!window.K9Auth.isJefaturaMember()) {
@@ -7601,8 +7602,8 @@ if (formMapMarkerEl) {
     const priority = document.getElementById('markerPriority').value;
     const date = (document.getElementById('markerDate').value || '').trim();
     const time = (document.getElementById('markerTime').value || '').trim();
-    const lat = parseFloat(document.getElementById('markerLat').value) || -140.0;
-    const lng = parseFloat(document.getElementById('markerLng').value) || 110.0;
+    const lat = parseFloat(document.getElementById('markerLat').value) || -500.0;
+    const lng = parseFloat(document.getElementById('markerLng').value) || 375.0;
     const status = document.getElementById('markerStatus').value;
     const guides = (document.getElementById('markerGuides').value || '').trim();
     const description = (document.getElementById('markerDescription').value || '').trim();
@@ -7646,6 +7647,13 @@ if (formMapMarkerEl) {
       window.k9TacticalMap.setView([lat, lng], 4, { animate: true });
     }
   });
+}
+
+// Inicializar listener inmediatamente o al cargar DOM
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', setupMapMarkerFormListener);
+} else {
+  setupMapMarkerFormListener();
 }
 
 

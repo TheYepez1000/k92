@@ -311,6 +311,13 @@
     </section>
 
     <!-- ================================================================
+         VISTA MAPA: MAPA OPERATIVO DE LOS SANTOS (CARTOGRAFÍA & ENTRENAMIENTOS)
+         ================================================================ -->
+    <section class="view-container" id="view-mapa">
+      <!-- Renderizado dinámicamente por app.js (renderTacticalMapSection) -->
+    </section>
+
+    <!-- ================================================================
          VISTA 6: CENTRO DE MANDO Y JEFATURA K9 (RESTRINGIDO)
          ================================================================ -->
     <section class="view-container" id="view-jefatura">
@@ -1724,6 +1731,96 @@
           </button>
           <button type="submit" class="btn-tactical btn-tactical-gold btn-tactical-sm">
             📅 Programar en Agenda
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: REGISTRAR / EDITAR PUNTO EN EL MAPA TÁCTICO
+       ==================================================================== -->
+  <div class="tactical-modal-overlay" id="modalMapMarker">
+    <div class="tactical-modal-card" style="max-width: 580px;">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical" id="modalMapMarkerTitle">
+          <span>📍</span> REGISTRAR PUNTO EN EL MAPA
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalMapMarker')">✕</button>
+      </div>
+      <form id="formMapMarker">
+        <input type="hidden" id="markerId" value="">
+        <div class="modal-body-tactical" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; max-height: 70vh; overflow-y: auto;">
+          <div class="tactical-form-group">
+            <label class="tactical-form-label" for="markerTitle">Título o Lugar del Punto *</label>
+            <input type="text" id="markerTitle" class="tactical-input" required placeholder="Ej: Adiestramiento Canino · Sandy Shores">
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <div class="tactical-form-group">
+              <label class="tactical-form-label" for="markerCategory">Categoría *</label>
+              <select id="markerCategory" class="tactical-input">
+                <option value="entrenamiento">🐕 Entrenamiento Canino</option>
+                <option value="operativo">🚨 Operativo Táctico</option>
+                <option value="control">🚧 Punto de Control</option>
+                <option value="busqueda">🔍 Búsqueda y Rastreo</option>
+                <option value="base">🏢 Base / Puesto K9</option>
+                <option value="riesgo">⚠️ Zona de Riesgo</option>
+              </select>
+            </div>
+            <div class="tactical-form-group">
+              <label class="tactical-form-label" for="markerPriority">Prioridad</label>
+              <select id="markerPriority" class="tactical-input">
+                <option value="oficial">Oficial / Rutinario</option>
+                <option value="importante">Importante</option>
+                <option value="urgente">Urgente / Alta</option>
+              </select>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <div class="tactical-form-group">
+              <label class="tactical-form-label" for="markerDate">Fecha</label>
+              <input type="text" id="markerDate" class="tactical-input" placeholder="Ej: Miércoles y Sábados">
+            </div>
+            <div class="tactical-form-group">
+              <label class="tactical-form-label" for="markerTime">Hora</label>
+              <input type="text" id="markerTime" class="tactical-input" placeholder="Ej: 20:00">
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <div class="tactical-form-group">
+              <label class="tactical-form-label" for="markerLat">Coordenada Y (Latitud)</label>
+              <input type="number" step="0.01" id="markerLat" class="tactical-input" placeholder="-500.00">
+            </div>
+            <div class="tactical-form-group">
+              <label class="tactical-form-label" for="markerLng">Coordenada X (Longitud)</label>
+              <input type="number" step="0.01" id="markerLng" class="tactical-input" placeholder="375.00">
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <div class="tactical-form-group">
+              <label class="tactical-form-label" for="markerStatus">Estado</label>
+              <select id="markerStatus" class="tactical-input">
+                <option value="programado">📅 Programado</option>
+                <option value="en_curso">🟢 En Curso</option>
+                <option value="finalizado">⚪ Finalizado</option>
+              </select>
+            </div>
+            <div class="tactical-form-group">
+              <label class="tactical-form-label" for="markerGuides">Convocatoria / Guías</label>
+              <input type="text" id="markerGuides" class="tactical-input" placeholder="Ej: Toda la plantilla K9">
+            </div>
+          </div>
+          <div class="tactical-form-group">
+            <label class="tactical-form-label" for="markerDescription">Descripción e Instrucciones</label>
+            <textarea id="markerDescription" class="tactical-input" rows="3" placeholder="Detalles de la sesión, equipo necesario, pautas operativas..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer-tactical">
+          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="closeModal('modalMapMarker')">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-tactical btn-tactical-gold btn-tactical-sm">
+            💾 Guardar Punto
           </button>
         </div>
       </form>
