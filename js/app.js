@@ -7228,9 +7228,9 @@ function renderTacticalMapSection(container) {
 
 function initTacticalLeafletMap(isJef) {
   if (typeof L === 'undefined') {
-    console.warn('[K9Map] Leaflet no est\u00e1 cargado');
+    console.warn('[K9Map] Leaflet no está cargado');
     const mapEl = document.getElementById('tacticalK9Map');
-    if (mapEl) mapEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#8899aa;font-family:var(--font-headline);gap:.5rem;"><span>\u26a0\ufe0f</span>Mapa no disponible \u2014 comprueba tu conexi\u00f3n.</div>';
+    if (mapEl) mapEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#8899aa;font-family:var(--font-headline);gap:.5rem;"><span>⚠️</span>Mapa no disponible — comprueba tu conexión.</div>';
     return;
   }
 
@@ -7247,43 +7247,42 @@ function initTacticalLeafletMap(isJef) {
   }
 
   // -------------------------------------------------------
-  // CRS personalizado para el mapa de Los Santos
-  // Los tiles de compromit usan {z}/{x}/{y} est\u00e1ndar Leaflet
-  // Zoom m\u00e1ximo 5 => 2^5 = 32 tiles x 256px = 8192px total
+  // Mapa de Los Santos con imagen local (sin CDN, sin CORS)
+  // Imagen: assets/images/los_santos_map.jpg  ratio 3:4
+  // Bounds en coordenadas CRS.Simple: [lat, lng]
+  // lat negativo = arriba (Leaflet invierte Y), lng positivo = derecha
   // -------------------------------------------------------
-  const tileSize = 256;
-  const maxNativeZoom = 5;
-  const fullPx = tileSize * Math.pow(2, maxNativeZoom); // 8192
-
-  const crs = L.CRS.Simple;
+  //   Esquina superior izquierda: [-1000, 0]
+  //   Esquina inferior derecha:   [0, 750]   (ratio 3:4 → ancho=750, alto=1000)
+  window.k9MapImageBounds = [[-1000, 0], [0, 750]];
+  window.k9MapCenter = [-500, 375]; // centro
 
   const map = L.map('tacticalK9Map', {
-    crs: crs,
-    minZoom: 0,
-    maxZoom: maxNativeZoom,
+    crs: L.CRS.Simple,
+    minZoom: -1,
+    maxZoom: 4,
     zoomControl: false,
     attributionControl: false,
-    preferCanvas: true
+    preferCanvas: true,
+    maxBounds: [[-1100, -50], [100, 800]], // evitar scroll demasiado lejos
+    maxBoundsViscosity: 0.85
   });
 
   window.k9TacticalMap = map;
   window.k9MapIsJef = isJef;
-  // Guardar fullPx para conversiones de coordenadas
-  window.k9MapFullPx = fullPx;
 
   L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-  // Cargar capa base de tiles
+  // Imagen base del mapa de Los Santos (local, sin CORS)
   setTacticalMapTileLayer(currentMapLayer);
 
-  // Centrar en el centro del mapa (pixel-space: [fullPx/2, fullPx/2])
-  // Con CRS.Simple lat=y, lng=x en coordenadas de p\u00edxeles del tile
-  map.setView([fullPx / 2, fullPx / 2], 2);
+  // Ajustar vista al mapa completo
+  map.fitBounds(window.k9MapImageBounds);
 
-  // Grupo de marcadores t\u00e1cticos
+  // Grupo de marcadores tácticos (sobre la imagen)
   window.k9MapMarkersGroup = L.layerGroup().addTo(map);
 
-  // Click en el mapa: solo Jefatura puede a\u00f1adir puntos
+  // Click en el mapa: solo Jefatura puede añadir puntos
   map.on('click', (e) => {
     if (!isJef) return;
     window.openNewMapMarkerModal(e.latlng.lat, e.latlng.lng);
@@ -7300,42 +7299,38 @@ function setTacticalMapTileLayer(layerType) {
   currentMapLayer = layerType || 'atlas';
   if (!window.k9TacticalMap) return;
 
-  // URLs de tiles confirmadas 200 OK
-  // compromit: formato est\u00e1ndar {z}/{x}/{y}, zoom 0-5, compatible con CRS.Simple
-  const tileUrls = {
-    atlas:     'https://compromit.github.io/gta5-map/assets/map/tiles-atlas/{z}/{x}/{y}.png',
-    satellite: 'https://compromit.github.io/gta5-map/assets/map/tiles-satellite/{z}/{x}/{y}.png',
-    road:      'https://compromit.github.io/gta5-map/assets/map/tiles-road/{z}/{x}/{y}.png'
-  };
+  // Imagen local del mapa de Los Santos (mismo archivo, diferentes estilos via CSS filter)
+  const localMapUrl = 'assets/images/los_santos_map.jpg';
+  const bounds = window.k9MapImageBounds || [[-1000, 0], [0, 750]];
 
-  const tileUrl = tileUrls[currentMapLayer] || tileUrls.atlas;
-
-  // Quitar capa anterior
   if (window.k9CurrentBaseLayer) {
-    window.k9TacticalMap.removeLayer(window.k9CurrentBaseLayer);
+    // Cambiar solo el filtro CSS según el estilo seleccionado
+    const el = window.k9CurrentBaseLayer.getElement && window.k9CurrentBaseLayer.getElement();
+    if (el) {
+      el.style.filter = layerType === 'satellite'
+        ? 'saturate(1.3) brightness(0.95)'
+        : layerType === 'road'
+        ? 'grayscale(0.6) contrast(1.1) brightness(1.05)'
+        : 'none'; // atlas: natural
+    }
+    return;
   }
 
-  const fullPx = window.k9MapFullPx || 8192;
-
-  window.k9CurrentBaseLayer = L.tileLayer(tileUrl, {
-    minZoom: 0,
-    maxZoom: 5,
-    maxNativeZoom: 5,
-    tileSize: 256,
-    noWrap: true,
-    // Evitar solicitudes fuera del \u00e1rea del mapa
-    bounds: [[0, 0], [fullPx, fullPx]],
-    errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='
+  // Primera carga: crear imageOverlay con la imagen local
+  window.k9CurrentBaseLayer = L.imageOverlay(localMapUrl, bounds, {
+    opacity: 1,
+    className: 'k9-map-base-image'
   }).addTo(window.k9TacticalMap);
 
   window.k9MapTileLayer = window.k9CurrentBaseLayer;
-
-  // Asegurar que marcadores quedan encima
-  if (window.k9MapMarkersGroup) {
-    window.k9MapMarkersGroup.eachLayer(l => l.remove());
-    window.k9MapMarkersGroup.addTo(window.k9TacticalMap);
-  }
 }
+
+window.centerMapOnLosSantos = function () {
+  if (window.k9TacticalMap && window.k9MapImageBounds) {
+    window.k9TacticalMap.fitBounds(window.k9MapImageBounds);
+  }
+};
+
 
 window.switchMapLayerStyle = function (layerType) {
   currentMapLayer = layerType;
