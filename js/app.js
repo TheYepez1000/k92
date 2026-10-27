@@ -7095,15 +7095,26 @@ function renderTacticalMapSection(container) {
   if (!container) return;
 
   const access = checkUserRankAccess();
-  // Si el usuario fue expulsado oficialmente, bloquear acceso
-  if (!access.allowed && access.reason === 'expelled') {
-    container.innerHTML = getTacticalExpelledBlockedHtml(access.user);
+  if (!access.allowed) {
+    if (access.reason === 'no_auth') {
+      container.innerHTML = getTacticalAuthBlockedHtml(
+        'Mapa Operativo de Los Santos',
+        'Debes iniciar sesión con tu cuenta oficial de Discord para acceder a la cartografía táctica y consultar los puntos de despliegue y adiestramiento de la División Canina K9.'
+      );
+    } else if (access.reason === 'expelled') {
+      container.innerHTML = getTacticalExpelledBlockedHtml(access.user);
+    } else if (access.reason === 'no_rank') {
+      container.innerHTML = getTacticalNoRankBlockedHtml(
+        access.user,
+        'Mapa Operativo de Los Santos',
+        'el Mapa Operativo y los puntos de adiestramiento permanecerán clasificados y bloqueados'
+      );
+    }
     return;
   }
 
-  const user = access.user || (window.K9Auth ? window.K9Auth.getCurrentUser() : null);
+  const user = access.user;
   const isJef = window.K9Auth && window.K9Auth.isJefaturaMember ? window.K9Auth.isJefaturaMember() : (user && user.isJefatura);
-  const isGuest = !access.allowed;
   const allMarkers = window.K9Store.getMapMarkers();
 
   container.innerHTML = `
@@ -7141,15 +7152,6 @@ function renderTacticalMapSection(container) {
           </button>
         </div>
       </div>
-
-      ${isGuest ? `
-        <div style="background:rgba(0,229,255,0.05); border:1px solid rgba(0,229,255,0.2); border-radius:10px; padding:0.65rem 1rem; margin-bottom:1.25rem; display:flex; align-items:center; gap:0.75rem; font-size:0.82rem; color:var(--text-muted);">
-          <span style="font-size:1.1rem;">👁️</span>
-          <div>
-            <strong style="color:var(--police-cyan);">Modo Consulta Pública:</strong> Visualización del mapa operativo y los puntos de adiestramiento fijados por Jefatura K9. Para registrar nuevos puntos debes iniciar sesión con una cuenta de Jefatura.
-          </div>
-        </div>
-      ` : ''}
 
       <!-- Barra de Filtros y Capas del Mapa -->
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; background:rgba(16,24,43,0.7); border:1px solid var(--border-tactical); padding:0.75rem 1rem; border-radius:12px; margin-bottom:1.25rem;">
