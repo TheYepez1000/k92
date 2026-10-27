@@ -54,7 +54,7 @@ class K9SupabaseManager {
       try {
         const decoded = (typeof atob === 'function') ? atob(BUILTIN_B64_KEY) : '';
         if (decoded && decoded.startsWith('eyJ')) activeKey = decoded;
-      } catch (e) {}
+      } catch (e) { }
       if (!activeKey) activeKey = (storedKey || local.key || '').trim();
     }
 
@@ -65,7 +65,7 @@ class K9SupabaseManager {
       try {
         localStorage.setItem(SUPABASE_STORAGE_KEYS.ANON_KEY, activeKey);
         localStorage.setItem(SUPABASE_STORAGE_KEYS.URL, activeUrl);
-      } catch (e) {}
+      } catch (e) { }
     }
 
     return {
@@ -310,7 +310,8 @@ class K9SupabaseManager {
           tasks: (window.K9Store.getRawTasks ? window.K9Store.getRawTasks() : (window.K9Store.get(k.TASKS) || [])),
           events: (window.K9Store.getRawEvents ? window.K9Store.getRawEvents() : (window.K9Store.get(k.EVENTS) || [])),
           notifications: (window.K9Store.getRawNotifications ? window.K9Store.getRawNotifications() : (window.K9Store.get(k.NOTIFICATIONS) || [])),
-          uniforms: (window.K9Store.getUniforms ? window.K9Store.getUniforms() : (window.K9Store.get(k.UNIFORMS) || []))
+          uniforms: (window.K9Store.getUniforms ? window.K9Store.getUniforms() : (window.K9Store.get(k.UNIFORMS) || [])),
+          mapMarkers: (window.K9Store.getMapMarkers ? window.K9Store.getMapMarkers() : (window.K9Store.get(k.MAP_MARKERS) || []))
         };
       }
     }

@@ -33,7 +33,8 @@ const K9_SYNC_KEYS = (typeof window !== 'undefined' && window.STORAGE_KEYS) || (
   TASKS: 'k9_data_tasks',
   EVENTS: 'k9_data_events',
   NOTIFICATIONS: 'k9_data_notifications',
-  UNIFORMS: 'k9_data_uniforms'
+  UNIFORMS: 'k9_data_uniforms',
+  MAP_MARKERS: 'k9_data_map_markers'
 });
 
 class K9CloudSyncManager {
@@ -122,6 +123,7 @@ class K9CloudSyncManager {
       events: (window.K9Store.getRawEvents ? window.K9Store.getRawEvents() : (window.K9Store.get(K9_SYNC_KEYS.EVENTS) || [])),
       notifications: (window.K9Store.getRawNotifications ? window.K9Store.getRawNotifications() : (window.K9Store.get(K9_SYNC_KEYS.NOTIFICATIONS) || [])),
       uniforms: (window.K9Store.getUniforms ? window.K9Store.getUniforms() : (window.K9Store.get(K9_SYNC_KEYS.UNIFORMS) || [])),
+      mapMarkers: (window.K9Store.getMapMarkers ? window.K9Store.getMapMarkers() : (window.K9Store.get(K9_SYNC_KEYS.MAP_MARKERS) || [])),
       webhookUrl: localStorage.getItem('k9_webhook_url') || null
     };
   }
@@ -215,13 +217,16 @@ class K9CloudSyncManager {
           this.setStatus('online');
         }
         return remoteData; // IMPORTANTE: no continuar hacia /api/sync si Supabase está activo
+        return remoteData; // IMPORTANTE: no continuar hacia /api/sync si Supabase está activo
       } catch (err) {
         this._inFlight = false;
         console.warn('[K9CloudSync] Fallo en pull de Supabase:', err);
         return null;
+        return null;
       }
     }
 
+    // 2. Fallback: Endpoint REST / Firebase (SOLO si Supabase NO está configurado)
     // 2. Fallback: Endpoint REST / Firebase (SOLO si Supabase NO está configurado)
     const endpoint = this.getEndpointUrl();
     if (!endpoint) {
@@ -450,6 +455,16 @@ class K9CloudSyncManager {
       // 17. Código de Vestimenta & Uniformidad K9
       if (Array.isArray(remote.uniforms) && remote.uniforms.length > 0) {
         if (setIfChanged(K9_SYNC_KEYS.UNIFORMS, remote.uniforms)) hasChanges = true;
+      }
+
+      // 18. Marcadores Tácticos del Mapa de Los Santos
+      if (Array.isArray(remote.mapMarkers) && remote.mapMarkers.length > 0) {
+        if (setIfChanged(K9_SYNC_KEYS.MAP_MARKERS, remote.mapMarkers)) {
+          hasChanges = true;
+          if (typeof window.refreshMapMarkers === 'function') {
+            window.refreshMapMarkers();
+          }
+        }
       }
 
       if (hasChanges) {

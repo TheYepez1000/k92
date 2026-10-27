@@ -24,7 +24,8 @@ const STORAGE_KEYS = {
   TASKS: 'k9_data_tasks',
   EVENTS: 'k9_data_events',
   NOTIFICATIONS: 'k9_data_notifications',
-  UNIFORMS: 'k9_data_uniforms'
+  UNIFORMS: 'k9_data_uniforms',
+  MAP_MARKERS: 'k9_data_map_markers'
 };
 if (typeof window !== 'undefined') window.STORAGE_KEYS = STORAGE_KEYS;
 
@@ -543,39 +544,38 @@ const DEFAULT_NOTIFICATIONS = [
   }
 ];
 
-// Catálogo de Vestimenta e Indumentaria Policial K9 por defecto
+// Catálogo Oficial de Vestimenta & Uniformidad K9
 const DEFAULT_UNIFORMS = [
   {
     id: 'unif_01',
-    title: 'Uniforme Operativo de Patrulla K9',
+    title: 'Uniforme de Patrulla Ordinaria K9',
     category: 'Patrulla Ordinaria',
-    description: 'Indumentaria reglamentaria estándar para patrullaje preventivo y respuesta a emergencias en binomio.',
+    description: 'Equipamiento estándar de servicio en vehículo y a pie. Incluye funda antihurto, chaleco balístico ergonómico y arnés de patrulla rápida para el can.',
     image: 'assets/images/k9_patrol_officers.jpg',
-    authorizedRanks: 'Aspirante K9, Agente Guia, Instructor K9, Subcoordinador K9, Coordinador K9, Jefatura LSPD',
+    authorizedRanks: 'Todos los Guías Caninos',
     pinned: true,
     components: [
-      'Camisa táctica LSPD manga corta / larga con parches oficiales K9',
-      'Pantalón táctico azul noche ignífugo con bolsillos reforzados',
-      'Chaleco balístico exterior nivel IIIA con velcro K9 POLICE y porta-placa',
-      'Cinturón táctico con funda safariland, taser, cargadores y kit de correa K9',
-      'Porta-arnés y mosquetón de anclaje rápido canino',
-      'Botas tácticas de media caña impermeables'
+      'Polo táctico azul marino con insignia K9 Unit en pecho y espalda',
+      'Pantalón táctico reforzado en rodillas (Ripstop 5.11)',
+      'Chaleco balístico exterior nivel IIIA con porta-emisora y linterna',
+      'Cinturón de dotación con funda Safariland y correa canina de sujeción rápida',
+      'Arnés reflectante K-9 Police para el can detector'
     ],
     updatedAt: new Date().toISOString()
   },
   {
     id: 'unif_02',
-    title: 'Equipo Táctico de Asalto & Operaciones Especiales',
-    category: 'Asalto & Táctico',
-    description: 'Vestimenta de máxima protección para intervenciones de alto riesgo, entradas forzadas y tiradores activos.',
+    title: 'Indumentaria de Intervención Táctica & Asalto',
+    category: 'Intervención Táctica',
+    description: 'Uniformidad reforzada para allanamientos, controles de alto riesgo, entradas en naves industriales y operativos de asalto con canes de presa.',
     image: 'assets/images/hero_dog.jpg',
-    authorizedRanks: 'Agente Guia, Instructor K9, Subcoordinador K9, Coordinador K9, Jefatura LSPD',
+    authorizedRanks: 'Agente Guia, Instructor K9, Subcoordinador K9, Coordinador K9',
     pinned: true,
     components: [
-      'Uniforme combate ripstop negro / multicam black con coderas y rodilleras',
-      'Chaleco táctico portaplacas pesado nivel IV con sistema MOLLE',
-      'Casco balístico táctico con montura para cámara y linterna perimetral',
-      'Protección ocular táctica y guantes ignífugos de asalto',
+      'Mono táctico ignífugo negro con velcro para parches de identificación',
+      'Chaleco porta-placas táctico pesado con camelbak integrado',
+      'Casco balístico FAST con montura para cámara táctica',
+      'Gafas de protección balística y guantes anticorte',
       'Arnés táctico canino con asa de elevación y placa balística canina',
       'Bolsa táctica de pernera con botiquín hemostático TCCC-K9'
     ],
@@ -631,6 +631,58 @@ const DEFAULT_UNIFORMS = [
       'Distintivo dorado de Coordinación Suprema K9 / LSPD'
     ],
     updatedAt: new Date().toISOString()
+  }
+];
+
+// Puntos tácticos y entrenamientos en el Mapa de Los Santos
+const DEFAULT_MAP_MARKERS = [
+  {
+    id: 'marker_k9_hq',
+    title: 'Base Central de Operaciones K9 · Comisaría Mission Row',
+    category: 'base',
+    description: 'Cuartel general de la División Canina K9. Perreras climatizadas, sala de briefing táctico y armero oficial.',
+    date: 'Permanente',
+    time: '24/7',
+    lat: -155.5,
+    lng: 118.2,
+    priority: 'oficial',
+    status: 'en_curso',
+    guides: 'Toda la plantilla K9',
+    author: 'Jefatura K9',
+    createdBy: 'Jefatura K9',
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'marker_k9_train',
+    title: 'Campo de Adiestramiento y Pistas K9 · Sandy Shores',
+    category: 'entrenamiento',
+    description: 'Circuito de saltos y obstáculos, detección de narcóticos y explosivos en naves industriales, y prácticas de presa y mordida controlada.',
+    date: 'Miércoles y Sábados',
+    time: '19:00',
+    lat: -108.4,
+    lng: 122.8,
+    priority: 'importante',
+    status: 'programado',
+    guides: 'Instructores y Guías K9',
+    author: 'Jefatura K9',
+    createdBy: 'Jefatura K9',
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'marker_k9_check',
+    title: 'Punto de Control Táctico y Filtro K9 · Autovía Del Perro',
+    category: 'control',
+    description: 'Dispositivo estático de inspección vehicular canina. Búsqueda de sustancias ilícitas y armamento en maleteros y dobles fondos.',
+    date: 'Convocatoria Oficial',
+    time: '21:30',
+    lat: -142.2,
+    lng: 95.6,
+    priority: 'urgente',
+    status: 'programado',
+    guides: 'Binomios de Intervención',
+    author: 'Jefatura K9',
+    createdBy: 'Jefatura K9',
+    createdAt: new Date().toISOString()
   }
 ];
 
@@ -716,6 +768,9 @@ class K9DataStore {
     }
     if (!localStorage.getItem(STORAGE_KEYS.UNIFORMS)) {
       this.save(STORAGE_KEYS.UNIFORMS, DEFAULT_UNIFORMS);
+    }
+    if (!localStorage.getItem(STORAGE_KEYS.MAP_MARKERS)) {
+      this.save(STORAGE_KEYS.MAP_MARKERS, DEFAULT_MAP_MARKERS);
     }
 
     // Asegurar que el ID oficial de Jefatura nunca esté en la lista de expulsados
@@ -1193,7 +1248,7 @@ class K9DataStore {
     return true;
   }
 
-  // Gestión de Uniformidad & Vestimenta K9
+  // ─── CÓDIGO DE VESTIMENTA & UNIFORMIDAD K9 ───
   getUniforms() {
     const list = this.get(STORAGE_KEYS.UNIFORMS);
     return Array.isArray(list) && list.length > 0 ? list : DEFAULT_UNIFORMS;
@@ -1239,6 +1294,48 @@ class K9DataStore {
       return item.pinned;
     }
     return false;
+  }
+
+  // ─── MAPA TÁCTICO DE LOS SANTOS (OPERACIONES & ENTRENAMIENTOS) ───
+  getMapMarkers() {
+    const list = this.get(STORAGE_KEYS.MAP_MARKERS);
+    return Array.isArray(list) ? list : DEFAULT_MAP_MARKERS;
+  }
+
+  saveMapMarker(markerData) {
+    const list = [...this.getMapMarkers()];
+    const index = list.findIndex(m => m.id === markerData.id);
+    const item = Object.assign({
+      id: 'marker_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+      title: 'Punto Operativo K9',
+      category: 'entrenamiento',
+      description: '',
+      date: 'Fecha por definir',
+      time: 'Hora por definir',
+      lat: -155.5,
+      lng: 118.2,
+      priority: 'oficial',
+      status: 'programado',
+      guides: 'Toda la plantilla K9',
+      author: 'Jefatura K9',
+      createdBy: 'Jefatura K9',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }, markerData);
+
+    if (index >= 0) {
+      list[index] = item;
+    } else {
+      list.unshift(item);
+    }
+    this.save(STORAGE_KEYS.MAP_MARKERS, list);
+    return item;
+  }
+
+  deleteMapMarker(markerId) {
+    const list = this.getMapMarkers().filter(m => m.id !== markerId);
+    this.save(STORAGE_KEYS.MAP_MARKERS, list);
+    return true;
   }
 
   resetAll() {

@@ -19,6 +19,9 @@
     href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap"
     rel="stylesheet">
 
+  <!-- Leaflet Maps CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
   <!-- Hojas de Estilo Tácticas -->
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/components.css">
@@ -76,6 +79,12 @@
           <span class="nav-icon">📋</span>
           <span class="nav-label">Tareas</span>
           <span class="nav-badge-mini" id="navTasksBadge" style="display:none;">0</span>
+          <span class="nav-lock-mini" id="tasksLockMini" style="display:none;">🔒</span>
+        </button>
+        <button class="nav-tab-btn" data-view="vestimenta" id="navBtnVestimenta" data-tooltip="Uniformidad & Vestimenta K9">
+          <span class="nav-icon">🥋</span>
+          <span class="nav-label">Vestimenta</span>
+          <span class="nav-lock-mini" id="vestimentaLockMini" style="display:none;">🔒</span>
         </button>
         <button class="nav-tab-btn" data-view="vestimenta" id="navBtnVestimenta" data-tooltip="Uniformidad & Vestimenta K9">
           <span class="nav-icon">🥋</span>
@@ -85,6 +94,11 @@
         <button class="nav-tab-btn" data-view="perfil" id="navBtnPerfil" data-tooltip="Mi Perfil de Agente">
           <span class="nav-icon">🐕</span>
           <span class="nav-label">Mi Perfil</span>
+        </button>
+        <button class="nav-tab-btn" data-view="mapa" id="navBtnMapa" data-tooltip="Mapa Operativo de Los Santos">
+          <span class="nav-icon">🗺️</span>
+          <span class="nav-label">Mapa</span>
+          <span class="nav-lock-mini" id="mapaLockMini" style="display:none;">🔒</span>
         </button>
         <button class="nav-tab-btn jefatura-tab" data-view="jefatura" id="navBtnJefatura" data-tooltip="Panel de Jefatura K9">
           <span class="nav-icon">👑</span>

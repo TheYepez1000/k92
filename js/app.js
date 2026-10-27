@@ -32,6 +32,9 @@ function renderGeneralSubnavTabs() {
   const container = document.getElementById('generalSubnavRow');
   if (!container) return;
 
+  const access = (typeof checkUserRankAccess === 'function') ? checkUserRankAccess() : { allowed: false };
+  const hasAccess = access.allowed;
+
   container.innerHTML = `
     <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'normativas' ? 'active' : ''}" data-subtab="normativas">
       ⚖️ Normativas Oficiales
@@ -43,7 +46,7 @@ function renderGeneralSubnavTabs() {
       🐕 Plantilla de Canes K9
     </button>
     <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'anuncios' ? 'active' : ''}" data-subtab="anuncios">
-      📢 Anuncios de Jefatura
+      ${hasAccess ? '📢 Anuncios de Jefatura' : '🔒 Anuncios de Jefatura'}
     </button>
   `;
 
@@ -142,6 +145,11 @@ function switchMainView(viewName) {
     }
   } else if (viewName === 'perfil') {
     renderMemberProfile();
+  } else if (viewName === 'mapa') {
+    const cont = document.getElementById('view-mapa');
+    if (cont && typeof renderTacticalMapSection === 'function') {
+      renderTacticalMapSection(cont);
+    }
   } else if (viewName === 'jefatura') {
     checkJefaturaAccessAndRender();
   }
@@ -194,6 +202,121 @@ function setupAudioListeners() {
 }
 
 // ==========================================
+// CONTROL DE ACCESO OPERATIVO POR RANGO DISCORD
+// ==========================================
+function checkUserRankAccess() {
+  const user = window.K9Auth ? window.K9Auth.getCurrentUser() : null;
+  if (!user) return { allowed: false, reason: 'no_auth', user: null };
+
+  // Administrador / Mandos Supremos: bypass permanente
+  if (user.discordId === '578954458948698122' || user.discordId === '760159743616090164') {
+    user.isExpelled = false;
+    user.isJefatura = true;
+    user.isVerified = true;
+    if (user.rank === '🚫 Expulsado de la Unidad' || !user.rank || user.rank === 'Sin Rango Asignado' || user.rank === 'Jefe de División K9') {
+      user.rank = 'Coordinador K9';
+      user.placa = 'K-01';
+      user.serviceStatus = 'En Activo / Mando';
+      user.permissions = ['*'];
+    }
+    return { allowed: true, reason: 'admin', user: user };
+  }
+
+  // Agente expulsado de la unidad
+  if (user.isExpelled || (window.K9Store && window.K9Store.isExpelled && window.K9Store.isExpelled(user.id, user.discordId))) {
+    return { allowed: false, reason: 'expelled', user: user };
+  }
+
+  // Sin rango oficial asignado
+  if (!user.isVerified || !user.rank || user.rank === 'Sin Rango' || user.rank === 'Sin Rango Asignado' || (typeof user.rank === 'string' && user.rank.includes('Pendiente'))) {
+    return { allowed: false, reason: 'no_rank', user: user };
+  }
+
+  return { allowed: true, reason: 'member', user: user };
+}
+
+function getTacticalAuthBlockedHtml(sectionName, sectionDesc) {
+  return `
+    <div class="empty-state-box" style="margin:4rem auto; max-width:550px;">
+      <div class="empty-icon">🔒</div>
+      <h3 class="font-tactical" style="color:#fff; margin-bottom:0.75rem;">AUTENTICACIÓN REQUERIDA</h3>
+      <p style="margin-bottom:1.5rem; color:var(--text-muted);">${sectionDesc || 'Debes autenticarte con tu cuenta de Discord para acceder a este apartado operativo de la Unidad K9.'}</p>
+      <button class="btn-tactical btn-tactical-primary" onclick="window.K9Auth.initiateDiscordOAuth()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle; margin-right:4px;"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.893.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+        Iniciar Sesión con Discord
+      </button>
+    </div>
+  `;
+}
+
+function getTacticalNoRankBlockedHtml(user, sectionName, sectionDesc) {
+  return `
+    <div class="empty-state-box" style="margin:3rem auto; max-width:620px; border:1px solid rgba(255,183,3,0.35); background:rgba(18,24,38,0.95); padding:2.5rem 2rem; box-shadow:0 10px 40px rgba(0,0,0,0.5);">
+      <div class="empty-icon" style="font-size:3rem; margin-bottom:0.75rem;">🔒</div>
+      <h3 class="font-tactical" style="color:var(--tactical-gold); margin-bottom:0.5rem; font-size:1.35rem;">EXPEDIENTE EN ESPERA DE ASIGNACIÓN</h3>
+      <p style="color:#fff; font-size:0.95rem; margin-bottom:0.5rem;">
+        Bienvenido, <strong>${user ? user.name : 'Agente'}</strong> (@${user ? (user.discordUsername || '—') : '—'}).
+      </p>
+      <p style="color:var(--text-muted); font-size:0.86rem; line-height:1.6; margin-bottom:1.5rem;">
+        Has verificado tu cuenta con Discord correctamente, pero tu ficha policial <strong>aún no tiene un rango oficial ni placa asignada por la Jefatura K9</strong>.<br>
+        Hasta que un mando registre tu alta en el cuerpo, ${sectionDesc || 'este apartado operativo permanecerá bloqueado'}.
+      </p>
+      <div style="background:rgba(0,0,0,0.4); border:1px dashed var(--border-tactical); border-radius:8px; padding:1.2rem; margin-bottom:1.5rem; text-align:center;">
+        <div style="font-size:0.72rem; color:var(--text-subtle); letter-spacing:0.08em; margin-bottom:0.4rem;">TU DISCORD ID OFICIAL (ENTREGA ESTE CÓDIGO A JEFATURA):</div>
+        <div style="display:flex; align-items:center; justify-content:center; gap:0.6rem; flex-wrap:wrap; margin-bottom:0.4rem;">
+          <code style="font-family:var(--font-mono); font-size:1.25rem; color:var(--police-cyan); font-weight:700; background:rgba(0,229,255,0.1); padding:0.3rem 0.8rem; border-radius:6px; letter-spacing:0.05em;">${user ? user.discordId : '—'}</code>
+          <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="navigator.clipboard.writeText('${user ? user.discordId : ''}'); showToast('Discord ID copiado al portapapeles', 'success');">
+            📋 Copiar ID
+          </button>
+        </div>
+        <span style="font-size:0.75rem; color:var(--text-muted);">
+          Jefatura entrará en "Apartado Agentes" y asignará este ID con tu rango oficial y placa.
+        </span>
+      </div>
+      <div style="display:flex; justify-content:center; gap:0.75rem; flex-wrap:wrap;">
+        <button class="btn-tactical btn-tactical-primary btn-tactical-sm" onclick="switchGeneralSubtab('normativas')">
+          ⚖️ Ver Normativas Oficiales
+        </button>
+        <button class="btn-tactical btn-tactical-gold btn-tactical-sm" onclick="switchGeneralSubtab('galeria')">
+          🐕 Plantilla de Canes K9
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function getTacticalExpelledBlockedHtml(user) {
+  return `
+    <div class="empty-state-box" style="margin:3rem auto; max-width:620px; border:1px solid rgba(255,59,48,0.5); background:linear-gradient(135deg,rgba(18,24,38,0.95),rgba(35,10,10,0.85)); padding:2.5rem 2rem; box-shadow:0 10px 40px rgba(255,0,0,0.25);">
+      <div class="empty-icon" style="font-size:3rem; margin-bottom:0.75rem;">🚫</div>
+      <h3 class="font-tactical" style="color:#ff5252; margin-bottom:0.5rem; font-size:1.35rem; letter-spacing:0.04em;">EXPEDIENTE DADO DE BAJA / EXPULSADO</h3>
+      <p style="color:#fff; font-size:0.95rem; margin-bottom:0.5rem;">
+        Agente: <strong>${user ? user.name : 'Agente'}</strong> (@${user ? (user.discordUsername || '—') : '—'}).
+      </p>
+      <p style="color:var(--text-muted); font-size:0.86rem; line-height:1.6; margin-bottom:1.5rem;">
+        Tu ficha y placa operativa han sido <strong style="color:#ff5252;">dadas de baja de la Unidad K9 por decisión de Jefatura</strong>.<br>
+        Al volver a iniciar sesión o pulsar el botón de reingreso, tu expediente volverá a activarse automáticamente.
+      </p>
+      <div style="background:rgba(0,0,0,0.4); border:1px dashed rgba(255,59,48,0.4); border-radius:8px; padding:1.2rem; margin-bottom:1.5rem; text-align:center;">
+        <div style="font-size:0.72rem; color:var(--text-subtle); letter-spacing:0.08em; margin-bottom:0.4rem;">IDENTIFICADOR DISCORD DEL EXPEDIENTE:</div>
+        <code style="font-family:var(--font-mono); font-size:1.15rem; color:#ff8080; font-weight:700; background:rgba(255,59,48,0.1); padding:0.3rem 0.8rem; border-radius:6px; letter-spacing:0.05em;">${user ? (user.discordId || '—') : '—'}</code>
+        <p style="font-size:0.75rem; color:var(--text-muted); margin:0.5rem 0 0;">
+          Pulsa el botón inferior para reactivar tu ficha y entrar de nuevo al servicio.
+        </p>
+      </div>
+      <div style="display:flex; justify-content:center; gap:0.75rem; flex-wrap:wrap;">
+        <button class="btn-tactical btn-tactical-primary btn-tactical-sm" onclick="window.reenterService('${user ? user.id : ''}')">
+          🔄 Reactivar Ficha & Entrar al Servicio
+        </button>
+        <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="switchGeneralSubtab('normativas')">
+          ⚖️ Ver Normativas
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+// ==========================================
 // SISTEMA DE AUTENTICACIÓN & DISCORD UI
 // ==========================================
 function setupAuthUI() {
@@ -216,13 +339,23 @@ function setupAuthUI() {
 
   renderGeneralSubnavTabs();
 
+  const access = checkUserRankAccess();
+  const isOfficialMember = access.allowed;
+
   if (perfilLockBadge) {
-    perfilLockBadge.style.display = (user && user.isVerified) ? 'none' : 'inline-block';
+    perfilLockBadge.style.display = isOfficialMember ? 'none' : 'inline-block';
   }
   const vestimentaLock = document.getElementById('vestimentaLockMini');
-  const isMember = user && user.isVerified && user.rank && user.rank !== 'Sin Rango' && user.rank !== 'Sin Rango Asignado';
   if (vestimentaLock) {
-    vestimentaLock.style.display = isMember ? 'none' : 'inline-block';
+    vestimentaLock.style.display = isOfficialMember ? 'none' : 'inline-block';
+  }
+  const tasksLock = document.getElementById('tasksLockMini');
+  if (tasksLock) {
+    tasksLock.style.display = isOfficialMember ? 'none' : 'inline-block';
+  }
+  const mapaLock = document.getElementById('mapaLockMini');
+  if (mapaLock) {
+    mapaLock.style.display = isOfficialMember ? 'none' : 'inline-block';
   }
 
   if (heroActions) {
@@ -451,6 +584,19 @@ function refreshAnnouncementsView() {
 
 function renderAnnouncements(container) {
   if (!container) return;
+
+  const access = checkUserRankAccess();
+  if (!access.allowed) {
+    if (access.reason === 'no_auth') {
+      container.innerHTML = getTacticalAuthBlockedHtml('Anuncios de Jefatura', 'Debes autenticarte con tu cuenta de Discord para acceder al tablón oficial de anuncios, convocatorias y directrices de Jefatura K9.');
+    } else if (access.reason === 'expelled') {
+      container.innerHTML = getTacticalExpelledBlockedHtml(access.user);
+    } else if (access.reason === 'no_rank') {
+      container.innerHTML = getTacticalNoRankBlockedHtml(access.user, 'Anuncios de Jefatura', 'los anuncios, convocatorias y directrices oficiales de Jefatura permanecerán bloqueados');
+    }
+    return;
+  }
+
   const announcements = window.K9Store.getAnnouncements();
   const canPublish = window.K9Auth.isJefaturaMember ? window.K9Auth.isJefaturaMember() : false;
 
@@ -4969,7 +5115,20 @@ function isTaskOverdue(task) {
 
 function renderTasksCenter(container) {
   if (!container) return;
-  const user = window.K9Auth.getCurrentUser();
+
+  const access = checkUserRankAccess();
+  if (!access.allowed) {
+    if (access.reason === 'no_auth') {
+      container.innerHTML = getTacticalAuthBlockedHtml('Centro de Tareas', 'Debes autenticarte con tu cuenta de Discord para acceder al centro de tareas tácticas y agenda operativa de la Unidad K9.');
+    } else if (access.reason === 'expelled') {
+      container.innerHTML = getTacticalExpelledBlockedHtml(access.user);
+    } else if (access.reason === 'no_rank') {
+      container.innerHTML = getTacticalNoRankBlockedHtml(access.user, 'Centro de Tareas', 'el Centro de Tareas y la Agenda Operativa de la Unidad K9 permanecerán bloqueados');
+    }
+    return;
+  }
+
+  const user = access.user;
   const isJef = window.K9Auth.isJefaturaMember ? window.K9Auth.isJefaturaMember() : (user && user.isJefatura);
   const allTasks = window.K9Store.getTasks(user);
 
@@ -5048,21 +5207,6 @@ function renderTasksCenter(container) {
           </button>
         </div>
       </div>
-
-      ${!user ? `
-        <div style="background:rgba(255,184,0,0.08); border:1px solid var(--border-gold); border-radius:12px; padding:1.25rem 1.5rem; margin-bottom:2rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
-          <div style="display:flex; align-items:center; gap:1rem;">
-            <span style="font-size:1.8rem;">🔒</span>
-            <div>
-              <div style="color:var(--tactical-gold); font-family:var(--font-tactical); font-size:1rem; font-weight:700;">ACCESO PRIVADO RESTRINGIDO</div>
-              <div style="color:var(--text-muted); font-size:0.85rem;">Inicia sesión con Discord para gestionar tus tareas personales privadas, sincronizadas con tu cuenta policial.</div>
-            </div>
-          </div>
-          <button class="btn-tactical btn-tactical-gold btn-tactical-sm" onclick="window.K9Auth.initiateDiscordOAuth()">
-            <span>✦</span> Identificarse con Discord
-          </button>
-        </div>
-      ` : ''}
 
       <!-- Grid de Métricas y Resumen de Estado -->
       <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:1rem; margin-bottom:2rem;">
@@ -6916,5 +7060,556 @@ function openImageLightbox(imgSrc, title = 'Fotografía Oficial') {
   overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
 }
 window.openImageLightbox = openImageLightbox;
+
+// ==========================================================================
+// APARTADO: MAPA OPERATIVO DE LOS SANTOS (OPERACIONES & ENTRENAMIENTOS K9)
+// ==========================================================================
+let currentMapLayer = 'atlas';
+let mapCategoryFilter = 'todas';
+let mapSearchTerm = '';
+let mapQuickMarkActive = false;
+window.k9TacticalMap = null;
+window.k9MapTileLayer = null;
+window.k9MapMarkersGroup = null;
+
+function getMarkerCategoryData(cat) {
+  switch ((cat || '').toLowerCase()) {
+    case 'entrenamiento':
+      return { icon: '🐕', color: '#ffb703', label: 'Entrenamiento Canino', bg: 'rgba(255,183,3,0.2)' };
+    case 'operativo':
+      return { icon: '🚨', color: '#ff3b30', label: 'Operativo Táctico', bg: 'rgba(255,59,48,0.2)' };
+    case 'control':
+      return { icon: '🚧', color: '#ff9500', label: 'Punto de Control', bg: 'rgba(255,149,0,0.2)' };
+    case 'busqueda':
+      return { icon: '🔍', color: '#00e5ff', label: 'Búsqueda y Rastreo K9', bg: 'rgba(0,229,255,0.2)' };
+    case 'base':
+      return { icon: '🏢', color: '#38bdf8', label: 'Base / Puesto K9', bg: 'rgba(56,189,248,0.2)' };
+    case 'riesgo':
+      return { icon: '⚠️', color: '#eab308', label: 'Zona de Riesgo', bg: 'rgba(234,179,8,0.2)' };
+    default:
+      return { icon: '📍', color: '#00e5ff', label: 'Punto Operativo', bg: 'rgba(0,229,255,0.2)' };
+  }
+}
+
+function renderTacticalMapSection(container) {
+  if (!container) return;
+
+  const access = checkUserRankAccess();
+  if (!access.allowed) {
+    if (access.reason === 'no_auth') {
+      container.innerHTML = getTacticalAuthBlockedHtml('Mapa Operativo de Los Santos', 'Debes autenticarte con tu cuenta de Discord para acceder al mapa táctico de Los Santos y consultar las directrices de despliegue y entrenamiento de la Unidad K9.');
+    } else if (access.reason === 'expelled') {
+      container.innerHTML = getTacticalExpelledBlockedHtml(access.user);
+    } else if (access.reason === 'no_rank') {
+      container.innerHTML = getTacticalNoRankBlockedHtml(access.user, 'Mapa Operativo de Los Santos', 'el Mapa Operativo y el registro de entrenamientos permanecerán bloqueados');
+    }
+    return;
+  }
+
+  const user = access.user;
+  const isJef = window.K9Auth.isJefaturaMember ? window.K9Auth.isJefaturaMember() : (user && user.isJefatura);
+  const allMarkers = window.K9Store.getMapMarkers();
+
+  container.innerHTML = `
+    <div class="map-view-wrapper" style="padding: 1.5rem 0;">
+      
+      <!-- Encabezado Táctico del Mapa -->
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1.25rem; margin-bottom:1.5rem;">
+        <div>
+          <div style="display:inline-flex; align-items:center; gap:0.5rem; background:rgba(0,229,255,0.1); border:1px solid rgba(0,229,255,0.3); padding:0.25rem 0.75rem; border-radius:20px; font-size:0.75rem; color:var(--police-cyan); font-family:var(--font-headline); letter-spacing:0.08em; margin-bottom:0.6rem;">
+            <span>🗺️</span> CARTOGRAFÍA TÁCTICA & DESPLIEGUE EN LOS SANTOS
+          </div>
+          <h2 style="font-family:var(--font-headline); font-size:2rem; color:#fff; letter-spacing:0.05em; margin:0 0 0.4rem 0;">
+            MAPA OPERATIVO DE LOS SANTOS
+          </h2>
+          <p style="color:var(--text-muted); font-size:0.9rem; max-width:720px; margin:0;">
+            Registro geoespacial confidencial de zonas de adiestramiento canino, operativos tácticos, puntos de control, perímetros de rastreo y puestos K9 en San Andreas.
+          </p>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+          ${isJef ? `
+            <button class="btn-tactical btn-tactical-gold" onclick="window.openNewMapMarkerModal()">
+              <span>➕</span> Registrar Punto Operativo
+            </button>
+            <button class="btn-tactical ${mapQuickMarkActive ? 'btn-tactical-primary' : 'btn-tactical-outline'}" id="btnToggleQuickMark" onclick="window.toggleQuickMarkMode()">
+              <span>📍</span> ${mapQuickMarkActive ? 'Modo Click Activo' : 'Marcar con Click'}
+            </button>
+          ` : `
+            <div style="display:inline-flex; align-items:center; gap:0.4rem; background:rgba(0,229,255,0.08); border:1px solid rgba(0,229,255,0.25); padding:0.4rem 0.85rem; border-radius:8px; font-size:0.78rem; color:var(--police-cyan); font-family:var(--font-headline);">
+              <span>🔒</span> Modo Consulta Operativa · Sólo Jefatura puede registrar o editar puntos
+            </div>
+          `}
+          <button class="btn-tactical btn-tactical-outline" onclick="window.centerMapOnLosSantos()">
+            <span>🎯</span> Centrar Mapa
+          </button>
+        </div>
+      </div>
+
+      <!-- Barra de Filtros y Capas del Mapa -->
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; background:rgba(16,24,43,0.7); border:1px solid var(--border-tactical); padding:0.75rem 1rem; border-radius:12px; margin-bottom:1.25rem;">
+        
+        <!-- Capas de Cartografía -->
+        <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+          <span style="font-family:var(--font-headline); font-size:0.75rem; color:var(--text-muted); letter-spacing:0.06em; margin-right:0.25rem;">ESTILO DE MAPA:</span>
+          <button type="button" class="btn-map-layer-pill ${currentMapLayer === 'atlas' ? 'active' : ''}" onclick="window.switchMapLayerStyle('atlas')">
+            🗺️ Callejero / Atlas
+          </button>
+          <button type="button" class="btn-map-layer-pill ${currentMapLayer === 'satellite' ? 'active' : ''}" onclick="window.switchMapLayerStyle('satellite')">
+            🛰️ Satélite
+          </button>
+          <button type="button" class="btn-map-layer-pill ${currentMapLayer === 'road' ? 'active' : ''}" onclick="window.switchMapLayerStyle('road')">
+            🛣️ Carreteras
+          </button>
+        </div>
+
+        <!-- Filtros por Categoría de Marcador -->
+        <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+          <span style="font-family:var(--font-headline); font-size:0.75rem; color:var(--text-muted); letter-spacing:0.06em; margin-right:0.25rem;">CATEGORÍA:</span>
+          <select id="mapCategorySelect" class="form-input-tactical" style="padding:0.35rem 0.75rem; font-size:0.8rem; width:auto; min-width:180px;" onchange="window.setMapCategoryFilter(this.value)">
+            <option value="todas" ${mapCategoryFilter === 'todas' ? 'selected' : ''}>Todos los Puntos</option>
+            <option value="entrenamiento" ${mapCategoryFilter === 'entrenamiento' ? 'selected' : ''}>🐕 Entrenamientos Caninos</option>
+            <option value="operativo" ${mapCategoryFilter === 'operativo' ? 'selected' : ''}>🚨 Operativos Tácticos</option>
+            <option value="control" ${mapCategoryFilter === 'control' ? 'selected' : ''}>🚧 Puntos de Control</option>
+            <option value="busqueda" ${mapCategoryFilter === 'busqueda' ? 'selected' : ''}>🔍 Búsqueda y Rastreo K9</option>
+            <option value="base" ${mapCategoryFilter === 'base' ? 'selected' : ''}>🏢 Bases y Puestos K9</option>
+            <option value="riesgo" ${mapCategoryFilter === 'riesgo' ? 'selected' : ''}>⚠️ Zonas de Riesgo</option>
+          </select>
+
+          <!-- Buscador de Puntos -->
+          <input type="text" id="mapSearchInput" class="form-input-tactical" placeholder="Buscar punto o lugar..." value="${escapeHtml(mapSearchTerm)}" style="padding:0.35rem 0.75rem; font-size:0.8rem; width:190px;" oninput="window.setMapSearchTerm(this.value)">
+        </div>
+
+      </div>
+
+      <!-- Layout Principal: Contenedor de Leaflet + Panel Lateral de Puntos -->
+      <div class="tactical-map-grid-layout" style="display:grid; grid-template-columns: 1fr 340px; gap:1.25rem; align-items:start;">
+        
+        <!-- Contenedor del Mapa Leaflet -->
+        <div style="position:relative;">
+          <div id="tacticalK9Map" class="tactical-map-viewport" style="width:100%; height:680px; border-radius:14px; overflow:hidden; border:1px solid rgba(0,229,255,0.3); box-shadow:0 15px 45px rgba(0,0,0,0.7); background:#0a1122;"></div>
+          
+          <div style="margin-top:0.65rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; font-size:0.75rem; color:var(--text-subtle);">
+            <span>🌐 Coordenadas cartográficas oficiales de San Andreas & Los Santos County</span>
+            ${isJef ? `
+              <span style="color:var(--tactical-gold);">💡 <strong>Jefatura:</strong> Haz click sobre cualquier punto del mapa para fijar una nueva ubicación al instante.</span>
+            ` : `
+              <span style="color:var(--police-cyan);">🔒 Visualización autorizada para agentes de la División K9</span>
+            `}
+          </div>
+        </div>
+
+        <!-- Panel Lateral: Listado de Puntos y Entrenamientos -->
+        <div class="tactical-map-sidebar" style="background:var(--bg-surface); border:1px solid var(--border-tactical); border-radius:14px; padding:1.25rem; display:flex; flex-direction:column; max-height:715px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; padding-bottom:0.75rem; border-bottom:1px solid var(--border-subtle);">
+            <div style="font-family:var(--font-headline); font-size:0.95rem; color:#fff; letter-spacing:0.04em;">
+              PUNTOS PUBLICADOS
+            </div>
+            <span class="badge-pill" id="mapMarkersCountBadge" style="background:rgba(0,229,255,0.15); color:var(--police-cyan); font-size:0.75rem; padding:0.2rem 0.55rem; border-radius:12px; font-weight:700;">
+              ${allMarkers.length}
+            </span>
+          </div>
+
+          <div id="mapMarkersSidebarList" style="display:flex; flex-direction:column; gap:0.75rem; overflow-y:auto; padding-right:4px;">
+            <!-- Renderizado dinámico por renderMapMarkersSidebarList -->
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  `;
+
+  // Inicializar Leaflet tras inyectar el HTML
+  setTimeout(() => {
+    initTacticalLeafletMap(isJef);
+  }, 50);
+}
+
+function initTacticalLeafletMap(isJef) {
+  if (typeof L === 'undefined') {
+    console.warn('Leaflet aún no cargado');
+    return;
+  }
+
+  const mapEl = document.getElementById('tacticalK9Map');
+  if (!mapEl) return;
+
+  if (window.k9TacticalMap) {
+    try {
+      window.k9TacticalMap.remove();
+    } catch (e) {
+      console.warn('Error reiniciando mapa Leaflet:', e);
+    }
+    window.k9TacticalMap = null;
+  }
+
+  // Inicializar Leaflet con CRS.Simple
+  const map = L.map('tacticalK9Map', {
+    crs: L.CRS.Simple,
+    minZoom: 1,
+    maxZoom: 6,
+    zoomControl: false,
+    attributionControl: false
+  });
+
+  window.k9TacticalMap = map;
+
+  L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+  setTacticalMapTileLayer(currentMapLayer);
+
+  // Centrar en Los Santos City / San Andreas
+  map.setView([-140, 110], 2);
+
+  // Click en el mapa para marcar punto (sólo Jefatura)
+  map.on('click', (e) => {
+    if (!isJef) return;
+    window.openNewMapMarkerModal(e.latlng.lat, e.latlng.lng);
+  });
+
+  // Renderizar marcadores
+  refreshMapMarkers();
+
+  // Forzar redibujado de tiles tras montaje en DOM
+  setTimeout(() => {
+    map.invalidateSize();
+  }, 120);
+}
+
+function setTacticalMapTileLayer(layerType) {
+  currentMapLayer = layerType || 'atlas';
+  if (!window.k9TacticalMap) return;
+
+  if (window.k9MapTileLayer) {
+    window.k9TacticalMap.removeLayer(window.k9MapTileLayer);
+  }
+
+  const tileUrl = `https://gta5-map.github.io/tiles/${currentMapLayer}/{z}-{x}_{y}.png`;
+  window.k9MapTileLayer = L.tileLayer(tileUrl, {
+    minZoom: 1,
+    maxZoom: 6,
+    tileSize: 256,
+    noWrap: true,
+    errorTileUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"><rect width="256" height="256" fill="%230a1122"/></svg>'
+  }).addTo(window.k9TacticalMap);
+}
+
+window.switchMapLayerStyle = function (layerType) {
+  currentMapLayer = layerType;
+  setTacticalMapTileLayer(layerType);
+  document.querySelectorAll('.btn-map-layer-pill').forEach(btn => {
+    const text = btn.textContent.toLowerCase();
+    if (layerType === 'atlas') btn.classList.toggle('active', text.includes('callejero') || text.includes('atlas'));
+    if (layerType === 'satellite') btn.classList.toggle('active', text.includes('satélite') || text.includes('satelite'));
+    if (layerType === 'road') btn.classList.toggle('active', text.includes('carreteras') || text.includes('road'));
+  });
+};
+
+window.setMapCategoryFilter = function (cat) {
+  mapCategoryFilter = cat;
+  refreshMapMarkers();
+};
+
+window.setMapSearchTerm = function (term) {
+  mapSearchTerm = term;
+  refreshMapMarkers();
+};
+
+window.centerMapOnLosSantos = function () {
+  if (window.k9TacticalMap) {
+    window.k9TacticalMap.setView([-140, 110], 2);
+  }
+};
+
+window.toggleQuickMarkMode = function () {
+  mapQuickMarkActive = !mapQuickMarkActive;
+  const btn = document.getElementById('btnToggleQuickMark');
+  if (btn) {
+    btn.className = `btn-tactical ${mapQuickMarkActive ? 'btn-tactical-primary' : 'btn-tactical-outline'}`;
+    btn.innerHTML = `<span>📍</span> ${mapQuickMarkActive ? 'Haz Click en el Mapa' : 'Marcar con Click'}`;
+  }
+  if (mapQuickMarkActive) {
+    showToast('Haz click en el mapa en la ubicación exacta donde deseas situar el punto.', 'info');
+  }
+};
+
+function refreshMapMarkers() {
+  if (!window.k9TacticalMap) return;
+
+  if (window.k9MapMarkersGroup) {
+    window.k9TacticalMap.removeLayer(window.k9MapMarkersGroup);
+  }
+  window.k9MapMarkersGroup = L.layerGroup().addTo(window.k9TacticalMap);
+
+  const markers = window.K9Store.getMapMarkers();
+  const isJef = window.K9Auth.isJefaturaMember ? window.K9Auth.isJefaturaMember() : false;
+
+  const filtered = markers.filter(m => {
+    if (mapCategoryFilter !== 'todas' && m.category !== mapCategoryFilter) return false;
+    if (mapSearchTerm) {
+      const q = mapSearchTerm.toLowerCase();
+      const matchTitle = (m.title || '').toLowerCase().includes(q);
+      const matchDesc = (m.description || '').toLowerCase().includes(q);
+      const matchGuides = (m.guides || '').toLowerCase().includes(q);
+      if (!matchTitle && !matchDesc && !matchGuides) return false;
+    }
+    return true;
+  });
+
+  // Guardar referencias a marcadores para abrir popup desde el panel lateral
+  window._k9MapMarkerInstances = {};
+
+  filtered.forEach(m => {
+    const meta = getMarkerCategoryData(m.category);
+
+    const customIcon = L.divIcon({
+      className: 'tactical-custom-map-icon',
+      html: `
+        <div class="tactical-marker-pin" style="border-color:${meta.color}; box-shadow:0 0 12px ${meta.color}; background:${meta.bg};">
+          <span style="font-size:16px;">${meta.icon}</span>
+        </div>
+      `,
+      iconSize: [36, 36],
+      iconAnchor: [18, 18],
+      popupAnchor: [0, -18]
+    });
+
+    const marker = L.marker([m.lat, m.lng], { icon: customIcon });
+
+    const statusBadge = m.status === 'en_curso'
+      ? '<span class="marker-status-badge status-live">🟢 EN CURSO</span>'
+      : m.status === 'finalizado'
+      ? '<span class="marker-status-badge status-done">⚪ FINALIZADO</span>'
+      : '<span class="marker-status-badge status-prog">📅 PROGRAMADO</span>';
+
+    const popupHtml = `
+      <div class="tactical-leaflet-popup-card" style="min-width:250px; font-family:var(--font-tactical);">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:0.5rem; margin-bottom:0.4rem;">
+          <span style="font-size:0.7rem; font-family:var(--font-headline); color:${meta.color}; letter-spacing:0.06em; background:rgba(0,0,0,0.5); padding:0.2rem 0.5rem; border-radius:4px; border:1px solid ${meta.color};">
+            ${meta.icon} ${meta.label.toUpperCase()}
+          </span>
+          ${statusBadge}
+        </div>
+        <h4 style="font-family:var(--font-headline); font-size:1.05rem; color:#fff; margin:0 0 0.4rem 0; line-height:1.3;">
+          ${escapeHtml(m.title)}
+        </h4>
+        <div style="font-size:0.78rem; color:var(--text-muted); margin-bottom:0.6rem; display:flex; flex-direction:column; gap:0.25rem;">
+          <div><strong>📅 Fecha:</strong> ${escapeHtml(m.date || '—')} · <strong>⏰ Hora:</strong> ${escapeHtml(m.time || '—')}</div>
+          ${m.guides ? `<div><strong>👥 Convocatoria:</strong> ${escapeHtml(m.guides)}</div>` : ''}
+          <div><strong>📍 Coordenadas:</strong> [${Number(m.lat).toFixed(1)}, ${Number(m.lng).toFixed(1)}]</div>
+          <div><strong>🛡️ Publicado por:</strong> ${escapeHtml(m.author || 'Jefatura K9')}</div>
+        </div>
+        ${m.description ? `
+          <div style="font-size:0.8rem; color:#d1d5db; line-height:1.5; background:rgba(0,0,0,0.4); border-left:3px solid ${meta.color}; padding:0.5rem 0.65rem; border-radius:4px; margin-bottom:0.75rem;">
+            ${escapeHtml(m.description)}
+          </div>
+        ` : ''}
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:0.5rem; margin-top:0.6rem; padding-top:0.5rem; border-top:1px solid rgba(255,255,255,0.08);">
+          <span style="font-size:0.7rem; color:var(--text-subtle);">División Canina K9</span>
+          ${isJef ? `
+            <div style="display:flex; gap:0.4rem;">
+              <button class="btn-tactical btn-tactical-outline btn-tactical-sm" style="padding:0.2rem 0.55rem; font-size:0.72rem;" onclick="window.openEditMapMarkerModal('${m.id}')">
+                ✏️ Editar
+              </button>
+              <button class="btn-tactical btn-tactical-outline btn-tactical-sm" style="padding:0.2rem 0.55rem; font-size:0.72rem; border-color:rgba(255,59,48,0.5); color:#ff5252;" onclick="window.confirmDeleteMapMarker('${m.id}')">
+                🗑️ Borrar
+              </button>
+            </div>
+          ` : `
+            <span style="font-size:0.7rem; color:var(--police-cyan); background:rgba(0,229,255,0.08); padding:0.15rem 0.45rem; border-radius:4px; border:1px solid rgba(0,229,255,0.2);">
+              🔒 Solo Lectura
+            </span>
+          `}
+        </div>
+      </div>
+    `;
+
+    marker.bindPopup(popupHtml, { maxWidth: 340, className: 'tactical-popup-wrapper' });
+    window.k9MapMarkersGroup.addLayer(marker);
+    window._k9MapMarkerInstances[m.id] = marker;
+  });
+
+  renderMapMarkersSidebarList(filtered, isJef);
+}
+window.refreshMapMarkers = refreshMapMarkers;
+
+function renderMapMarkersSidebarList(markers, isJef) {
+  const listEl = document.getElementById('mapMarkersSidebarList');
+  const countEl = document.getElementById('mapMarkersCountBadge');
+  if (countEl) countEl.textContent = markers.length;
+  if (!listEl) return;
+
+  if (markers.length === 0) {
+    listEl.innerHTML = `
+      <div style="text-align:center; padding:2rem 1rem; color:var(--text-muted); background:rgba(0,0,0,0.2); border-radius:10px; border:1px dashed var(--border-tactical);">
+        <div style="font-size:1.8rem; margin-bottom:0.5rem;">📍</div>
+        <div style="font-family:var(--font-headline); font-size:0.85rem; color:#fff; margin-bottom:0.2rem;">Sin puntos en este filtro</div>
+        <div style="font-size:0.75rem;">Ajusta los criterios de búsqueda o categoría.</div>
+      </div>
+    `;
+    return;
+  }
+
+  listEl.innerHTML = markers.map(m => {
+    const meta = getMarkerCategoryData(m.category);
+    const statusColor = m.status === 'en_curso' ? '#10b981' : m.status === 'finalizado' ? '#94a3b8' : 'var(--tactical-gold)';
+    const statusText = m.status === 'en_curso' ? 'En Curso' : m.status === 'finalizado' ? 'Finalizado' : 'Programado';
+
+    return `
+      <div class="map-sidebar-card" onclick="window.centerMapOnMarker(${m.lat}, ${m.lng}, '${m.id}')" style="background:rgba(18,24,38,0.7); border:1px solid var(--border-subtle); border-left:3px solid ${meta.color}; border-radius:8px; padding:0.75rem; cursor:pointer; transition:all 0.15s ease;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.3rem;">
+          <span style="font-size:0.7rem; color:${meta.color}; font-family:var(--font-headline); letter-spacing:0.04em;">
+            ${meta.icon} ${meta.label.toUpperCase()}
+          </span>
+          <span style="font-size:0.68rem; color:${statusColor}; font-weight:700;">
+            ● ${statusText}
+          </span>
+        </div>
+        <div style="font-family:var(--font-headline); font-size:0.88rem; color:#fff; line-height:1.25; margin-bottom:0.35rem;">
+          ${escapeHtml(m.title)}
+        </div>
+        <div style="font-size:0.72rem; color:var(--text-muted); display:flex; justify-content:space-between; align-items:center;">
+          <span>📅 ${escapeHtml(m.date || '—')} · ${escapeHtml(m.time || '—')}</span>
+          <span style="color:var(--police-cyan);">Ver en mapa →</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+window.centerMapOnMarker = function (lat, lng, markerId) {
+  if (window.k9TacticalMap) {
+    window.k9TacticalMap.setView([lat, lng], 4, { animate: true });
+    if (window._k9MapMarkerInstances && window._k9MapMarkerInstances[markerId]) {
+      setTimeout(() => {
+        window._k9MapMarkerInstances[markerId].openPopup();
+      }, 200);
+    }
+  }
+};
+
+window.openNewMapMarkerModal = function (defaultLat = null, defaultLng = null) {
+  if (!window.K9Auth.isJefaturaMember()) {
+    showToast('⚠️ Permiso denegado: Sólo Jefatura K9 puede registrar puntos operativos', 'warning');
+    return;
+  }
+  document.getElementById('markerId').value = '';
+  document.getElementById('modalMapMarkerTitle').textContent = 'REGISTRAR PUNTO EN EL MAPA';
+  document.getElementById('markerTitle').value = '';
+  document.getElementById('markerCategory').value = 'entrenamiento';
+  document.getElementById('markerPriority').value = 'oficial';
+  document.getElementById('markerDate').value = new Date().toLocaleDateString('es-ES');
+  document.getElementById('markerTime').value = '20:00';
+  document.getElementById('markerLat').value = defaultLat !== null ? Number(defaultLat).toFixed(2) : '-140.00';
+  document.getElementById('markerLng').value = defaultLng !== null ? Number(defaultLng).toFixed(2) : '110.00';
+  document.getElementById('markerStatus').value = 'programado';
+  document.getElementById('markerGuides').value = 'Toda la plantilla K9';
+  document.getElementById('markerDescription').value = '';
+  openModal('modalMapMarker');
+};
+
+window.openEditMapMarkerModal = function (markerId) {
+  if (!window.K9Auth.isJefaturaMember()) {
+    showToast('⚠️ Permiso denegado: Sólo Jefatura K9 puede editar puntos operativos', 'warning');
+    return;
+  }
+  const markers = window.K9Store.getMapMarkers();
+  const m = markers.find(x => x.id === markerId);
+  if (!m) return;
+
+  document.getElementById('markerId').value = m.id;
+  document.getElementById('modalMapMarkerTitle').textContent = 'EDITAR PUNTO OPERATIVO';
+  document.getElementById('markerTitle').value = m.title || '';
+  document.getElementById('markerCategory').value = m.category || 'entrenamiento';
+  document.getElementById('markerPriority').value = m.priority || 'oficial';
+  document.getElementById('markerDate').value = m.date || '';
+  document.getElementById('markerTime').value = m.time || '';
+  document.getElementById('markerLat').value = Number(m.lat).toFixed(2);
+  document.getElementById('markerLng').value = Number(m.lng).toFixed(2);
+  document.getElementById('markerStatus').value = m.status || 'programado';
+  document.getElementById('markerGuides').value = m.guides || '';
+  document.getElementById('markerDescription').value = m.description || '';
+  openModal('modalMapMarker');
+};
+
+window.confirmDeleteMapMarker = function (markerId) {
+  if (!window.K9Auth.isJefaturaMember()) {
+    showToast('⚠️ Permiso denegado: Sólo Jefatura K9 puede eliminar puntos operativos', 'warning');
+    return;
+  }
+  if (!confirm('¿Estás seguro de que deseas eliminar este punto operativo del mapa de Los Santos?')) {
+    return;
+  }
+  window.K9Store.deleteMapMarker(markerId);
+  if (window.K9CloudSync) window.K9CloudSync.push();
+  showToast('Punto operativo eliminado del mapa', 'info');
+  refreshMapMarkers();
+};
+
+// Formulario de guardar marcador
+const formMapMarkerEl = document.getElementById('formMapMarker');
+if (formMapMarkerEl) {
+  formMapMarkerEl.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (!window.K9Auth.isJefaturaMember()) {
+      showToast('⚠️ Permiso denegado: Sólo Jefatura K9 puede registrar puntos', 'warning');
+      return;
+    }
+
+    const user = window.K9Auth.getCurrentUser();
+    const id = document.getElementById('markerId').value;
+    const title = (document.getElementById('markerTitle').value || '').trim();
+    const category = document.getElementById('markerCategory').value;
+    const priority = document.getElementById('markerPriority').value;
+    const date = (document.getElementById('markerDate').value || '').trim();
+    const time = (document.getElementById('markerTime').value || '').trim();
+    const lat = parseFloat(document.getElementById('markerLat').value) || -140.0;
+    const lng = parseFloat(document.getElementById('markerLng').value) || 110.0;
+    const status = document.getElementById('markerStatus').value;
+    const guides = (document.getElementById('markerGuides').value || '').trim();
+    const description = (document.getElementById('markerDescription').value || '').trim();
+
+    const markerData = {
+      title,
+      category,
+      priority,
+      date,
+      time,
+      lat,
+      lng,
+      status,
+      guides,
+      description,
+      author: user ? `${user.rank || 'Mando'} - ${user.name || 'Jefatura'}` : 'Jefatura K9',
+      createdBy: user ? user.id : 'jefatura'
+    };
+
+    if (id) markerData.id = id;
+
+    window.K9Store.saveMapMarker(markerData);
+    if (window.K9CloudSync) window.K9CloudSync.push();
+
+    // Notificación en Discord Webhook si está disponible
+    if (window.K9Webhook && window.K9Webhook.log) {
+      window.K9Webhook.log('announcement', id ? 'Punto Operativo Modificado en Mapa' : 'Nuevo Punto Operativo en Los Santos', [
+        { name: '📍 Punto', value: title, inline: true },
+        { name: '📂 Categoría', value: category.toUpperCase(), inline: true },
+        { name: '📅 Fecha y Hora', value: `${date} - ${time}`, inline: true },
+        { name: '👮 Publicado por', value: markerData.author, inline: true }
+      ]);
+    }
+
+    closeModal('modalMapMarker');
+    showToast(id ? 'Punto operativo actualizado con éxito' : 'Nuevo punto registrado en el mapa', 'success');
+    refreshMapMarkers();
+
+    // Centrar mapa en el punto recién guardado
+    if (window.k9TacticalMap) {
+      window.k9TacticalMap.setView([lat, lng], 4, { animate: true });
+    }
+  });
+}
+
 
 
