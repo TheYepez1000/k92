@@ -7233,9 +7233,30 @@ function renderTacticalMapSection(container) {
 
 function initTacticalLeafletMap(isJef) {
   if (typeof L === 'undefined') {
-    console.warn('[K9Map] Leaflet no está cargado');
+    console.warn('[K9Map] Leaflet no detectado en ventana global, cargando automáticamente...');
     const mapEl = document.getElementById('tacticalK9Map');
-    if (mapEl) mapEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#8899aa;font-family:var(--font-headline);gap:.5rem;"><span>⚠️</span>Mapa no disponible — comprueba tu conexión.</div>';
+    if (mapEl) {
+      mapEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--police-cyan);font-family:var(--font-headline);gap:.6rem;"><span class="pulse-dot dot-online"></span>Iniciando cartografía táctica de Los Santos...</div>';
+    }
+    
+    // Carga dinámica de respaldo
+    const script = document.createElement('script');
+    script.src = 'js/vendor/leaflet.js';
+    script.onload = () => {
+      console.log('[K9Map] Leaflet local cargado con éxito');
+      initTacticalLeafletMap(isJef);
+    };
+    script.onerror = () => {
+      console.warn('[K9Map] Fallo cargando Leaflet local, intentando CDN alternativo...');
+      const cdn = document.createElement('script');
+      cdn.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js';
+      cdn.onload = () => { initTacticalLeafletMap(isJef); };
+      cdn.onerror = () => {
+        if (mapEl) mapEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#ff5252;font-family:var(--font-headline);gap:.5rem;"><span>⚠️</span>Error al cargar la librería cartográfica. Comprueba tu conexión o recarga la página.</div>';
+      };
+      document.head.appendChild(cdn);
+    };
+    document.head.appendChild(script);
     return;
   }
 
