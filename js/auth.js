@@ -103,14 +103,15 @@ class K9AuthManager {
       // Usuario nuevo que inicia sesión con Discord sin estar guardado previamente:
       // Se le asigna por defecto "Sin Rango" hasta que la Jefatura lo valide y asigne rango oficial.
       const hasPreset = !!preset;
+      const assignedName = (hasPreset && preset.name) ? preset.name : (profileData.name || profileData.discordUsername);
       const assignedRank = hasPreset ? preset.rank : (isAdminId ? 'Coordinador K9' : 'Sin Rango');
-      const assignedPlaca = hasPreset ? preset.placa : (isAdminId ? 'K-01' : 'S/P');
+      const assignedPlaca = hasPreset ? preset.placa : (isAdminId ? 'K-000' : 'S/P');
       const grantJefatura = (hasPreset && (!!preset.isJefatura || preset.rank === 'Jefatura LSPD')) || isAdminId;
       const isVerified = (hasPreset && preset.rank !== 'Sin Rango') || isAdminId;
 
       matched = {
         id: 'user_' + (profileData.discordId ? profileData.discordId.slice(-6) : Math.random().toString(36).substring(2, 8)),
-        name: profileData.name || profileData.discordUsername,
+        name: assignedName,
         placa: assignedPlaca,
         rank: assignedRank,
         discordUsername: profileData.discordUsername,
@@ -133,6 +134,7 @@ class K9AuthManager {
       // Usuario ya registrado: si estaba dado de baja, se reactiva automáticamente
       matched.isExpelled = false;
       if (preset) {
+        if (preset.name) matched.name = preset.name;
         matched.rank = preset.rank;
         matched.placa = preset.placa;
         matched.isJefatura = !!preset.isJefatura || preset.rank === 'Jefatura LSPD';
@@ -304,7 +306,7 @@ class K9AuthManager {
         try {
           window.history.replaceState(null, null, window.location.pathname + window.location.search);
         } catch (e) {
-          try { window.location.hash = ''; } catch (_) {}
+          try { window.location.hash = ''; } catch (_) { }
         }
         this.fetchDiscordProfile(token);
         return;
@@ -319,7 +321,7 @@ class K9AuthManager {
       console.warn('Discord OAuth2 cancelado o denegado:', error);
       try {
         window.history.replaceState(null, null, window.location.pathname);
-      } catch (_) {}
+      } catch (_) { }
       this.isAuthenticating = false;
       setTimeout(() => {
         if (typeof showToast === 'function') {

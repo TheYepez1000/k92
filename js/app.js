@@ -2694,8 +2694,8 @@ function renderAgentsTableRows(users, dogs) {
                 🟢 Readmitir
               </button>
             ` : `
-              <button class="btn-tactical btn-tactical-gold btn-tactical-sm" onclick="editAgentRank('${u.id}')" title="Modificar rango y permisos">
-                ${(!u.isVerified || u.rank === 'Sin Rango Asignado') ? '🎖️ Asignar Rango' : '🎖️ Rango'}
+              <button class="btn-tactical btn-tactical-gold btn-tactical-sm" onclick="editAgentRank('${u.id}')" title="Modificar nombre dentro del juego, rango y permisos">
+                ${(!u.isVerified || u.rank === 'Sin Rango Asignado') ? '🎖️ Asignar Rango' : '✏️ Editar Agente'}
               </button>
               <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="editAgentDogAssignment('${u.id}')" title="Asignar o cambiar can">
                 🐕 Can
@@ -2726,7 +2726,7 @@ window.editAgentRank = function (userId) {
     { value: 'Sin Rango',         label: '⏳ Sin Rango Asignado', color: '#64748b' }
   ];
 
-  // Crear modal inline de cambio de rango
+  // Crear modal inline de edición de agente y rango
   const existing = document.getElementById('modalEditRank');
   if (existing) existing.remove();
 
@@ -2735,18 +2735,25 @@ window.editAgentRank = function (userId) {
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(5,9,20,0.85);backdrop-filter:blur(6px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;animation:fadeIn 0.18s ease';
 
   overlay.innerHTML = `
-    <div style="background:linear-gradient(135deg,#0d1424,#111827);border:1px solid rgba(0,229,255,0.25);border-radius:14px;padding:2rem;width:100%;max-width:480px;box-shadow:0 25px 60px rgba(0,0,0,0.7);position:relative;">
+    <div style="background:linear-gradient(135deg,#0d1424,#111827);border:1px solid rgba(0,229,255,0.25);border-radius:14px;padding:2rem;width:100%;max-width:500px;box-shadow:0 25px 60px rgba(0,0,0,0.7);position:relative;">
       <button id="closeEditRankModal" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:#64748b;font-size:1.4rem;cursor:pointer;line-height:1;">&times;</button>
       <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem;">
-        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#00e5ff22,#7c3aed22);border:1px solid rgba(0,229,255,0.3);display:flex;align-items:center;justify-content:center;font-size:1.4rem;">🎖️</div>
+        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#00e5ff22,#7c3aed22);border:1px solid rgba(0,229,255,0.3);display:flex;align-items:center;justify-content:center;font-size:1.4rem;">👮</div>
         <div>
-          <h3 style="margin:0;color:#fff;font-family:var(--font-tactical);font-size:1.05rem;letter-spacing:0.04em;">CAMBIAR RANGO OFICIAL</h3>
-          <p style="margin:0;font-size:0.78rem;color:var(--text-muted);">Agente: <span style="color:var(--police-cyan);font-weight:600;">${user.name}</span> · <span style="color:#a5b4fc;font-family:var(--font-mono);">${user.discordId || user.discordUsername || ''}</span></p>
+          <h3 style="margin:0;color:#fff;font-family:var(--font-tactical);font-size:1.05rem;letter-spacing:0.04em;">EDITAR FICHA DE AGENTE</h3>
+          <p style="margin:0;font-size:0.78rem;color:var(--text-muted);">Discord: <span style="color:#a5b4fc;font-family:var(--font-mono);">${user.discordUsername ? '@' + user.discordUsername : ''} (${user.discordId || '—'})</span></p>
         </div>
       </div>
 
+      <!-- Nombre dentro del juego (IC) -->
+      <div style="margin-bottom:1.15rem;">
+        <label style="display:block;font-family:var(--font-headline);font-size:0.72rem;color:var(--police-cyan);letter-spacing:0.06em;margin-bottom:0.35rem;">NOMBRE DENTRO DEL JUEGO (NOMBRE IC / PERSONAJE) *</label>
+        <input type="text" id="editAgentName" value="${escapeHtml(user.name || '')}" placeholder="Ej: John Miller / Carlos Santana" style="width:100%;padding:0.6rem 0.8rem;background:rgba(10,14,23,0.85);border:1px solid var(--border-tactical);border-radius:6px;color:#fff;font-family:var(--font-headline);font-size:0.92rem;box-sizing:border-box;">
+        <span style="font-size:0.7rem;color:var(--text-subtle);margin-top:0.3rem;display:block;">Este nombre es el que se verá en el Directorio de Miembros, Perfil y en toda la plataforma.</span>
+      </div>
+
       <div style="margin-bottom:1rem;">
-        <label style="display:block;font-family:var(--font-headline);font-size:0.7rem;color:var(--police-cyan);letter-spacing:0.06em;margin-bottom:0.5rem;">RANGO OFICIAL</label>
+        <label style="display:block;font-family:var(--font-headline);font-size:0.72rem;color:var(--police-cyan);letter-spacing:0.06em;margin-bottom:0.5rem;">RANGO OFICIAL</label>
         <div id="rankPickerGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;">
           ${RANKS.map(r => `
             <button type="button" class="rank-pick-btn" data-rank="${r.value}" style="
@@ -2760,13 +2767,13 @@ window.editAgentRank = function (userId) {
         </div>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1rem;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1.25rem;">
         <div>
-          <label style="display:block;font-family:var(--font-headline);font-size:0.7rem;color:var(--police-cyan);letter-spacing:0.06em;margin-bottom:0.35rem;">PLACA OFICIAL</label>
-          <input type="text" id="editRankPlaca" value="${user.placa || ''}" placeholder="Ej: K-07" style="width:100%;padding:0.5rem 0.75rem;background:rgba(10,14,23,0.8);border:1px solid var(--border-tactical);border-radius:6px;color:#fff;font-family:var(--font-headline);font-size:0.85rem;box-sizing:border-box;">
+          <label style="display:block;font-family:var(--font-headline);font-size:0.72rem;color:var(--police-cyan);letter-spacing:0.06em;margin-bottom:0.35rem;">PLACA OFICIAL</label>
+          <input type="text" id="editRankPlaca" value="${user.placa || ''}" placeholder="Ej: K-07" style="width:100%;padding:0.55rem 0.75rem;background:rgba(10,14,23,0.8);border:1px solid var(--border-tactical);border-radius:6px;color:#fff;font-family:var(--font-headline);font-size:0.85rem;box-sizing:border-box;">
         </div>
         <div style="display:flex;align-items:flex-end;">
-          <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.82rem;color:#fff;cursor:pointer;padding-bottom:0.5rem;">
+          <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.82rem;color:#fff;cursor:pointer;padding-bottom:0.6rem;">
             <input type="checkbox" id="editRankIsJef" ${user.isJefatura ? 'checked' : ''} style="accent-color:var(--tactical-gold);width:16px;height:16px;">
             <span>Permisos de Jefatura</span>
           </label>
@@ -2775,7 +2782,7 @@ window.editAgentRank = function (userId) {
 
       <div style="display:flex;gap:0.75rem;">
         <button id="cancelEditRank" type="button" class="btn-tactical btn-tactical-outline" style="flex:1;justify-content:center;">Cancelar</button>
-        <button id="confirmEditRank" type="button" class="btn-tactical btn-tactical-gold" style="flex:1;justify-content:center;">💾 Guardar Rango</button>
+        <button id="confirmEditRank" type="button" class="btn-tactical btn-tactical-gold" style="flex:1;justify-content:center;">💾 Guardar Cambios</button>
       </div>
     </div>
   `;
@@ -2807,12 +2814,15 @@ window.editAgentRank = function (userId) {
 
   // Confirmar cambio
   document.getElementById('confirmEditRank').addEventListener('click', () => {
+    const newName  = document.getElementById('editAgentName').value.trim();
     const newPlaca = document.getElementById('editRankPlaca').value.trim();
     const isJef   = document.getElementById('editRankIsJef').checked;
 
+    if (!newName) { showToast('Introduce un nombre válido dentro del juego.', 'warning'); return; }
     if (!newPlaca) { showToast('Introduce una placa válida.', 'warning'); return; }
 
     const isStaffOrJef = isJef || selectedRank === 'Jefatura LSPD' || selectedRank === 'Coordinador K9';
+    user.name          = newName;
     user.rank          = selectedRank;
     user.placa         = newPlaca;
     user.isJefatura    = isStaffOrJef;
@@ -2821,13 +2831,24 @@ window.editAgentRank = function (userId) {
     user.serviceStatus = selectedRank === 'Sin Rango' ? 'Pendiente de Asignación por Jefatura' : (isStaffOrJef ? 'En Activo / Mando' : 'En Activo');
     window.K9Store.save(STORAGE_KEYS.USERS, allUsers);
 
-    // Persistir preset para futuros logins
+    // Actualizar sesión activa si es el usuario actual
+    const currentUser = window.K9Auth ? window.K9Auth.getCurrentUser() : null;
+    if (currentUser && (currentUser.id === user.id || currentUser.discordId === user.discordId)) {
+      currentUser.name = newName;
+      currentUser.placa = newPlaca;
+      currentUser.rank = selectedRank;
+      currentUser.isJefatura = isStaffOrJef;
+      window.K9Store.save(STORAGE_KEYS.CURRENT_USER, currentUser);
+    }
+
+    // Persistir preset para futuros logins con Discord
     if (user.discordId) {
       const presets = window.K9Store.getAgentPresets ? window.K9Store.getAgentPresets() : [];
       const cleanPresets = presets.filter(p => p.discordId !== user.discordId);
       cleanPresets.push({
         discordId: user.discordId,
         discordUsername: user.discordUsername,
+        name: user.name,
         placa: user.placa,
         rank: user.rank,
         isJefatura: user.isJefatura,
@@ -2838,16 +2859,18 @@ window.editAgentRank = function (userId) {
       window.K9Store.save(STORAGE_KEYS.AGENT_PRESETS, cleanPresets);
     }
 
+    if (window.K9CloudSync) window.K9CloudSync.push();
+
     // Log webhook
     if (window.K9Webhook) {
       const admin = window.K9Auth.getCurrentUser();
       if (admin) {
         window.K9Webhook.sendLog({
-          title: '🎖️ Rango de Agente Modificado',
+          title: '🎖️ Ficha de Agente Modificada',
           color: 0xfbbf24,
           fields: [
             { name: 'Mando', value: admin.name + ' (' + admin.placa + ')', inline: true },
-            { name: 'Agente', value: user.name, inline: true },
+            { name: 'Nombre IC', value: user.name, inline: true },
             { name: 'Nuevo Rango', value: selectedRank + ' [' + newPlaca + ']', inline: true },
             { name: 'Jefatura', value: isJef ? 'Sí ✅' : 'No', inline: true }
           ]
@@ -2856,7 +2879,7 @@ window.editAgentRank = function (userId) {
     }
 
     if (window.K9Audio) window.K9Audio.playTacticalBeep(1000, 0.12);
-    showToast(`✅ Rango actualizado para ${user.name}: ${selectedRank} [${newPlaca}]`, 'success');
+    showToast(`✅ Agente actualizado: ${user.name} (${selectedRank} [${newPlaca}])`, 'success');
     closeModal();
     renderJefaturaSubtab('agentes');
   });
