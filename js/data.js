@@ -25,7 +25,8 @@ const STORAGE_KEYS = {
   EVENTS: 'k9_data_events',
   NOTIFICATIONS: 'k9_data_notifications',
   UNIFORMS: 'k9_data_uniforms',
-  MAP_MARKERS: 'k9_data_map_markers'
+  MAP_MARKERS: 'k9_data_map_markers',
+  TEN_CODES: 'k9_data_ten_codes'
 };
 if (typeof window !== 'undefined') window.STORAGE_KEYS = STORAGE_KEYS;
 
@@ -270,183 +271,483 @@ const DEFAULT_LOGS = [
 const DEFAULT_NORMATIVES = [
   {
     id: 'norm_01',
-    chapter: 'CAPÍTULO I — DISPOSICIONES GENERALES',
+    chapter: 'CAPÍTULO I. DISPOSICIONES GENERALES',
     articles: [
       {
-        num: 'Art. 1',
+        num: 'Artículo 1',
         title: 'Objeto',
-        text: 'El presente reglamento establece las bases organizativas, administrativas y operativas de la Unidad Canina K9, en adelante denominada «Unidad K9». Su finalidad es regular la incorporación, formación, organización y actuación de los agentes que desarrollen funciones policiales con perros asignados.'
+        text: 'El presente reglamento establece las bases organizativas, administrativas y operativas de la Unidad Canina K9, en adelante denominada «Unidad K9».\n\nSu finalidad es regular la incorporación, formación, organización y actuación de los agentes que desarrollen funciones policiales con perros asignados.'
       },
       {
-        num: 'Art. 2',
+        num: 'Artículo 2',
         title: 'Finalidad de la unidad',
-        text: 'La Unidad K9 tiene como finalidad reforzar las capacidades del Departamento de Policía mediante la utilización de perros policiales. Sus funciones comprenden: rastreo y localización de personas; detección de sustancias u otros elementos; apoyo en intervenciones policiales autorizadas; entrenamiento, obediencia y control del perro; colaboración con otras divisiones policiales; y participación en dispositivos especiales bajo autorización del mando.'
+        text: 'La Unidad K9 tiene como finalidad reforzar las capacidades del Departamento de Policía mediante la utilización de perros policiales dentro de las mecánicas y logica.\n\nSus funciones podrán comprender:\n• Rastreo y localización de personas.\n• Detección de sustancias u otros elementos, cuando exista soporte técnico.\n• Apoyo en intervenciones policiales autorizadas.\n• Entrenamiento, obediencia y control del perro.\n• Colaboración con otras divisiones policiales.\n• Participación en dispositivos especiales bajo autorización del mando.'
       },
       {
-        num: 'Art. 3',
+        num: 'Artículo 3',
         title: 'Ámbito de aplicación',
-        text: 'Este reglamento será aplicable a todos los agentes admitidos en la Unidad K9, con independencia de su rango policial. Los agentes deberán cumplir tanto estas disposiciones como la normativa general del servidor y del Departamento de Policía.'
+        text: 'Este reglamento será aplicable a todos los agentes admitidos en la Unidad K9, con independencia de su rango policial.\n\nLos agentes deberán cumplir tanto estas disposiciones como la normativa general del servidor y del Departamento de Policía.'
       },
       {
-        num: 'Art. 4',
+        num: 'Artículo 4',
         title: 'Principios de actuación',
-        text: 'La actividad de la unidad se regirá por los siguientes principios: respeto a la cadena de mando; profesionalidad y disciplina; proporcionalidad en las intervenciones; responsabilidad del agente guía; protección del perro y de las personas; coordinación con las demás unidades; registro de las actuaciones relevantes; y cumplimiento de la normativa del servidor.'
+        text: 'La actividad de la unidad se regirá por los siguientes principios:\n• Respeto a la cadena de mando.\n• Profesionalidad y disciplina.\n• Proporcionalidad en las intervenciones.\n• Responsabilidad del agente guía.\n• Protección del perro y de las personas.\n• Coordinación con las demás unidades.\n• Registro de las actuaciones relevantes.\n• Cumplimiento de la normativa del servidor.'
       }
     ]
   },
   {
     id: 'norm_02',
-    chapter: 'CAPÍTULO II — ORGANIZACIÓN Y CADENA DE MANDO',
+    chapter: 'CAPÍTULO II. ORGANIZACIÓN Y CADENA DE MANDO',
     articles: [
       {
-        num: 'Art. 5',
+        num: 'Artículo 5',
         title: 'Dependencia orgánica',
-        text: 'La Unidad K9 dependerá de la Jefatura del Departamento de Policía o de la persona en quien esta delegue formalmente sus competencias. La creación de la unidad no modificará los rangos policiales existentes ni permitirá eludir las órdenes legítimas de los superiores.'
+        text: 'La Unidad K9 dependerá de la Jefatura del Departamento de Policía o de la persona en quien esta delegue formalmente sus competencias.\n\nLa creación de la unidad no modificará los rangos policiales existentes ni permitirá eludir las órdenes legítimas de los superiores.'
       },
       {
-        num: 'Art. 6',
+        num: 'Artículo 6',
         title: 'Coordinador K9',
-        text: 'El coordinador será el responsable de la organización y supervisión interna de la unidad. Sus funciones son: organizar el funcionamiento de la unidad; proponer candidatos y gestionar las incorporaciones; supervisar los entrenamientos y evaluaciones; mantener actualizados los registros de agentes y perros; revisar los informes de servicio; comunicar incidencias a la jefatura; proponer modificaciones de la normativa; y presentar informes periódicos sobre la actividad de la unidad.'
+        text: 'El coordinador será el responsable de la organización y supervisión interna de la unidad, siempre dentro de las competencias que le hayan sido concedidas.\n\nSus funciones serán:\n• Organizar el funcionamiento de la unidad.\n• Proponer candidatos y gestionar las incorporaciones.\n• Supervisar los entrenamientos y las evaluaciones.\n• Mantener actualizados los registros de agentes y perros.\n• Revisar los informes de servicio.\n• Comunicar incidencias a la jefatura.\n• Proponer modificaciones de la normativa.\n• Presentar informes periódicos sobre la actividad de la unidad.'
       },
       {
-        num: 'Art. 7',
+        num: 'Artículo 7',
         title: 'Instructor K9',
-        text: 'El instructor será responsable de la preparación y evaluación de los aspirantes y agentes guía. Podrá impartir formación, organizar pruebas prácticas y recomendar la certificación o la repetición de un módulo formativo. No podrá otorgar certificaciones ni imponer medidas fuera de las competencias que le hayan sido concedidas.'
+        text: 'El instructor será responsable de la preparación y evaluación de los aspirantes y agentes guía.\n\nPodrá impartir formación, organizar pruebas prácticas y recomendar la certificación o la repetición de un módulo formativo.\n\nNo podrá otorgar certificaciones ni imponer medidas fuera de las competencias que le hayan sido concedidas.'
       },
       {
-        num: 'Art. 8',
-        title: 'Agente Guía K9',
-        text: 'El agente guía será el miembro de la unidad autorizado para trabajar con un perro asignado. Deberá mantener el control del animal durante el servicio, respetar los procedimientos establecidos y documentar las intervenciones que así lo requieran.'
+        num: 'Artículo 8',
+        title: 'Agente guía K9',
+        text: 'El agente guía será el miembro de la unidad autorizado para trabajar con un perro asignado.\n\nDeberá mantener el control del animal durante el servicio, respetar los procedimientos establecidos y documentar las intervenciones que así lo requieran.'
       },
       {
-        num: 'Art. 9',
+        num: 'Artículo 9',
         title: 'Aspirante K9',
-        text: 'El aspirante será el agente que se encuentre realizando el proceso de formación. Durante este periodo actuará bajo supervisión y no podrá desarrollar de manera independiente funciones para las que todavía no haya sido autorizado.'
+        text: 'El aspirante será el agente que se encuentre realizando el proceso de formación.\n\nDurante este periodo actuará bajo supervisión y no podrá desarrollar de manera independiente funciones para las que todavía no haya sido autorizado.'
       }
     ]
   },
   {
     id: 'norm_03',
-    chapter: 'CAPÍTULO III — INGRESO Y PERMANENCIA',
+    chapter: 'CAPÍTULO III. INGRESO Y PERMANENCIA',
     articles: [
       {
-        num: 'Art. 10',
+        num: 'Artículo 10',
         title: 'Requisitos de acceso',
-        text: 'Para solicitar el ingreso en la Unidad K9 será necesario: mantener un historial disciplinario compatible con las responsabilidades de la unidad; conocer los procedimientos policiales básicos; mostrar disponibilidad para participar en la formación; aceptar el presente reglamento; y tener el rango mínimo de Oficial II.'
+        text: 'Para solicitar el ingreso en la Unidad K9 será necesario:\n• Mantener un historial disciplinario compatible con las responsabilidades de la unidad.\n• Conocer los procedimientos policiales básicos.\n• Mostrar disponibilidad para participar en la formación.\n• Aceptar el presente reglamento.\n• Tener el rango mínimo de Oficial II'
       },
       {
-        num: 'Art. 11',
+        num: 'Artículo 11',
         title: 'Proceso de selección',
-        text: 'El proceso podrá incluir: solicitud formal de ingreso; psicotécnico; revisión de los requisitos; entrevista o valoración del candidato; formación teórica y práctica; evaluación final; y resolución de admisión.'
+        text: 'El proceso podrá incluir:\n• Solicitud formal de ingreso.\n• Psicotécnico\n• Revisión de los requisitos.\n• Entrevista o valoración del candidato.\n• Formación teórica y práctica.\n• Evaluación final.\n• Resolución de admisión.'
       },
       {
-        num: 'Art. 12',
+        num: 'Artículo 12',
         title: 'Formación continua',
-        text: 'Los agentes guía deberán participar en las sesiones de entrenamiento que establezca la coordinación. La falta reiterada de participación sin justificación podrá dar lugar a una revisión de su habilitación operativa.'
+        text: 'Los agentes guía deberán participar en las sesiones de entrenamiento que establezca la coordinación.\n\nLa falta reiterada de participación sin justificación podrá dar lugar a una revisión de su habilitación operativa.'
       },
       {
-        num: 'Art. 13',
+        num: 'Artículo 13',
         title: 'Baja de la unidad',
-        text: 'La baja podrá producirse por solicitud voluntaria, traslado, pérdida de los requisitos de acceso o decisión disciplinaria adoptada por la autoridad competente. Toda baja deberá registrarse y conllevará la revisión de las autorizaciones y asignaciones correspondientes.'
+        text: 'La baja podrá producirse por solicitud voluntaria, traslado, pérdida de los requisitos de acceso o decisión disciplinaria adoptada por la autoridad competente.\n\nToda baja deberá registrarse y conllevará la revisión de las autorizaciones y asignaciones correspondientes.'
       }
     ]
   },
   {
     id: 'norm_04',
-    chapter: 'CAPÍTULO IV — PERROS ASIGNADOS',
+    chapter: 'CAPÍTULO IV. PERROS ASIGNADOS',
     articles: [
       {
-        num: 'Art. 14',
+        num: 'Artículo 14',
         title: 'Registro canino',
-        text: 'Cada perro incorporado a la unidad contará con una ficha de identificación que incluirá: nombre y código identificativo; tipo o raza; agente guía asignado; especialidad autorizada; estado de formación; fecha de incorporación; y observaciones relevantes.'
+        text: 'Cada perro incorporado a la unidad contará con una ficha de identificación que incluirá, cuando corresponda:\n• Nombre y código identificativo.\n• Tipo o raza.\n• Agente guía asignado.\n• Especialidad autorizada.\n• Estado de formación.\n• Fecha de incorporación.\n• Observaciones relevantes.'
       },
       {
-        num: 'Art. 15',
+        num: 'Artículo 15',
         title: 'Asignación y responsabilidad',
-        text: 'La asignación de un perro deberá quedar registrada. El agente guía será responsable de su control durante el servicio y de comunicar cualquier incidencia relacionada con su utilización. La reasignación de un perro requerirá autorización y actualización del registro.'
+        text: 'La asignación de un perro deberá quedar registrada.\n\nEl agente guía será responsable de su control durante el servicio y de comunicar cualquier incidencia relacionada con su utilización.\n\nLa reasignación de un perro requerirá autorización y actualización del registro.'
       },
       {
-        num: 'Art. 16',
+        num: 'Artículo 16',
         title: 'Especialidades',
-        text: 'Las especialidades reconocidas por la unidad podrán incluir rastreo, detección y apoyo operativo. La asignación de una especialidad dependerá de las capacidades reales. No se atribuirán al perro capacidades que no estén disponibles o reconocidas dentro del rol.'
+        text: 'Las especialidades reconocidas por la unidad podrán incluir rastreo, detección y apoyo operativo.\n\nLa asignación de una especialidad dependerá de las capacidades reales.\n\nNo se atribuirán al perro capacidades que no estén disponibles o reconocidas dentro del rol.'
       }
     ]
   },
   {
     id: 'norm_05',
-    chapter: 'CAPÍTULO V — DISPOSICIONES FINALES',
+    chapter: 'CAPÍTULO V. DISPOSICIONES FINALES',
     articles: [
       {
-        num: 'Art. 17',
+        num: 'Artículo 17',
         title: 'Incumplimientos',
-        text: 'Los incumplimientos del presente reglamento serán comunicados a la coordinación o a la jefatura, según su gravedad. Las medidas correctivas y disciplinarias se aplicarán de acuerdo con la normativa general del Departamento SAPD.'
+        text: 'Los incumplimientos del presente reglamento serán comunicados a la coordinación o a la jefatura, según su gravedad.\n\nLas medidas correctivas y disciplinarias se aplicarán de acuerdo con la normativa general del Departamento SAPD.'
       },
       {
-        num: 'Art. 18',
+        num: 'Artículo 18',
         title: 'Modificaciones',
-        text: 'La coordinación podrá proponer modificaciones para mejorar el funcionamiento de la unidad. Toda modificación que afecte a las normas oficiales deberá ser aprobada por la autoridad competente antes de entrar en vigor.'
+        text: 'La coordinación podrá proponer modificaciones para mejorar el funcionamiento de la unidad.\n\nToda modificación que afecte a las normas oficiales deberá ser aprobada por la autoridad competente antes de entrar en vigor.'
       }
     ]
   }
 ];
 
-// Manuales de Instrucción, Adiestramiento y Guías Operativas
+// Manuales Oficiales K9 - Manual Personal, Funciones de la Unidad y Guía Práctica de Intervenciones
 const DEFAULT_MANUALS = [
   {
     id: 'man_01',
-    title: 'Manual Personal K9 — Programa de Entrenamiento',
+    title: 'Manual Personal K9',
     category: 'Formación & Adiestramiento',
     items: [
-      { command: 'OBJETIVO', trans: 'Propósito del programa', desc: 'Este programa sirve para practicar el manejo del perro y mejorar la coordinación entre el guía y el K9 antes de participar en intervenciones. El entrenamiento se adaptará a las opciones disponibles en el servidor.' },
-      { command: 'FASE 1 — Familiarización', trans: 'Conocer las mecánicas', desc: 'Aprender a manejar el perro y conocer sus mecánicas. Ejercicios: sacar y guardar al perro; caminar con él; comprobar cómo sigue al guía; practicar cómo detenerlo y hacerlo regresar; aprender a utilizar el menú K9. Criterio: el guía puede manejar al perro sin perderlo ni activar órdenes por error.' },
-      { command: 'FASE 2 — Obediencia', trans: 'Control en servicio', desc: 'Controlar al perro durante el servicio. Ejercicios: permanecer quieto mientras el guía se desplaza; seguir al guía durante una patrulla; regresar cuando se le ordene; permanecer junto al agente durante una conversación; repetir las órdenes disponibles hasta conocer su funcionamiento. Criterio: el guía controla al perro en situaciones normales de patrulla.' },
-      { command: 'FASE 3 — Trabajo en equipo', trans: 'Coordinación conjunta', desc: 'Coordinar al guía, al perro y a los demás agentes. Ejercicios: avisar por radio antes de desplegar el K9; mantener al perro junto al guía mientras otros agentes hablan; realizar una búsqueda simulada con compañeros; practicar la retirada del perro cuando termine su función; coordinar la actuación sin interrumpir otras escenas.' },
-      { command: 'FASE 4A — Simulacro: Control rutinario', trans: 'Patrulla con K9', desc: 'Patrullar con el perro; recibir una solicitud de apoyo; llegar al lugar; mantener al perro controlado; finalizar el servicio.' },
-      { command: 'FASE 4B — Simulacro: Búsqueda', trans: 'Localización de sospechoso', desc: 'Recibir información sobre una búsqueda; desplazarse hasta la zona; aplicar la mecánica disponible; comunicar el resultado real del ejercicio.' },
-      { command: 'FASE 4C — Simulacro: Apoyo policial', trans: 'Intervención coordinada', desc: 'Recibir una llamada de apoyo; coordinarse con los agentes; desplegar el perro solo si procede; retirarlo al terminar la intervención.' }
+      {
+        command: '1. OBJETIVO',
+        trans: 'Finalidad del Programa',
+        desc: 'Este programa sirve para practicar el manejo del perro y mejorar la coordinación entre el guía y el K9 antes de participar en intervenciones.\n\nEl entrenamiento se adaptará a las opciones disponibles en el servidor.'
+      },
+      {
+        command: '2. FASE 1 — FAMILIARIZACIÓN',
+        trans: 'Manejo y Mecánicas',
+        desc: 'Objetivo: Aprender a manejar el perro y conocer sus mecánicas.\n\nEjercicios:\n• Sacar y guardar al perro.\n• Caminar con él.\n• Comprobar cómo sigue al guía.\n• Practicar cómo detenerlo y hacerlo regresar.\n• Aprender a utilizar el menú K9.\n• Comprobar qué acciones funcionan realmente.\n\nCriterio para avanzar: El guía puede manejar al perro sin perderlo ni activar órdenes por error.'
+      },
+      {
+        command: '3. FASE 2 — OBEDIENCIA',
+        trans: 'Control en Servicio',
+        desc: 'Objetivo: Controlar al perro durante el servicio.\n\nEjercicios:\n• Permanecer quieto mientras el guía se desplaza.\n• Seguir al guía durante una patrulla.\n• Regresar cuando se le ordene.\n• Permanecer junto al agente durante una conversación.\n• Repetir las órdenes disponibles hasta conocer su funcionamiento.\n\nCriterio para avanzar: El guía controla al perro en situaciones normales de patrulla.'
+      },
+      {
+        command: '4. FASE 3 — TRABAJO EN EQUIPO',
+        trans: 'Coordinación con Agentes',
+        desc: 'Objetivo: Coordinar al guía, al perro y a los demás agentes.\n\nEjercicios:\n• Avisar por radio antes de desplegar el K9.\n• Mantener al perro junto al guía mientras otros agentes hablan.\n• Realizar una búsqueda simulada con compañeros.\n• Practicar la retirada del perro cuando termine su función.\n• Coordinar la actuación sin interrumpir otras escenas.'
+      },
+      {
+        command: '5. FASE 4 — SIMULACROS',
+        trans: 'Escenarios Operativos',
+        desc: 'Realizar tres simulacros obligatorios:\n\n• Simulacro A: Control rutinario\n  - Patrullar con el perro.\n  - Recibir una solicitud de apoyo.\n  - Llegar al lugar.\n  - Mantener al perro controlado.\n  - Finalizar el servicio.\n\n• Simulacro B: Búsqueda\n  - Recibir información sobre una búsqueda.\n  - Desplazarse hasta la zona.\n  - Aplicar la mecánica disponible.\n  - Comunicar el resultado real del ejercicio.\n\n• Simulacro C: Apoyo policial\n  - Recibir una llamada de apoyo.\n  - Coordinarse con los agentes.\n  - Desplegar el perro solo si procede.\n  - Retirarlo al terminar la intervención.'
+      },
+      {
+        command: '7. REGISTRO DE ENTRENAMIENTO',
+        trans: 'Hoja de Prácticas',
+        desc: 'Tabla de control y seguimiento de sesiones prácticas:\n\n• Obediencia:\n  Fecha: Por completar | Resultado: Por completar | Aspectos a mejorar: Por completar\n\n• Búsqueda:\n  Fecha: Por completar | Resultado: Por completar | Aspectos a mejorar: Por completar\n\n• Simulacro:\n  Fecha: Por completar | Resultado: Por completar | Aspectos a mejorar: Por completar'
+      },
+      {
+        command: '8. EVALUACIÓN PERSONAL',
+        trans: 'Verificación Operativa',
+        desc: 'Antes de considerar que estás preparado, comprueba que puedes:\n\n☑️ Manejar las órdenes básicas.\n☑️ Desplegar y guardar al perro.\n☑️ Utilizar las funciones de búsqueda disponibles.\n☑️ Coordinarte por radio.'
+      }
     ]
   },
   {
     id: 'man_02',
-    title: 'Funciones de la Unidad K9',
-    category: 'Operativa & Funciones',
+    title: 'Funciones de la Unidad',
+    category: 'Competencias & Operativa',
     items: [
-      { command: 'FUNCIÓN A — Detección de sustancias', trans: 'Apoyo en controles', desc: 'Cuando el servidor disponga de estas mecánicas, el perro podrá ayudar a localizar sustancias ilegales durante controles o búsquedas autorizadas dentro del rol. Ejemplos: apoyo en controles de vehículos; búsqueda en zonas señaladas durante una investigación.' },
-      { command: 'FUNCIÓN B — Seguimiento de sospechosos', trans: 'Rastreo y localización', desc: 'El perro puede ayudar a seguir un rastro dentro de una escena. Si no existe esa mecánica, el seguimiento podrá interpretarse mediante rol acordado con los participantes.' },
-      { command: 'FUNCIÓN C — Apoyo en intervenciones', trans: 'Refuerzo policial', desc: 'La presencia del K9 puede ayudar a reforzar una intervención en la que exista un riesgo razonable. No implica que el perro deba atacar ni que se utilice en todas las detenciones.' },
-      { command: 'FUNCIÓN D — Patrullaje preventivo', trans: 'Presencia disuasoria', desc: 'El guía podrá patrullar con el perro, realizar comprobaciones rutinarias y estar disponible para apoyar a otras unidades.' },
-      { command: 'SERVICIO: Patrulla ordinaria', trans: 'Objetivo: apoyo general', desc: 'Dar apoyo a las unidades policiales durante el patrullaje habitual.' },
-      { command: 'SERVICIO: Detección', trans: 'Búsqueda de sustancias', desc: 'Buscar sustancias mediante las mecánicas disponibles en el servidor.' },
-      { command: 'SERVICIO: Seguimiento', trans: 'Localización de sospechoso', desc: 'Apoyar la localización de un sospechoso mediante rastreo K9.' },
-      { command: 'SERVICIO: Apoyo operativo', trans: 'Intervención de riesgo', desc: 'Colaborar en intervenciones de mayor riesgo junto a otras unidades policiales.' },
-      { command: 'LÍMITES DEL K9', trans: 'Lo que NO corresponde', desc: 'El perro no sustituye al agente investigador, no decide por sí mismo si una persona es culpable y no garantiza que una búsqueda vaya a tener éxito.' }
+      {
+        command: '1. OBJETIVO',
+        trans: 'Misión Policial',
+        desc: 'La unidad K9 tiene como objetivo apoyar a las patrullas policiales mediante las capacidades de un perro adiestrado y la coordinación con su guía.'
+      },
+      {
+        command: '2. FUNCIONES PRINCIPALES',
+        trans: 'Especialidades de Campo',
+        desc: 'A. Detección de sustancias:\nCuando el servidor disponga de estas mecánicas, el perro podrá ayudar a localizar sustancias ilegales durante controles o búsquedas autorizadas dentro del rol.\nEjemplos: Apoyo en controles de vehículos; búsqueda en zonas señaladas durante una investigación.\n\nB. Seguimiento de sospechosos:\nEl perro puede ayudar a seguir un rastro dentro de una escena. Si no existe esa mecánica, el seguimiento podrá interpretarse mediante rol acordado con los participantes.\n\nC. Apoyo en intervenciones:\nLa presencia del K9 puede ayudar a reforzar una intervención en la que exista un riesgo razonable. No implica que el perro deba atacar ni que se utilice en todas las detenciones.\n\nE. Patrullaje preventivo:\nEl guía podrá patrullar con el perro, realizar comprobaciones rutinarias y estar disponible para apoyar a otras unidades.'
+      },
+      {
+        command: '3. TIPOS DE SERVICIO',
+        trans: 'Despliegues Oficiales',
+        desc: 'Catálogo de servicios y objetivos:\n\n• Patrulla ordinaria → Dar apoyo a las unidades policiales\n• Detección → Buscar sustancias mediante las mecánicas disponibles\n• Seguimiento → Apoyar la localización de un sospechoso\n• Apoyo operativo → Colaborar en intervenciones de mayor riesgo'
+      },
+      {
+        command: '4. FUNCIONES DEL GUÍA',
+        trans: 'Responsabilidad del Agente',
+        desc: 'El guía será responsable de:\n\n• Manejar al perro.\n• Elegir cuándo desplegarlo.\n• Informar a sus compañeros.\n• Mantener el control durante la intervención.\n• Interpretar las señales o resultados de la mecánica K9.\n• Finalizar el servicio y guardar al perro correctamente.'
+      },
+      {
+        command: '5. LÍMITES DEL K9',
+        trans: 'Lo que NO corresponde',
+        desc: 'El perro no sustituye al agente investigador, no decide por sí mismo si una persona es culpable y no garantiza que una búsqueda vaya a tener éxito.'
+      },
+      {
+        command: '6. PRIORIDAD DE LA UNIDAD',
+        trans: 'Criterio Fundamental',
+        desc: 'La prioridad es apoyar a la policía y mejorar las escenas de rol, utilizando al perro de forma coherente con sus capacidades y con las reglas del servidor.'
+      }
     ]
   },
   {
     id: 'man_03',
-    title: 'Guía Práctica de Intervenciones K9',
-    category: 'Procedimientos Operativos',
+    title: 'Guía Práctica de Intervenciones',
+    category: 'Procedimientos de Rol',
     items: [
-      { command: 'PREPARACIÓN', trans: 'Antes del servicio', desc: 'Comprobar que el perro puede desplegarse; comprobar que sabes cómo guardarlo; preparar la radio y el indicativo; confirmar si el servicio requiere alguna especialidad concreta.' },
-      { command: 'INTERVENCIÓN A — Patrulla ordinaria', trans: 'Radio: «Central, unidad K9 en servicio»', desc: 'Desplazarte al lugar indicado; informar a los compañeros de que vas acompañado por un K9; mantener al perro controlado mientras recibes información; valorar si el perro es útil para esa intervención; continuar la actuación con el resto de la unidad.' },
-      { command: 'INTERVENCIÓN B — Búsqueda de sustancias', trans: 'Radio: «Unidad K9 en posición»', desc: 'Confirmar con los agentes qué se necesita buscar y dónde; informar de que vas a iniciar la búsqueda; utilizar la función correspondiente del script si existe; interpretar el resultado que proporcione la mecánica; comunicar el resultado. IMPORTANTE: no inventar un resultado positivo para justificar una detención.' },
-      { command: 'INTERVENCIÓN C — Búsqueda de sospechoso', trans: 'Radio: «Unidad K9 incorporándose a la búsqueda»', desc: 'Recibir la descripción y la última ubicación conocida; coordinarse con los agentes participantes; utilizar las funciones de seguimiento disponibles; comunicar cualquier resultado; mantener al perro controlado durante la localización. Una vez localizado, seguir las instrucciones policiales y las normas del servidor.' },
-      { command: 'INTERVENCIÓN D — Apoyo en detención', trans: 'Coordinación con agentes', desc: 'Llegar al lugar y recibir instrucciones; informar de que se dispone del K9; valorar si desplegar al perro es apropiado; mantener la coordinación con los demás agentes; utilizar únicamente las acciones permitidas por el servidor. El perro no debe atacar automáticamente por el mero hecho de que una persona se resista.' },
-      { command: 'FINALIZACIÓN DE INTERVENCIÓN', trans: 'Cierre del servicio', desc: 'Guardar al perro mediante el sistema disponible; registrar el entrenamiento o la actuación; comprobar que el perro está listo para el siguiente servicio.' },
-      { command: 'PRINCIPIOS DE ROL K9', trans: 'Buenas prácticas', desc: 'Dar protagonismo al trabajo conjunto entre guía y animal; respetar las mecánicas y las normas del servidor; comunicar las actuaciones por radio; no utilizar al perro para forzar resultados; buscar escenas interesantes para todos los participantes, no solo para el guía.' }
+      {
+        command: '1. OBJETIVO',
+        trans: 'Propósito de la Guía',
+        desc: 'Esta guía sirve como referencia para saber cómo interpretar las intervenciones en las que participa la unidad K9. Los procedimientos concretos dependerán de las normas de la policía del servidor y de las mecánicas del script.'
+      },
+      {
+        command: '2. PREPARACIÓN DEL SERVICIO',
+        trans: 'Antes de Patrullar',
+        desc: 'Antes de salir de patrulla:\n\n• Comprobar que el perro puede desplegarse.\n• Comprobar que sabes cómo guardar al perro.\n• Preparar la radio y el indicativo.\n• Confirmar si el servicio requiere alguna especialidad concreta.'
+      },
+      {
+        command: '3. INTERVENCIÓN A — PATRULLA ORDINARIA',
+        trans: 'Radio & Procedimiento',
+        desc: 'Situación: Estás patrullando con tu perro y recibes una llamada policial.\n\nDesarrollo del rol:\n• Desplazarte al lugar indicado.\n• Informar a los compañeros de que vas acompañado por un K9.\n• Mantener al perro controlado mientras recibes información.\n• Valorar si el perro es útil para esa intervención.\n• Continuar la actuación con el resto de la unidad.\n\n📻 Ejemplo de radio:\n«Central, unidad K9 en servicio, disponible para apoyo y búsquedas».'
+      },
+      {
+        command: '4. INTERVENCIÓN B — BÚSQUEDA DE SUSTANCIAS',
+        trans: 'Detección en Escena',
+        desc: 'Situación: Durante una intervención se solicita una búsqueda K9 y las normas del servidor permiten realizarla.\n\nDesarrollo del rol:\n• Confirmar con los agentes qué se necesita buscar y dónde.\n• Informar de que vas a iniciar la búsqueda.\n• Utilizar la función correspondiente del script, si existe.\n• Interpretar el resultado que proporcione la mecánica.\n• Comunicar el resultado a los compañeros.\n• Continuar según las normas del servidor.\n\n📻 Ejemplo de radio:\n«Unidad K9 en posición. Vamos a realizar la búsqueda solicitada».\n\n⚠️ Importante: No inventar un resultado positivo para justificar una detención. Si la mecánica no funciona, se debe seguir el procedimiento de rol acordado en el servidor.'
+      },
+      {
+        command: '5. INTERVENCIÓN C — BÚSQUEDA DE UN SOSPECHOSO',
+        trans: 'Rastreo y Localización',
+        desc: 'Situación: Un sospechoso huye y se solicita apoyo K9.\n\nDesarrollo del rol:\n• Recibir la descripción y la última ubicación conocida.\n• Coordinarse con los agentes que participan en la búsqueda.\n• Utilizar las funciones de seguimiento disponibles.\n• Comunicar cualquier resultado obtenido mediante el sistema o el rol acordado.\n• Mantener al perro controlado durante la localización.\n• Una vez localizado el sospechoso, seguir las instrucciones policiales y las normas del servidor.\n\n📻 Ejemplo de radio:\n«Unidad K9 incorporándose a la búsqueda. Necesito última posición y descripción del sospechoso».'
+      },
+      {
+        command: '6. INTERVENCIÓN D — APOYO EN UNA DETENCIÓN',
+        trans: 'Situaciones de Riesgo',
+        desc: 'Situación: Los agentes solicitan apoyo durante una detención potencialmente peligrosa.\n\nDesarrollo del rol:\n• Llegar al lugar y recibir instrucciones.\n• Informar de que se dispone del K9.\n• Valorar si desplegar al perro es apropiado.\n• Mantener la coordinación con los demás agentes.\n• Utilizar únicamente las acciones permitidas por el servidor.\n\n⚠️ Criterio de uso: El perro no debe atacar automáticamente por el mero hecho de que una persona se resista o huya. La actuación dependerá del contexto de la escena y de las reglas aplicables.'
+      },
+      {
+        command: '7. FINALIZACIÓN DE LA INTERVENCIÓN',
+        trans: 'Cierre del Servicio',
+        desc: 'Al finalizar cualquier servicio:\n\n• Guardar al perro mediante el sistema disponible.\n• Registrar el entrenamiento o la actuación.\n• Comprobar que el perro está listo para el siguiente servicio.'
+      },
+      {
+        command: '8. PLANTILLA DE INFORME K9',
+        trans: 'Estructura Oficial',
+        desc: 'Formato estándar de informe de servicio:\n\nNúmero de intervención: ____________________\nFecha y hora: ______________________________\nGuía K9: ___________________________________\nPerro: _____________________________________\nMotivo del servicio: ________________________\nLugar: _____________________________________\nAcciones realizadas: _______________________\nObservaciones: _____________________________'
+      },
+      {
+        command: '9. PRINCIPIOS PARA UN BUEN ROL K9',
+        trans: 'Código Deontológico',
+        desc: '• Dar protagonismo al trabajo conjunto entre guía y animal.\n• Respetar las mecánicas y las normas del servidor.\n• Comunicar las actuaciones por radio.\n• No utilizar al perro para forzar resultados.\n• Buscar escenas interesantes para todos los participantes, no solo para el guía.'
+      }
     ]
+  }
+];
+
+// Códigos 10 Policiales Oficiales y Especialidades K9
+const DEFAULT_TEN_CODES = [
+  // --- Códigos Especiales K9 ---
+  {
+    id: 'code_10_8k',
+    code: '10-8K',
+    title: 'Binomio K9 En Servicio',
+    category: 'K9',
+    meaning: 'Agente guía y can operativo en servicio activo y disponibles para llamadas de apoyo, controles o intervenciones.',
+    radio: '«Central, K-01 en 10-8K, can disponible para intervención y rastreo»'
   },
   {
-    id: 'man_04',
-    title: 'Ficha de Identificación del Binomio K9',
-    category: 'Registro & Documentación',
-    items: [
-      { command: 'DATOS GENERALES', trans: 'Identificación del perro', desc: 'La ficha incluirá: nombre del perro; indicativo K9; raza; sexo; edad dentro del rol; guía asignado; unidad policial; y fecha de incorporación.' },
-      { command: 'ESPECIALIDAD', trans: 'Capacidad principal', desc: 'Especialidades reconocidas: detección de sustancias; búsqueda de personas; seguimiento de sospechosos; multipropósito. Cada can puede tener una especialidad secundaria complementaria.' },
-      { command: 'NIVEL DE ENTRENAMIENTO', trans: 'Grado de formación', desc: 'Niveles reconocidos: Inicial (fase de familiarización completada); Intermedio (fase de obediencia y trabajo en equipo completadas); Avanzado (todos los simulacros completados y evaluación superada).' },
-      { command: 'CAPACIDADES DISPONIBLES', trans: 'Acciones del K9', desc: 'Seguir al guía; sentarse o quedarse quieto; buscar; detectar sustancias; sujetar o morder; regresar al guía. Cada capacidad debe marcarse como disponible o no según las mecánicas reales del servidor.' },
-      { command: 'EL BINOMIO', trans: 'Guía + Perro K9', desc: 'El binomio está formado por el agente guía y su perro. Ambos trabajan de manera coordinada y el guía es responsable de controlar al animal durante el servicio. La ficha de cada binomio debe mantenerse actualizada con el historial de servicio.' }
-    ]
+    id: 'code_10_14k',
+    code: '10-14K',
+    title: 'Despliegue Canino / Búsqueda en Perímetro',
+    category: 'K9',
+    meaning: 'El perro ha sido sacado del vehículo y desplegado en el perímetro para rastreo, inspección o contención.',
+    radio: '«Unidad K9 en 10-20 Pillbox Hill, procediendo con 10-14K en callejón lateral»'
+  },
+  {
+    id: 'code_10_15k',
+    code: '10-15K',
+    title: 'Marcaje Positivo de Sustancias / Foco Oloroso',
+    category: 'K9',
+    meaning: 'El can se sienta o realiza marcaje pasivo/activo indicando presencia de estupefacientes, pólvora o explosivos.',
+    radio: '«Central, 10-15K confirmado en maletero del vehículo sospechoso. Solicitamos unidad de apoyo»'
+  },
+  {
+    id: 'code_10_16k',
+    code: '10-16K',
+    title: 'Marcaje Negativo / Zona Despejada',
+    category: 'K9',
+    meaning: 'Inspección canina finalizada sin detección de elementos ilícitos. Zona o vehículo limpio.',
+    radio: '«Búsqueda canina finalizada en almacén, resultado 10-16K, zona despejada»'
+  },
+  {
+    id: 'code_10_17k',
+    code: '10-17K',
+    title: 'Neutralización por Mordida Canina',
+    category: 'K9',
+    meaning: 'El can ha interceptado e inmovilizado físicamente al sospechoso en fuga tras orden legítima del guía.',
+    radio: '«10-17K efectivo en Strawberry. Sospechoso inmovilizado y bajo control del can»'
+  },
+  {
+    id: 'code_10_18k',
+    code: '10-18K',
+    title: 'Can Herido en Acto de Servicio (Emergencia)',
+    category: 'K9',
+    meaning: 'Emergencia veterinaria crítica. El perro ha recibido disparos, atropello o ataque grave. Traslado prioritario.',
+    radio: '«🚨 10-18K! Can herido por impacto balístico en tiroteo. Requerimos escolta inmediata a clínica veterinaria»'
+  },
+  {
+    id: 'code_10_23k',
+    code: '10-23K',
+    title: 'Binomio K9 en Escena y Listo',
+    category: 'K9',
+    meaning: 'Llegada de la patrulla K9 al lugar del incidente, listo para coordinar con el oficial a cargo.',
+    radio: '«Unidad K-02 en 10-23K sobre la escena. Coordinando despliegue con mando en el lugar»'
+  },
+  {
+    id: 'code_10_32k',
+    code: '10-32K',
+    title: 'Solicitud de Perro de Asalto / Tirador Atrincherado',
+    category: 'K9',
+    meaning: 'Petición prioritaria de unidad canina táctica para apoyo en brecha, reducción armada o situación de rehenes.',
+    radio: '«Central, sujeto hostil armado en vivienda. Solicitamos 10-32K para intervención táctica»'
+  },
+  {
+    id: 'code_10_70k',
+    code: '10-70K',
+    title: 'Rastreo de Rastro Biológico / Fuga a Pie',
+    category: 'K9',
+    meaning: 'Inicio de seguimiento por rastro de olor de referencia tras fuga de sospechoso o persona extraviada.',
+    radio: '«Iniciando 10-70K desde última posición conocida del sospechoso en Little Seoul hacia el norte»'
+  },
+  {
+    id: 'code_10_97k',
+    code: '10-97K',
+    title: 'Can Asegurado en Vehículo / Fin de Intervención',
+    category: 'K9',
+    meaning: 'El perro ha sido retornado y asegurado en el transportín reglamentario del patrulla. Escena segura.',
+    radio: '«Intervención concluida, can en 10-97K. Unidad K9 disponible para nuevo servicio»'
+  },
+
+  // --- Estados de Patrulla ---
+  {
+    id: 'code_10_4',
+    code: '10-4',
+    title: 'Entendido / Afirmativo',
+    category: 'Patrulla',
+    meaning: 'Mensaje o instrucción recibida y comprendida correctamente.',
+    radio: '«10-4 Central, procedemos hacia la ubicación»'
+  },
+  {
+    id: 'code_10_6',
+    code: '10-6',
+    title: 'Ocupado / No Disponible',
+    category: 'Patrulla',
+    meaning: 'Agente ocupado temporalmente en diligencias o informe salvo emergencia vital.',
+    radio: '«K-01 en 10-6 redactando diligencias en comisaría central»'
+  },
+  {
+    id: 'code_10_7',
+    code: '10-7',
+    title: 'Fuera de Servicio',
+    category: 'Patrulla',
+    meaning: 'Finalización de turno operativo o salida de servicio reglamentaria.',
+    radio: '«K-03 finaliza turno, pasando a 10-7. Dejando can en perreras departamentales»'
+  },
+  {
+    id: 'code_10_8',
+    code: '10-8',
+    title: 'En Servicio / Disponible',
+    category: 'Patrulla',
+    meaning: 'Unidad patrullando activamente y disponible para asignaciones de despacho.',
+    radio: '«K-02 en 10-8 asignado a patrullaje preventivo en Los Santos sur»'
+  },
+  {
+    id: 'code_10_10',
+    code: '10-10',
+    title: 'Pelea o Disturbio en Curso',
+    category: 'Patrulla',
+    meaning: 'Altercado físico o reyerta entre civiles en vía pública.',
+    radio: '«10-10 multitudinario en Legion Square, solicitamos unidades de apoyo perimetral»'
+  },
+  {
+    id: 'code_10_19',
+    code: '10-19',
+    title: 'Retorno a Comisaría / Central',
+    category: 'Patrulla',
+    meaning: 'En trayecto de regreso a la estación policial.',
+    radio: '«Unidad K9 en 10-19 hacia Mission Row para cambio de equipamiento»'
+  },
+  {
+    id: 'code_10_20',
+    code: '10-20',
+    title: 'Ubicación Actual',
+    category: 'Patrulla',
+    meaning: 'Posición exacta o vía donde se encuentra la patrulla.',
+    radio: '«¿Cuál es su 10-20 actual para enviar refuerzos?»'
+  },
+  {
+    id: 'code_10_22',
+    code: '10-22',
+    title: 'Cancelar Mensaje / Desestimar',
+    category: 'Patrulla',
+    meaning: 'Anulación de la orden, aviso o llamada de apoyo previa.',
+    radio: '«10-22 requerimiento de K9, el sospechoso ya se ha entregado pacíficamente»'
+  },
+
+  // --- Operativos & Emergencias ---
+  {
+    id: 'code_10_33',
+    code: '10-33',
+    title: '🚨 EMERGENCIA MÁXIMA / OFICIAL EN PELIGRO',
+    category: 'Emergencias',
+    meaning: 'Oficial o patrulla bajo ataque inminente con riesgo de vida. Silencio de radio absoluto para el resto de unidades.',
+    radio: '«🚨 10-33! 10-33! Strawberry Avenue, nos disparan con armas automáticas!»'
+  },
+  {
+    id: 'code_10_50',
+    code: '10-50',
+    title: 'Accidente de Tráfico',
+    category: 'Operativos',
+    meaning: 'Colisión vehicular en vía pública con o sin heridos.',
+    radio: '«10-50 con vehículo sospechoso en Del Perro Freeway, solicitamos ambulancia»'
+  },
+  {
+    id: 'code_10_76',
+    code: '10-76',
+    title: 'En Camino / Respondiendo al Aviso',
+    category: 'Operativos',
+    meaning: 'La unidad se encuentra en trayecto activo hacia el punto del incidente.',
+    radio: '«K-01 en 10-76 con Código 3 hacia su posición»'
+  },
+  {
+    id: 'code_10_80',
+    code: '10-80',
+    title: 'Persecución Vehicular Activa',
+    category: 'Operativos',
+    meaning: 'Persecución a alta velocidad de vehículo fugitivo.',
+    radio: '«10-80 activo sobre deportivo negro en dirección norte por Vinewood Boulevard»'
+  },
+  {
+    id: 'code_10_90',
+    code: '10-90',
+    title: 'Atraco a Establecimiento / Banco',
+    category: 'Operativos',
+    meaning: 'Robo a mano armada en progreso en sucursal bancaria o comercio.',
+    radio: '«10-90 en Fleeca Bank Hawick, binomio K9 en posición perimetral»'
+  },
+  {
+    id: 'code_10_99',
+    code: '10-99',
+    title: 'Situación Resuelta / Concluida',
+    category: 'Operativos',
+    meaning: 'Incidente controlado y finalizado satisfactoriamente.',
+    radio: '«Situación en 10-99, perímetro levantado, zona segura»'
+  },
+  {
+    id: 'code_cod_0',
+    code: 'Código 0',
+    title: 'Caída de Oficial / Asistencia Inmediata',
+    category: 'Emergencias',
+    meaning: 'Oficial abatido o herido crítico. Todas las unidades del servidor deben acudir de inmediato.',
+    radio: '«Código 0 en Paleto Bay! Agente abatido, todos los binomios respondan ya!»'
+  },
+  {
+    id: 'code_cod_3',
+    code: 'Código 3',
+    title: 'Respuesta de Emergencia con Sirenas',
+    category: 'Operativos',
+    meaning: 'Desplazamiento prioritario utilizando sirenas acústicas y luces de emergencia.',
+    radio: '«Binomio K-04 acudiendo en Código 3 al tiroteo de Davis»'
+  },
+  {
+    id: 'code_cod_4',
+    code: 'Código 4',
+    title: 'Bajo Control / Sin Novedad',
+    category: 'Operativos',
+    meaning: 'Escena controlada y sin peligro. Unidades secundarias pueden desconvocarse.',
+    radio: '«Código 4 en la escena, sospechoso custodiado en celda»'
   }
 ];
 
@@ -747,11 +1048,19 @@ class K9DataStore {
     if (!localStorage.getItem(STORAGE_KEYS.ANNOUNCEMENTS)) {
       this.save(STORAGE_KEYS.ANNOUNCEMENTS, DEFAULT_ANNOUNCEMENTS);
     }
-    if (!localStorage.getItem(STORAGE_KEYS.NORMATIVES)) {
+    // Sincronización oficial de normativas y manuales LSPD K9
+    const NORMATIVES_SYNC_VERSION = 'v2_lspd_official_oct2026';
+    if (localStorage.getItem('k9_normatives_version') !== NORMATIVES_SYNC_VERSION) {
       this.save(STORAGE_KEYS.NORMATIVES, DEFAULT_NORMATIVES);
-    }
-    if (!localStorage.getItem(STORAGE_KEYS.MANUALS)) {
       this.save(STORAGE_KEYS.MANUALS, DEFAULT_MANUALS);
+      localStorage.setItem('k9_normatives_version', NORMATIVES_SYNC_VERSION);
+    } else {
+      if (!localStorage.getItem(STORAGE_KEYS.NORMATIVES)) {
+        this.save(STORAGE_KEYS.NORMATIVES, DEFAULT_NORMATIVES);
+      }
+      if (!localStorage.getItem(STORAGE_KEYS.MANUALS)) {
+        this.save(STORAGE_KEYS.MANUALS, DEFAULT_MANUALS);
+      }
     }
     if (!localStorage.getItem(STORAGE_KEYS.PROMOTIONS)) {
       this.save(STORAGE_KEYS.PROMOTIONS, DEFAULT_PROMOTIONS);
@@ -773,6 +1082,16 @@ class K9DataStore {
     }
     if (!localStorage.getItem(STORAGE_KEYS.MAP_MARKERS)) {
       this.save(STORAGE_KEYS.MAP_MARKERS, DEFAULT_MAP_MARKERS);
+    }
+    // Sincronización oficial de Códigos 10 Policiales y K9
+    const CODES_SYNC_VERSION = 'v1_lspd_tencodes_oct2026';
+    if (localStorage.getItem('k9_codes_version') !== CODES_SYNC_VERSION) {
+      this.save(STORAGE_KEYS.TEN_CODES, DEFAULT_TEN_CODES);
+      localStorage.setItem('k9_codes_version', CODES_SYNC_VERSION);
+    } else {
+      if (!localStorage.getItem(STORAGE_KEYS.TEN_CODES)) {
+        this.save(STORAGE_KEYS.TEN_CODES, DEFAULT_TEN_CODES);
+      }
     }
 
     // Asegurar que el ID oficial de Jefatura nunca esté en la lista de expulsados
@@ -981,6 +1300,15 @@ class K9DataStore {
   getManuals() {
     const manuals = this.get(STORAGE_KEYS.MANUALS);
     return (Array.isArray(manuals) && manuals.length > 0) ? manuals : DEFAULT_MANUALS;
+  }
+
+  getTenCodes() {
+    const codes = this.get(STORAGE_KEYS.TEN_CODES);
+    return (Array.isArray(codes) && codes.length > 0) ? codes : DEFAULT_TEN_CODES;
+  }
+
+  saveTenCodes(codes) {
+    this.save(STORAGE_KEYS.TEN_CODES, codes);
   }
 
   getDogRequests() { return this.get(STORAGE_KEYS.DOG_REQUESTS) || []; }
