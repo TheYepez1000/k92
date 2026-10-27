@@ -1,3 +1,4 @@
+﻿</html>
 <!DOCTYPE html>
 <html lang="es">
 
@@ -216,9 +217,6 @@
             </button>
             <button class="btn-tactical btn-tactical-outline" onclick="switchGeneralSubtab('normativas')">
               <span>⚖️</span> Ver Normativas Oficiales
-            </button>
-            <button class="btn-tactical btn-tactical-outline" onclick="switchGeneralSubtab('codigos')">
-              <span>📻</span> Códigos 10 & Radio
             </button>
             <button class="btn-tactical btn-tactical-ghost" onclick="switchGeneralSubtab('galeria')">
               <span>🐕</span> Plantilla de Canes K9
@@ -1372,100 +1370,6 @@
         <button type="button" class="btn-tactical btn-tactical-danger btn-tactical-sm" id="btnConfirmDeleteManAction"
           onclick="window._confirmDeleteManual()">
           🗑️ Eliminar Manual
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ====================================================================
-       MODAL: EDITAR / CREAR CÓDIGO 10 POLICIAL K9
-       ==================================================================== -->
-  <div class="tactical-modal-overlay" id="modalEditTenCode">
-    <div class="tactical-modal-card" style="max-width: 600px;">
-      <div class="modal-header-tactical">
-        <div class="modal-title-tactical" id="modalTenCodeTitle">
-          <span>📻</span> GESTIONAR CÓDIGO 10 POLICIAL & K9
-        </div>
-        <button type="button" class="modal-close-btn" onclick="closeModal('modalEditTenCode')">✕</button>
-      </div>
-      <form id="formEditTenCode">
-        <input type="hidden" id="tenCodeId">
-        <div class="modal-body-tactical">
-          <div class="form-grid-2">
-            <div class="form-group-tactical">
-              <label class="form-label-tactical" for="tenCodeCode">CÓDIGO (Ej: 10-15K, 10-33)</label>
-              <input type="text" id="tenCodeCode" class="form-input-tactical"
-                placeholder="Ej: 10-15K" required>
-            </div>
-            <div class="form-group-tactical">
-              <label class="form-label-tactical" for="tenCodeCategory">CATEGORÍA</label>
-              <select id="tenCodeCategory" class="form-select-tactical" required>
-                <option value="K9">🐾 Especial K9</option>
-                <option value="Patrulla">🚓 Estado de Patrulla</option>
-                <option value="Operativos">⚡ Operativos</option>
-                <option value="Emergencias">🚨 Emergencia Máxima</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group-tactical">
-            <label class="form-label-tactical" for="tenCodeName">TÍTULO O SIGNIFICADO CORTO</label>
-            <input type="text" id="tenCodeName" class="form-input-tactical"
-              placeholder="Ej: Marcaje Positivo de Sustancias" required>
-          </div>
-          <div class="form-group-tactical">
-            <label class="form-label-tactical" for="tenCodeMeaning">DESCRIPCIÓN Y SIGNIFICADO TÁCTICO</label>
-            <textarea id="tenCodeMeaning" class="form-textarea-tactical"
-              style="min-height: 90px;"
-              placeholder="Explica qué significa este código y qué protocolo debe seguir el agente..." required></textarea>
-          </div>
-          <div class="form-group-tactical">
-            <label class="form-label-tactical" for="tenCodeRadio">EJEMPLO DE TRANSMISIÓN POR RADIO</label>
-            <input type="text" id="tenCodeRadio" class="form-input-tactical"
-              placeholder="Ej: «Central, 10-15K confirmado en maletero de vehículo sospechoso»" required>
-          </div>
-        </div>
-        <div class="modal-footer-tactical">
-          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
-            onclick="closeModal('modalEditTenCode')">
-            Cancelar
-          </button>
-          <button type="submit" class="btn-tactical btn-tactical-gold btn-tactical-sm">
-            💾 Guardar Código 10
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- ====================================================================
-       MODAL: MENÚ TÁCTICO DE ELIMINACIÓN DE CÓDIGO 10
-       ==================================================================== -->
-  <div class="tactical-modal-overlay" id="modalDeleteTenCode">
-    <div class="tactical-modal-card" style="max-width: 500px;">
-      <div class="modal-header-tactical" style="border-bottom-color: var(--tactical-red);">
-        <div class="modal-title-tactical" style="color: var(--tactical-red);">
-          <span>🗑️</span> ELIMINAR CÓDIGO 10
-        </div>
-        <button type="button" class="modal-close-btn" onclick="closeModal('modalDeleteTenCode')">✕</button>
-      </div>
-      <div class="modal-body-tactical" style="padding: 1.5rem;">
-        <div
-          style="background: rgba(255, 42, 95, 0.08); border: 1px solid var(--border-danger); border-radius: 12px; padding: 1rem; margin-bottom: 1.25rem;">
-          <h4 id="delTenCodeCode" style="color: #fff; font-size: 1.25rem; font-family: var(--font-tactical); margin-bottom: 0.25rem;">10-XX</h4>
-          <span id="delTenCodeTitle" style="color: var(--tactical-gold); font-size: 0.85rem; font-family: var(--font-headline);">Título del código</span>
-        </div>
-        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
-          ¿Estás seguro de que deseas eliminar este código 10? Se retirará de la guía oficial de comunicaciones policiales.
-        </p>
-      </div>
-      <div class="modal-footer-tactical">
-        <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm"
-          onclick="closeModal('modalDeleteTenCode')">
-          Cancelar
-        </button>
-        <button type="button" class="btn-tactical btn-tactical-danger btn-tactical-sm" id="btnConfirmDeleteTenCodeAction"
-          onclick="window._confirmDeleteTenCode()">
-          🗑️ Eliminar Código
         </button>
       </div>
     </div>

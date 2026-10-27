@@ -34,8 +34,7 @@ const K9_SYNC_KEYS = (typeof window !== 'undefined' && window.STORAGE_KEYS) || (
   EVENTS: 'k9_data_events',
   NOTIFICATIONS: 'k9_data_notifications',
   UNIFORMS: 'k9_data_uniforms',
-  MAP_MARKERS: 'k9_data_map_markers',
-  TEN_CODES: 'k9_data_ten_codes'
+  MAP_MARKERS: 'k9_data_map_markers'
 });
 
 class K9CloudSyncManager {
@@ -419,11 +418,6 @@ class K9CloudSyncManager {
       // 10. Manuales de Instrucción
       if (Array.isArray(remote.manuals) && remote.manuals.length > 0) {
         if (setIfChanged(K9_SYNC_KEYS.MANUALS, remote.manuals)) hasChanges = true;
-      }
-
-      // 10b. Códigos 10 Policiales y K9
-      if (Array.isArray(remote.ten_codes) && remote.ten_codes.length > 0) {
-        if (setIfChanged(K9_SYNC_KEYS.TEN_CODES, remote.ten_codes)) hasChanges = true;
       }
 
       // 11. Ascensos Oficiales

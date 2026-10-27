@@ -42,9 +42,6 @@ function renderGeneralSubnavTabs() {
     <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'manuales' ? 'active' : ''}" data-subtab="manuales">
       📖 Manuales & Adiestramiento
     </button>
-    <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'codigos' ? 'active' : ''}" data-subtab="codigos">
-      📻 Códigos 10 & Radio K9
-    </button>
     <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'galeria' ? 'active' : ''}" data-subtab="galeria">
       🐕 Plantilla de Canes K9
     </button>
@@ -539,8 +536,6 @@ function renderGeneralSubtab(subtab) {
     renderNormatives(contentEl);
   } else if (subtab === 'manuales') {
     renderManuals(contentEl);
-  } else if (subtab === 'codigos') {
-    renderTenCodesSection(contentEl);
   } else if (subtab === 'galeria') {
     renderCanineGallery(contentEl);
   } else if (subtab === 'chat') {
@@ -792,21 +787,10 @@ function renderNormatives(container) {
   const isJef = window.K9Auth.isJefaturaMember();
 
   container.innerHTML = `
-    <!-- Cabecera Oficial y Resumen Institucional K9 -->
-    <div style="background:linear-gradient(135deg, rgba(0, 229, 255, 0.08), rgba(16, 24, 43, 0.95)); border:1px solid rgba(0, 229, 255, 0.25); border-radius:14px; padding:1.25rem 1.5rem; margin-bottom:1.5rem; box-shadow:0 8px 24px rgba(0,0,0,0.3);">
-      <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.4rem;">
-        <span style="font-size:1.3rem;">⚖️</span>
-        <h4 style="font-family:var(--font-tactical); font-size:1.15rem; color:var(--police-cyan); margin:0; letter-spacing:0.04em;">MANUAL OFICIAL DE LA UNIDAD CANINA K9 · LSPD</h4>
-      </div>
-      <p style="font-size:0.88rem; color:var(--text-main); line-height:1.6; margin:0;">
-        Manual oficial de la Unidad Canina K9 del Los Santos Police Department (LSPD). Aquí encontrarás las normativas, la estructura de mando, los procedimientos operativos, los entrenamientos y las funciones de la unidad. Nuestro objetivo es mantener una división organizada, disciplinada y profesional, dedicada al apoyo policial y al buen desarrollo del roleplay en Los Santos.
-      </p>
-    </div>
-
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
       <div>
-        <h3 class="font-tactical" style="font-size:1.35rem; color:#fff;">REGLAMENTO GENERAL & MARCO NORMATIVO K9</h3>
-        <p style="font-size:0.85rem; color:var(--text-muted);">Protocolos oficiales, disciplina, cadena de mando y directrices de intervención canina</p>
+        <h3 class="font-tactical" style="font-size:1.35rem; color:#fff;">REGLAMENTO Y MARCO NORMATIVO K9</h3>
+        <p style="font-size:0.85rem; color:var(--text-muted);">Protocolos obligatorios de actuación, ética y uso proporcional de la fuerza canina</p>
       </div>
       ${isJef ? `
         <button class="btn-tactical btn-tactical-gold btn-tactical-sm" onclick="window.openNewNormativeModal()">
@@ -820,7 +804,7 @@ function renderNormatives(container) {
         <div style="background:var(--bg-surface); border:1px solid var(--border-tactical); border-radius:14px; padding:1.5rem; box-shadow:var(--shadow-elevation);">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem; border-bottom:1px solid var(--border-subtle); padding-bottom:0.5rem; flex-wrap:wrap; gap:0.5rem;">
             <h4 style="font-family:var(--font-headline); font-size:1.05rem; color:var(--tactical-gold); letter-spacing:0.08em; margin:0;">
-              ${escapeHtml(norm.chapter)}
+              ${norm.chapter}
             </h4>
             ${isJef ? `
               <div style="display:flex; gap:0.4rem;">
@@ -835,13 +819,13 @@ function renderNormatives(container) {
           </div>
           <div style="display:flex; flex-direction:column; gap:1.15rem;">
             ${(norm.articles || []).map(art => `
-              <div style="background:rgba(0,0,0,0.3); border-left:3px solid var(--police-cyan); padding:0.95rem 1.25rem; border-radius:0 8px 8px 0;">
-                <div style="font-family:var(--font-tactical); font-size:0.92rem; font-weight:700; color:#fff; margin-bottom:0.45rem;">
-                  <span style="color:var(--police-cyan); margin-right:0.3rem;">${escapeHtml(art.num)}</span> — ${escapeHtml(art.title)}
+              <div style="background:rgba(0,0,0,0.3); border-left:3px solid var(--police-cyan); padding:0.85rem 1.15rem; border-radius:0 8px 8px 0;">
+                <div style="font-family:var(--font-tactical); font-size:0.88rem; font-weight:700; color:#fff; margin-bottom:0.35rem;">
+                  <span style="color:var(--police-cyan); margin-right:0.3rem;">${art.num}</span> - ${art.title}
                 </div>
-                <div style="font-size:0.88rem; color:var(--text-muted); line-height:1.65; white-space:pre-line;">
-                  ${escapeHtml(art.text)}
-                </div>
+                <p style="font-size:0.88rem; color:var(--text-muted); line-height:1.6;">
+                  ${art.text}
+                </p>
               </div>
             `).join('')}
           </div>
@@ -855,7 +839,7 @@ window.openNewNormativeModal = function () {
   document.getElementById('normId').value = '';
   document.getElementById('modalNormativeTitle').innerHTML = '<span>⚖️</span> AÑADIR NUEVO CAPÍTULO NORMATIVO';
   document.getElementById('normChapter').value = '';
-  document.getElementById('normArticlesRaw').value = 'Artículo 1 | Objeto | El presente reglamento establece las bases operativas de la unidad...';
+  document.getElementById('normArticlesRaw').value = 'Art. 1 | Objeto | El presente reglamento establece las bases operativas de la unidad...';
   openModal('modalEditNormative');
 };
 
@@ -898,8 +882,8 @@ function renderManuals(container) {
   container.innerHTML = `
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
       <div>
-        <h3 class="font-tactical" style="font-size:1.35rem; color:#fff;">MANUALES, FUNCIONES Y GUÍAS OPERATIVAS K9</h3>
-        <p style="font-size:0.85rem; color:var(--text-muted);">Manual personal de adiestramiento, catálogo de funciones y guía práctica de intervenciones</p>
+        <h3 class="font-tactical" style="font-size:1.35rem; color:#fff;">MANUALES Y GUÍAS DE ADIESTRAMIENTO K9</h3>
+        <p style="font-size:0.85rem; color:var(--text-muted);">Vocabulario de comandos caninos, táctica de combate y soporte veterinario de emergencia</p>
       </div>
       ${isJef ? `
         <button class="btn-tactical btn-tactical-gold btn-tactical-sm" onclick="window.openNewManualModal()">
@@ -913,11 +897,11 @@ function renderManuals(container) {
         <div style="background:var(--bg-surface); border:1px solid var(--border-tactical); border-radius:14px; padding:1.5rem; box-shadow:var(--shadow-elevation);">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem; border-bottom:1px solid var(--border-subtle); padding-bottom:0.6rem; flex-wrap:wrap; gap:0.5rem;">
             <div style="display:flex; align-items:center; gap:0.6rem;">
-              <h4 style="font-family:var(--font-tactical); font-size:1.15rem; color:#fff; margin:0;">
-                ${escapeHtml(man.title)}
+              <h4 style="font-family:var(--font-tactical); font-size:1.1rem; color:#fff;">
+                ${man.title}
               </h4>
               <span style="font-family:var(--font-headline); font-size:0.75rem; color:var(--police-cyan); background:rgba(0,229,255,0.1); border:1px solid var(--border-tactical); padding:0.2rem 0.6rem; border-radius:20px; text-transform:uppercase;">
-                ${escapeHtml(man.category)}
+                ${man.category}
               </span>
             </div>
             ${isJef ? `
@@ -932,16 +916,14 @@ function renderManuals(container) {
             ` : ''}
           </div>
 
-          <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(340px, 1fr)); gap:1.25rem;">
+          <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:1rem;">
             ${(man.items || []).map(item => `
-              <div style="background:rgba(10,15,29,0.85); border:1px solid var(--border-subtle); border-radius:12px; padding:1.25rem; transition:all 0.2s; box-shadow:0 4px 12px rgba(0,0,0,0.25);" onmouseenter="this.style.borderColor='var(--police-cyan)'; this.style.transform='translateY(-2px)'" onmouseleave="this.style.borderColor='var(--border-subtle)'; this.style.transform='none'">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem; flex-wrap:wrap; gap:0.4rem;">
-                  <span style="font-family:var(--font-tactical); font-size:1.05rem; font-weight:700; color:var(--tactical-gold);">${escapeHtml(item.command)}</span>
-                  <span style="font-family:var(--font-headline); font-size:0.72rem; color:var(--police-cyan); background:rgba(0,229,255,0.08); border:1px solid rgba(0,229,255,0.25); padding:0.15rem 0.55rem; border-radius:12px; text-transform:uppercase;">${escapeHtml(item.trans)}</span>
+              <div style="background:rgba(10,15,29,0.8); border:1px solid var(--border-subtle); border-radius:10px; padding:1rem; transition:border-color 0.2s;" onmouseenter="this.style.borderColor='var(--police-cyan)'" onmouseleave="this.style.borderColor='var(--border-subtle)'">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+                  <span style="font-family:var(--font-tactical); font-size:1.1rem; font-weight:700; color:var(--tactical-gold);">${item.command}</span>
+                  <span style="font-family:var(--font-headline); font-size:0.78rem; color:var(--text-muted); text-transform:uppercase;">[${item.trans}]</span>
                 </div>
-                <div style="font-size:0.85rem; color:var(--text-muted); line-height:1.6; white-space:pre-line;">
-                  ${escapeHtml(item.desc)}
-                </div>
+                <p style="font-size:0.82rem; color:var(--text-muted); line-height:1.4;">${item.desc}</p>
               </div>
             `).join('')}
           </div>
@@ -991,282 +973,6 @@ window._confirmDeleteManual = function () {
   if (window.K9CloudSync) window.K9CloudSync.push();
   showToast('Manual de adiestramiento eliminado', 'info');
   renderManuals(document.getElementById('generalSubtabContent'));
-};
-
-// ==========================================
-// CÓDIGOS 10 POLICIALES & PROTOCOLOS DE RADIO K9
-// ==========================================
-let currentTenCodeCategory = 'TODOS';
-let currentTenCodeSearch = '';
-
-window.setTenCodeCategoryFilter = function (cat) {
-  currentTenCodeCategory = cat;
-  const c = document.getElementById('generalSubtabContent');
-  if (c) renderTenCodesSection(c);
-};
-
-window.onTenCodeSearchInput = function (val) {
-  currentTenCodeSearch = (val || '').toLowerCase().trim();
-  const c = document.getElementById('generalSubtabContent');
-  if (c) renderTenCodesSection(c);
-};
-
-window.copyTenCodeToClipboard = function (codeText) {
-  if (!codeText) return;
-  navigator.clipboard.writeText(codeText).then(() => {
-    showToast(`Código ${codeText} copiado al portapapeles`, 'success');
-  }).catch(() => {
-    showToast(`Código: ${codeText}`, 'info');
-  });
-};
-
-window.copyTenCodeRadioToClipboard = function (radioText) {
-  if (!radioText) return;
-  navigator.clipboard.writeText(radioText).then(() => {
-    showToast(`Transmisión de radio copiada`, 'success');
-  }).catch(() => {
-    showToast(`Radio copiada`, 'info');
-  });
-};
-
-function renderTenCodesSection(container) {
-  if (!container) return;
-  const isJef = window.K9Auth.isJefaturaMember ? window.K9Auth.isJefaturaMember() : false;
-  const allCodes = window.K9Store.getTenCodes ? window.K9Store.getTenCodes() : [];
-
-  const CATEGORIES = [
-    { id: 'TODOS', label: 'Todos los Códigos' },
-    { id: 'K9', label: '🐾 Específicos K9' },
-    { id: 'Patrulla', label: '🚓 Estados de Patrulla' },
-    { id: 'Operativos', label: '⚡ Operativos' },
-    { id: 'Emergencias', label: '🚨 Emergencias' }
-  ];
-
-  let filtered = allCodes.filter(c => {
-    if (currentTenCodeCategory !== 'TODOS' && c.category !== currentTenCodeCategory) {
-      return false;
-    }
-    if (currentTenCodeSearch) {
-      const q = currentTenCodeSearch;
-      const inCode = (c.code || '').toLowerCase().includes(q);
-      const inTitle = (c.title || '').toLowerCase().includes(q);
-      const inMeaning = (c.meaning || '').toLowerCase().includes(q);
-      const inRadio = (c.radio || '').toLowerCase().includes(q);
-      const inCat = (c.category || '').toLowerCase().includes(q);
-      return inCode || inTitle || inMeaning || inRadio || inCat;
-    }
-    return true;
-  });
-
-  const getCatBadgeHtml = (cat) => {
-    if (cat === 'K9') {
-      return `<span style="font-family:var(--font-headline); font-size:0.72rem; color:var(--police-cyan); background:rgba(0,229,255,0.12); border:1px solid rgba(0,229,255,0.3); padding:0.2rem 0.6rem; border-radius:12px; letter-spacing:0.04em;">🐾 ESPECIAL K9</span>`;
-    } else if (cat === 'Emergencias') {
-      return `<span style="font-family:var(--font-headline); font-size:0.72rem; color:#ff2a5f; background:rgba(255,42,95,0.12); border:1px solid rgba(255,42,95,0.35); padding:0.2rem 0.6rem; border-radius:12px; letter-spacing:0.04em; font-weight:700;">🚨 PRIORITARIO</span>`;
-    } else if (cat === 'Patrulla') {
-      return `<span style="font-family:var(--font-headline); font-size:0.72rem; color:var(--tactical-gold); background:rgba(255,183,3,0.12); border:1px solid rgba(255,183,3,0.3); padding:0.2rem 0.6rem; border-radius:12px; letter-spacing:0.04em;">🚓 PATRULLA</span>`;
-    } else {
-      return `<span style="font-family:var(--font-headline); font-size:0.72rem; color:#a259ff; background:rgba(114,9,183,0.15); border:1px solid rgba(114,9,183,0.4); padding:0.2rem 0.6rem; border-radius:12px; letter-spacing:0.04em;">⚡ OPERATIVO</span>`;
-    }
-  };
-
-  container.innerHTML = `
-    <!-- Cabecera Oficial Códigos 10 -->
-    <div style="background:linear-gradient(135deg, rgba(0, 229, 255, 0.08), rgba(16, 24, 43, 0.95)); border:1px solid rgba(0, 229, 255, 0.25); border-radius:14px; padding:1.25rem 1.5rem; margin-bottom:1.5rem; box-shadow:0 8px 24px rgba(0,0,0,0.3);">
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem;">
-        <div>
-          <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.4rem;">
-            <span style="font-size:1.3rem;">📻</span>
-            <h4 style="font-family:var(--font-tactical); font-size:1.15rem; color:var(--police-cyan); margin:0; letter-spacing:0.04em;">
-              GUÍA RÁPIDA DE CÓDIGOS 10 POLICIALES & PROTOCOLOS DE RADIO K9
-            </h4>
-          </div>
-          <p style="font-size:0.88rem; color:var(--text-main); line-height:1.6; margin:0; max-width:850px;">
-            Catálogo oficial de comunicaciones radiales del Departamento de Policía. Incluye los códigos 10 específicos de la División Canina (despliegue, marcajes de sustancias, mordidas y auxilio veterinario) y la fraseología reglamentaria en patrulla.
-          </p>
-        </div>
-        ${isJef ? `
-          <button class="btn-tactical btn-tactical-gold btn-tactical-sm" onclick="window.openNewTenCodeModal()" style="white-space:nowrap;">
-            <span>+</span> Añadir Código 10
-          </button>
-        ` : `
-          <span style="font-size:0.75rem; padding:0.35rem 0.7rem; border-radius:6px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.25); color:var(--police-cyan); font-family:var(--font-headline); white-space:nowrap;">
-            🔒 Frecuencia K9 · Oficial
-          </span>
-        `}
-      </div>
-    </div>
-
-    <!-- Barra de Búsqueda y Filtros de Categoría -->
-    <div style="display:flex; flex-direction:column; gap:0.75rem; margin-bottom:1.75rem; background:rgba(16,24,43,0.7); border:1px solid var(--border-tactical); padding:1rem 1.25rem; border-radius:12px;">
-      <div style="position:relative;">
-        <input type="text" id="tenCodeSearchInput" class="form-input-tactical" 
-          value="${escapeHtml(currentTenCodeSearch)}" 
-          placeholder="🔍 Buscar código (ej: 10-15K, 10-33, mordida, sustancias, patrulla)..."
-          oninput="window.onTenCodeSearchInput(this.value)"
-          style="padding-left:1rem; font-size:0.9rem;">
-        ${currentTenCodeSearch ? `
-          <button type="button" onclick="window.onTenCodeSearchInput('');" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1rem;">✕</button>
-        ` : ''}
-      </div>
-
-      <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; padding-top:0.25rem;">
-        <span style="font-family:var(--font-headline); font-size:0.72rem; color:var(--text-muted); letter-spacing:0.06em; margin-right:0.25rem;">CATEGORÍAS:</span>
-        ${CATEGORIES.map(cat => {
-          const isActive = currentTenCodeCategory === cat.id;
-          return `
-            <button type="button" class="ann-filter-tag-btn" onclick="window.setTenCodeCategoryFilter('${cat.id}')"
-              style="background:${isActive ? 'rgba(0,229,255,0.2)' : 'rgba(255,255,255,0.04)'}; border:1px solid ${isActive ? 'var(--police-cyan)' : 'rgba(255,255,255,0.1)'}; color:${isActive ? '#00e5ff' : 'var(--text-muted)'}; font-family:var(--font-headline); font-size:0.75rem; padding:0.25rem 0.65rem; border-radius:6px; cursor:pointer; transition:all 0.15s;">
-              ${cat.label}
-            </button>
-          `;
-        }).join('')}
-      </div>
-    </div>
-
-    <!-- Grid de Códigos 10 -->
-    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(350px, 1fr)); gap:1.25rem;">
-      ${filtered.length === 0 ? `
-        <div style="grid-column: 1 / -1; text-align:center; padding:3rem 1rem; background:rgba(16,24,43,0.5); border:1px dashed var(--border-tactical); border-radius:12px; color:var(--text-muted);">
-          <div style="font-size:2rem; margin-bottom:0.5rem;">📻</div>
-          <div style="font-size:1rem; color:#fff; font-family:var(--font-headline); margin-bottom:0.25rem;">No se encontraron códigos 10 con ese criterio</div>
-          <div style="font-size:0.8rem;">Prueba con otra palabra clave o selecciona "Todos los Códigos".</div>
-        </div>
-      ` : filtered.map(c => `
-        <div style="background:var(--bg-surface); border:1px solid ${c.category === 'K9' ? 'rgba(0,229,255,0.3)' : c.category === 'Emergencias' ? 'var(--border-danger)' : 'var(--border-subtle)'}; border-radius:12px; padding:1.25rem; display:flex; flex-direction:column; justify-content:space-between; box-shadow:0 6px 18px rgba(0,0,0,0.25); transition:transform 0.2s, border-color 0.2s;" onmouseenter="this.style.transform='translateY(-2px)'" onmouseleave="this.style.transform='none'">
-          <div>
-            <!-- Fila Superior: Código y Categoría -->
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; flex-wrap:wrap; gap:0.4rem;">
-              <div style="display:flex; align-items:center; gap:0.6rem;">
-                <span style="font-family:var(--font-tactical); font-size:1.35rem; font-weight:800; color:${c.category === 'Emergencias' ? '#ff3b30' : c.category === 'K9' ? 'var(--police-cyan)' : 'var(--tactical-gold)'}; letter-spacing:0.05em;">
-                  ${escapeHtml(c.code)}
-                </span>
-                ${getCatBadgeHtml(c.category)}
-              </div>
-              ${isJef ? `
-                <div style="display:flex; gap:0.35rem; align-items:center;">
-                  <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="window.editTenCode('${c.id}')" title="Editar código" style="font-size:0.75rem; padding:0.2rem 0.5rem;">
-                    ✏️
-                  </button>
-                  <button class="btn-tactical btn-tactical-sm" onclick="window.deleteTenCode('${c.id}')" style="background:rgba(255,59,48,0.12); border:1px solid rgba(255,59,48,0.4); color:#ff5252; font-size:0.75rem; padding:0.2rem 0.5rem;" title="Eliminar código">
-                    🗑️
-                  </button>
-                </div>
-              ` : ''}
-            </div>
-
-            <!-- Título del Código -->
-            <h5 style="font-family:var(--font-tactical); font-size:1.02rem; color:#fff; margin:0 0 0.5rem 0; line-height:1.35;">
-              ${escapeHtml(c.title)}
-            </h5>
-
-            <!-- Significado Operativo -->
-            <p style="font-size:0.84rem; color:var(--text-muted); line-height:1.55; margin:0 0 0.85rem 0;">
-              ${escapeHtml(c.meaning)}
-            </p>
-
-            <!-- Modulación de Radio Reglamentaria -->
-            ${c.radio ? `
-              <div style="background:rgba(0,0,0,0.4); border-left:3px solid ${c.category === 'K9' ? 'var(--police-cyan)' : c.category === 'Emergencias' ? '#ff2a5f' : 'var(--tactical-gold)'}; padding:0.6rem 0.75rem; border-radius:0 8px 8px 0; margin-bottom:1rem;">
-                <div style="font-family:var(--font-headline); font-size:0.68rem; color:var(--text-subtle); letter-spacing:0.05em; margin-bottom:0.25rem;">
-                  📻 TRANSMISIÓN REGLAMENTARIA:
-                </div>
-                <div style="font-size:0.83rem; color:var(--text-main); font-style:italic; line-height:1.45;">
-                  ${escapeHtml(c.radio)}
-                </div>
-              </div>
-            ` : ''}
-          </div>
-
-          <!-- Botones de Acción Rápida -->
-          <div style="display:flex; gap:0.5rem; border-top:1px solid var(--border-subtle); padding-top:0.75rem; flex-wrap:wrap;">
-            <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="window.copyTenCodeToClipboard('${escapeHtml(c.code)}')" style="flex:1; font-size:0.75rem; padding:0.35rem 0.5rem; justify-content:center;">
-              📋 Copiar Código
-            </button>
-            ${c.radio ? `
-              <button type="button" class="btn-tactical btn-tactical-sm" onclick="window.copyTenCodeRadioToClipboard('${escapeHtml(c.radio)}')" style="background:rgba(0,229,255,0.08); border:1px solid rgba(0,229,255,0.25); color:var(--police-cyan); font-size:0.75rem; padding:0.35rem 0.5rem; justify-content:center;">
-                📻 Copiar Radio
-              </button>
-            ` : ''}
-          </div>
-        </div>
-      `).join('')}
-    </div>
-  `;
-
-  const sInput = document.getElementById('tenCodeSearchInput');
-  if (sInput && currentTenCodeSearch) {
-    sInput.focus();
-    sInput.setSelectionRange(sInput.value.length, sInput.value.length);
-  }
-}
-
-window.openNewTenCodeModal = function () {
-  if (!window.K9Auth.isJefaturaMember()) {
-    showToast('⚠️ Permiso denegado: Solo Jefatura puede añadir códigos 10', 'warning');
-    return;
-  }
-  document.getElementById('tenCodeId').value = '';
-  document.getElementById('modalTenCodeTitle').innerHTML = '<span>📻</span> AÑADIR NUEVO CÓDIGO 10 POLICIAL';
-  document.getElementById('tenCodeCode').value = '';
-  document.getElementById('tenCodeCategory').value = 'K9';
-  document.getElementById('tenCodeName').value = '';
-  document.getElementById('tenCodeMeaning').value = '';
-  document.getElementById('tenCodeRadio').value = '';
-  openModal('modalEditTenCode');
-};
-
-window.editTenCode = function (id) {
-  if (!window.K9Auth.isJefaturaMember()) {
-    showToast('⚠️ Permiso denegado: Solo Jefatura puede editar códigos 10', 'warning');
-    return;
-  }
-  const codes = window.K9Store.getTenCodes ? window.K9Store.getTenCodes() : [];
-  const c = codes.find(x => x.id === id);
-  if (!c) return;
-  document.getElementById('tenCodeId').value = c.id;
-  document.getElementById('modalTenCodeTitle').innerHTML = '<span>✏️</span> EDITAR CÓDIGO 10 POLICIAL';
-  document.getElementById('tenCodeCode').value = c.code || '';
-  document.getElementById('tenCodeCategory').value = c.category || 'K9';
-  document.getElementById('tenCodeName').value = c.title || '';
-  document.getElementById('tenCodeMeaning').value = c.meaning || '';
-  document.getElementById('tenCodeRadio').value = c.radio || '';
-  openModal('modalEditTenCode');
-};
-
-window.deleteTenCode = function (id) {
-  if (!window.K9Auth.isJefaturaMember()) {
-    showToast('⚠️ Permiso denegado: Solo Jefatura puede eliminar códigos 10', 'warning');
-    return;
-  }
-  const codes = window.K9Store.getTenCodes ? window.K9Store.getTenCodes() : [];
-  const c = codes.find(x => x.id === id);
-  if (!c) return;
-  window._pendingDeleteTenCodeId = id;
-  const codeEl = document.getElementById('delTenCodeCode');
-  const titleEl = document.getElementById('delTenCodeTitle');
-  if (codeEl) codeEl.textContent = c.code;
-  if (titleEl) titleEl.textContent = c.title;
-  openModal('modalDeleteTenCode');
-};
-
-window._confirmDeleteTenCode = function () {
-  if (!window.K9Auth.isJefaturaMember()) {
-    showToast('⚠️ Permiso denegado: Solo Jefatura puede eliminar códigos 10', 'warning');
-    return;
-  }
-  const id = window._pendingDeleteTenCodeId;
-  if (!id) return;
-  closeModal('modalDeleteTenCode');
-  const codes = (window.K9Store.getTenCodes ? window.K9Store.getTenCodes() : []).filter(x => x.id !== id);
-  window.K9Store.saveTenCodes(codes);
-  if (window.K9CloudSync) window.K9CloudSync.push();
-  if (window.K9Webhook) {
-    window.K9Webhook.log('bulletin', 'Código 10 Eliminado', `Se ha eliminado un código de la guía de transmisiones.`);
-  }
-  showToast('Código 10 retirado y eliminado de la guía', 'info');
-  const c = document.getElementById('generalSubtabContent');
-  if (c) renderTenCodesSection(c);
 };
 
 function userHasRank(u) {
