@@ -1310,24 +1310,39 @@ window._confirmDeletePromotion = function () {
 function renderDecorationsSection(container) {
   const badges = window.K9Store.getBadges();
   const users = window.K9Store.getUsers();
+  const currentUser = window.K9Auth ? window.K9Auth.getCurrentUser() : null;
+  const isJef = currentUser ? (currentUser.isJefatura || (currentUser.permissions && currentUser.permissions.includes('*'))) : false;
 
   container.innerHTML = `
-    <div style="margin-bottom:1.5rem;">
-      <h3 class="font-tactical" style="font-size:1.35rem; color:#fff;">MEDALLERO DE HONOR & CONDECORACIONES K9</h3>
-      <p style="font-size:0.85rem; color:var(--text-muted);">Registro de condecoraciones, cruces al mérito y distintivos concedidos a los agentes de la unidad</p>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
+      <div>
+        <h3 class="font-tactical" style="font-size:1.35rem; color:#fff;">MEDALLERO DE HONOR & CONDECORACIONES K9</h3>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin:0;">Registro de condecoraciones, cruces al mérito y distintivos concedidos a los agentes de la unidad (${badges.length} activas)</p>
+      </div>
+      ${isJef ? `
+        <button class="btn-tactical btn-tactical-gold btn-tactical-sm" onclick="window.openCreateBadgeModal()">
+          <span>🎖️</span> + Crear Nueva Condecoración
+        </button>
+      ` : ''}
     </div>
 
     <div style="display:flex; flex-direction:column; gap:1.75rem;">
       ${badges.map(b => {
         const recipients = users.filter(u => (u.badges || []).includes(b.id));
         return `
-          <div style="background:var(--bg-surface); border:1px solid var(--border-gold); border-radius:14px; padding:1.5rem; box-shadow:var(--shadow-elevation);">
+          <div style="background:var(--bg-surface); border:1px solid ${b.ribbonColor ? b.ribbonColor + '55' : 'var(--border-gold)'}; border-radius:14px; padding:1.5rem; box-shadow:var(--shadow-elevation);">
             <div style="display:flex; gap:1.25rem; align-items:flex-start; flex-wrap:wrap; margin-bottom:1.25rem;">
               <img src="${b.image || 'assets/images/medal_valor.jpg'}" style="width:75px; height:75px; object-fit:contain; filter:drop-shadow(0 4px 12px rgba(255,183,3,0.3)); cursor:pointer;" alt="${b.name}" onclick="window.inspectBadgeModal('${b.id}', 'Honores K9')">
               <div style="flex:1; min-width:260px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.3rem;">
                   <h4 class="font-gobold" style="font-size:1.25rem; color:#fff;">${b.name}</h4>
-                  <span style="font-family:var(--font-headline); font-size:0.75rem; color:var(--tactical-gold); background:rgba(255,183,3,0.15); border:1px solid var(--tactical-gold); padding:0.2rem 0.6rem; border-radius:20px; text-transform:uppercase;">${b.category}</span>
+                  <div style="display:flex; gap:0.5rem; align-items:center;">
+                    <span style="font-family:var(--font-headline); font-size:0.75rem; color:${b.ribbonColor || 'var(--tactical-gold)'}; background:rgba(255,183,3,0.15); border:1px solid ${b.ribbonColor || 'var(--tactical-gold)'}; padding:0.2rem 0.6rem; border-radius:20px; text-transform:uppercase;">${b.category}</span>
+                    ${isJef ? `
+                      <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="window.openEditBadgeModal('${b.id}')" title="Editar condecoración" style="padding:0.2rem 0.55rem; font-size:0.75rem;">✏️ Editar</button>
+                      <button class="btn-tactical btn-tactical-sm" onclick="window.deleteBadge('${b.id}')" title="Eliminar condecoración" style="padding:0.2rem 0.55rem; font-size:0.75rem; background:rgba(255,82,82,0.15); border:1px solid rgba(255,82,82,0.4); color:#ff5252;">🗑️</button>
+                    ` : ''}
+                  </div>
                 </div>
                 <p style="font-size:0.88rem; color:var(--text-muted); line-height:1.5;">${b.desc}</p>
               </div>
@@ -3774,34 +3789,45 @@ function renderBadgesSection(container) {
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem; flex-wrap:wrap; gap:1rem;">
       <div>
         <h4 class="font-tactical" style="font-size:1.15rem; color:#fff;">CATÁLOGO DE CONDECORACIONES K9</h4>
-        <p style="font-size:0.85rem; color:var(--text-muted); margin:0;">Medallas e insignias oficiales al valor, peritaje y especialidad táctica</p>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin:0;">Medallas e insignias oficiales al valor, peritaje y especialidad táctica (${badges.length} registradas)</p>
       </div>
+      <button class="btn-tactical btn-tactical-gold btn-tactical-sm" onclick="window.openCreateBadgeModal()">
+        <span>🎖️</span> + Crear Nueva Condecoración
+      </button>
     </div>
 
     <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:1.25rem;">
       ${badges.map(b => {
     const awardedCount = users.filter(u => u.badges && u.badges.includes(b.id)).length;
     return `
-          <div style="background:var(--bg-surface); border:1px solid var(--border-tactical); border-radius:14px; padding:1.25rem; display:flex; flex-direction:column; justify-content:space-between; box-shadow:var(--shadow-elevation);">
+          <div style="background:var(--bg-surface); border:1px solid ${b.ribbonColor ? b.ribbonColor + '55' : 'var(--border-tactical)'}; border-radius:14px; padding:1.25rem; display:flex; flex-direction:column; justify-content:space-between; box-shadow:var(--shadow-elevation);">
             <div>
               <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.75rem;">
-                <div style="width:52px; height:52px; border-radius:8px; overflow:hidden; border:1px solid var(--border-gold); background:#000;">
-                  <img src="${b.image}" alt="${b.name}" style="width:100%; height:100%; object-fit:contain;">
+                <div style="width:52px; height:52px; border-radius:8px; overflow:hidden; border:2px solid ${b.ribbonColor || 'var(--border-gold)'}; background:#000; padding:2px; flex-shrink:0;">
+                  <img src="${b.image || 'assets/images/medal_valor.jpg'}" alt="${b.name}" style="width:100%; height:100%; object-fit:contain;" onerror="this.src='assets/images/emblem.jpg'">
                 </div>
                 <div>
-                  <h5 style="font-family:var(--font-tactical); font-size:0.95rem; color:#fff; line-height:1.2;">${b.name}</h5>
-                  <span style="font-family:var(--font-headline); font-size:0.75rem; color:var(--tactical-gold);">${b.category}</span>
+                  <h5 style="font-family:var(--font-tactical); font-size:0.95rem; color:#fff; line-height:1.2; margin:0 0 0.2rem 0;">${b.name}</h5>
+                  <span style="font-family:var(--font-headline); font-size:0.75rem; color:${b.ribbonColor || 'var(--tactical-gold)'}; text-transform:uppercase; letter-spacing:0.05em;">${b.category}</span>
                 </div>
               </div>
               <p style="font-size:0.82rem; color:var(--text-muted); line-height:1.4; margin-bottom:1rem;">
                 ${b.desc}
               </p>
             </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-subtle); padding-top:0.75rem; font-size:0.78rem;">
-              <span style="color:var(--text-subtle);">Otorgada a: <strong style="color:var(--police-cyan);">${awardedCount} miembros</strong></span>
-              <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="window.openAwardBadgePrefilled('${b.id}')">
-                Otorgar
-              </button>
+            <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-subtle); padding-top:0.75rem; font-size:0.78rem; gap:0.4rem; flex-wrap:wrap;">
+              <span style="color:var(--text-subtle);">Otorgada: <strong style="color:var(--police-cyan);">${awardedCount}</strong></span>
+              <div style="display:flex; gap:0.35rem; align-items:center;">
+                <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="window.openAwardBadgePrefilled('${b.id}')" title="Otorgar a un agente" style="font-size:0.72rem; padding:0.3rem 0.6rem;">
+                  🎖️ Otorgar
+                </button>
+                <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="window.openEditBadgeModal('${b.id}')" title="Editar condecoración" style="font-size:0.75rem; padding:0.3rem 0.55rem;">
+                  ✏️
+                </button>
+                <button class="btn-tactical btn-tactical-sm" onclick="window.deleteBadge('${b.id}')" title="Eliminar condecoración" style="font-size:0.75rem; padding:0.3rem 0.55rem; background:rgba(255,82,82,0.15); border:1px solid rgba(255,82,82,0.4); color:#ff5252;">
+                  🗑️
+                </button>
+              </div>
             </div>
           </div>
         `;
@@ -3860,6 +3886,374 @@ window.openAwardBadgePrefilled = function (badgeId) {
   openModal('modalAwardBadge');
   const sel = document.getElementById('awardBadgeSelect');
   if (sel) sel.value = badgeId;
+};
+
+// ─── Modal para Crear y Editar Condecoraciones ───
+window.openCreateBadgeModal = function () {
+  window.openBadgeEditorModal(null);
+};
+
+window.openEditBadgeModal = function (badgeId) {
+  const badges = window.K9Store.getBadges();
+  const badge = badges.find(b => b.id === badgeId);
+  if (!badge) {
+    showToast('No se encontró la condecoración.', 'warning');
+    return;
+  }
+  window.openBadgeEditorModal(badge);
+};
+
+window.openBadgeEditorModal = function (badgeToEdit = null) {
+  const isEdit = !!badgeToEdit;
+  const currentBadge = badgeToEdit || {
+    id: '',
+    name: '',
+    category: 'Máximo Honor',
+    desc: '',
+    image: 'assets/images/medal_valor.jpg',
+    ribbonColor: '#ffd166'
+  };
+
+  const existing = document.getElementById('modalBadgeEditor');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'modalBadgeEditor';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(5,9,20,0.85);backdrop-filter:blur(6px);z-index:10000;display:flex;align-items:center;justify-content:center;padding:1rem;animation:fadeIn 0.18s ease;';
+
+  overlay.innerHTML = `
+    <div style="background:linear-gradient(135deg,#0d1424,#111827);border:1px solid rgba(255,183,3,0.35);border-radius:14px;padding:2rem;width:100%;max-width:540px;box-shadow:0 25px 60px rgba(0,0,0,0.8);position:relative;max-height:90vh;overflow-y:auto;">
+      <button id="closeBadgeEditorModal" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:#64748b;font-size:1.4rem;cursor:pointer;line-height:1;">&times;</button>
+      
+      <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem;">
+        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,rgba(255,183,3,0.2),rgba(0,229,255,0.2));border:1px solid var(--tactical-gold);display:flex;align-items:center;justify-content:center;font-size:1.3rem;">🎖️</div>
+        <div>
+          <h3 style="margin:0;color:#fff;font-family:var(--font-tactical);font-size:1.1rem;letter-spacing:0.04em;">${isEdit ? 'EDITAR CONDECORACIÓN' : 'NUEVA CONDECORACIÓN OFICIAL'}</h3>
+          <p style="margin:0;font-size:0.78rem;color:var(--text-muted);">${isEdit ? 'Modificar datos e insignia en el catálogo' : 'Crear insignia o medalla para la Unidad K9'}</p>
+        </div>
+      </div>
+
+      <!-- Preview de la Medalla -->
+      <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:1.25rem;background:rgba(0,0,0,0.3);padding:1rem;border-radius:10px;border:1px solid rgba(255,255,255,0.06);">
+        <div id="badgeEditorPreviewBox" style="width:78px;height:78px;border-radius:12px;border:2px solid ${currentBadge.ribbonColor || '#ffd166'};background:#000;padding:6px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(255,183,3,0.3);transition:all 0.2s;">
+          <img id="badgeEditorPreviewImg" src="${currentBadge.image || 'assets/images/medal_valor.jpg'}" alt="Preview" style="width:100%;height:100%;object-fit:contain;" onerror="this.src='assets/images/emblem.jpg'">
+        </div>
+        <span id="badgeEditorPreviewName" style="font-family:var(--font-tactical);font-size:0.95rem;color:#fff;margin-top:0.5rem;text-align:center;">${escapeHtml(currentBadge.name || 'Nombre de la Condecoración')}</span>
+        <span id="badgeEditorPreviewCategory" style="font-family:var(--font-headline);font-size:0.72rem;color:${currentBadge.ribbonColor || '#ffd166'};text-transform:uppercase;letter-spacing:0.06em;">${escapeHtml(currentBadge.category)}</span>
+      </div>
+
+      <!-- Nombre -->
+      <div style="margin-bottom:1rem;">
+        <label style="display:block;font-family:var(--font-headline);font-size:0.72rem;color:var(--tactical-gold);letter-spacing:0.06em;margin-bottom:0.35rem;">NOMBRE DE LA CONDECORACIÓN *</label>
+        <input type="text" id="badgeEditorName" value="${escapeHtml(currentBadge.name || '')}" placeholder="Ej: Cruz al Mérito Policial K9" required style="width:100%;padding:0.6rem 0.8rem;background:rgba(10,14,23,0.85);border:1px solid var(--border-tactical);border-radius:6px;color:#fff;font-family:var(--font-headline);font-size:0.92rem;box-sizing:border-box;">
+      </div>
+
+      <!-- Categoría y Color -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1rem;">
+        <div>
+          <label style="display:block;font-family:var(--font-headline);font-size:0.72rem;color:var(--tactical-gold);letter-spacing:0.06em;margin-bottom:0.35rem;">CATEGORÍA</label>
+          <select id="badgeEditorCategory" style="width:100%;padding:0.55rem 0.75rem;background:rgba(10,14,23,0.85);border:1px solid var(--border-tactical);border-radius:6px;color:#fff;font-family:var(--font-headline);font-size:0.85rem;box-sizing:border-box;">
+            <option value="Máximo Honor" ${currentBadge.category === 'Máximo Honor' ? 'selected' : ''}>🎖️ Máximo Honor</option>
+            <option value="Especialidad" ${currentBadge.category === 'Especialidad' ? 'selected' : ''}>⭐ Especialidad</option>
+            <option value="Operativa" ${currentBadge.category === 'Operativa' ? 'selected' : ''}>⚔️ Operativa</option>
+            <option value="Técnica" ${currentBadge.category === 'Técnica' ? 'selected' : ''}>🎯 Técnica</option>
+            <option value="Médica" ${currentBadge.category === 'Médica' ? 'selected' : ''}>🩺 Médica</option>
+            <option value="Jefatura" ${currentBadge.category === 'Jefatura' ? 'selected' : ''}>👑 Jefatura</option>
+            <option value="Servicio & Lealtad" ${currentBadge.category === 'Servicio & Lealtad' ? 'selected' : ''}>🛡️ Servicio & Lealtad</option>
+            <option value="Mención Especial" ${currentBadge.category === 'Mención Especial' ? 'selected' : ''}>📜 Mención Especial</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block;font-family:var(--font-headline);font-size:0.72rem;color:var(--tactical-gold);letter-spacing:0.06em;margin-bottom:0.35rem;">COLOR DISTINTIVO / CINTA</label>
+          <div style="display:flex;align-items:center;gap:0.5rem;">
+            <input type="color" id="badgeEditorColor" value="${currentBadge.ribbonColor || '#ffd166'}" style="width:40px;height:38px;border:1px solid var(--border-tactical);border-radius:6px;background:none;cursor:pointer;padding:2px;">
+            <input type="text" id="badgeEditorColorHex" value="${currentBadge.ribbonColor || '#ffd166'}" style="flex:1;padding:0.5rem 0.6rem;background:rgba(10,14,23,0.85);border:1px solid var(--border-tactical);border-radius:6px;color:#fff;font-family:var(--font-mono);font-size:0.82rem;box-sizing:border-box;">
+          </div>
+        </div>
+      </div>
+
+      <!-- Imagen -->
+      <div style="margin-bottom:1rem;">
+        <label style="display:block;font-family:var(--font-headline);font-size:0.72rem;color:var(--tactical-gold);letter-spacing:0.06em;margin-bottom:0.35rem;">IMAGEN / ICONO DE LA CONDECORACIÓN</label>
+        <input type="text" id="badgeEditorImage" value="${currentBadge.image && !currentBadge.image.startsWith('data:') ? escapeHtml(currentBadge.image) : ''}" placeholder="URL HTTPS de la imagen o subir archivo..." style="width:100%;padding:0.5rem 0.75rem;background:rgba(10,14,23,0.85);border:1px solid var(--border-tactical);border-radius:6px;color:#fff;font-family:var(--font-headline);font-size:0.85rem;box-sizing:border-box;">
+        <div style="display:flex;gap:0.4rem;margin-top:0.45rem;flex-wrap:wrap;align-items:center;">
+          <input type="file" id="badgeEditorFileInput" accept="image/*" style="display:none;">
+          <button type="button" id="btnBadgeEditorUpload" class="btn-tactical btn-tactical-outline btn-tactical-sm" style="font-size:0.72rem;padding:0.25rem 0.6rem;">📁 Subir imagen</button>
+          <button type="button" class="badge-preset-btn" data-img="assets/images/medal_valor.jpg" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:5px;color:#e2e8f0;font-size:0.72rem;padding:0.25rem 0.55rem;cursor:pointer;">🥇 Medalla Oro</button>
+          <button type="button" class="badge-preset-btn" data-img="assets/images/emblem.jpg" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:5px;color:#e2e8f0;font-size:0.72rem;padding:0.25rem 0.55rem;cursor:pointer;">🛡️ Emblema K9</button>
+          <button type="button" class="badge-preset-btn" data-img="assets/images/hero_dog.jpg" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:5px;color:#e2e8f0;font-size:0.72rem;padding:0.25rem 0.55rem;cursor:pointer;">🐕 Can K9</button>
+        </div>
+        <div id="badgeEditorFileStatus" style="font-size:0.7rem;color:var(--police-cyan);margin-top:0.35rem;display:none;"></div>
+      </div>
+
+      <!-- Descripción / Criterio -->
+      <div style="margin-bottom:1.5rem;">
+        <label style="display:block;font-family:var(--font-headline);font-size:0.72rem;color:var(--tactical-gold);letter-spacing:0.06em;margin-bottom:0.35rem;">CRITERIO DE CONCESIÓN / DESCRIPCIÓN *</label>
+        <textarea id="badgeEditorDesc" rows="3" placeholder="Describe el acto, mérito o requisitos necesarios para que un agente reciba esta distinción..." required style="width:100%;padding:0.6rem 0.8rem;background:rgba(10,14,23,0.85);border:1px solid var(--border-tactical);border-radius:6px;color:#fff;font-family:var(--font-headline);font-size:0.85rem;box-sizing:border-box;resize:vertical;">${escapeHtml(currentBadge.desc || '')}</textarea>
+      </div>
+
+      <div style="display:flex;gap:0.75rem;">
+        <button id="cancelBadgeEditor" type="button" class="btn-tactical btn-tactical-outline" style="flex:1;justify-content:center;">Cancelar</button>
+        <button id="confirmBadgeEditor" type="button" class="btn-tactical btn-tactical-gold" style="flex:1;justify-content:center;">💾 ${isEdit ? 'Guardar Cambios' : 'Crear Condecoración'}</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const previewBox = document.getElementById('badgeEditorPreviewBox');
+  const previewImg = document.getElementById('badgeEditorPreviewImg');
+  const previewName = document.getElementById('badgeEditorPreviewName');
+  const previewCategory = document.getElementById('badgeEditorPreviewCategory');
+
+  const nameInput = document.getElementById('badgeEditorName');
+  const catInput = document.getElementById('badgeEditorCategory');
+  const colorInput = document.getElementById('badgeEditorColor');
+  const colorHexInput = document.getElementById('badgeEditorColorHex');
+  const imgInput = document.getElementById('badgeEditorImage');
+  const fileInput = document.getElementById('badgeEditorFileInput');
+  const uploadBtn = document.getElementById('btnBadgeEditorUpload');
+  const fileStatus = document.getElementById('badgeEditorFileStatus');
+  const descInput = document.getElementById('badgeEditorDesc');
+
+  let selectedDataUrl = currentBadge.image && currentBadge.image.startsWith('data:') ? currentBadge.image : null;
+
+  // Actualizaciones en vivo
+  nameInput.addEventListener('input', () => {
+    previewName.textContent = nameInput.value.trim() || 'Nombre de la Condecoración';
+  });
+
+  catInput.addEventListener('change', () => {
+    previewCategory.textContent = catInput.value;
+  });
+
+  const updateColor = (hex) => {
+    colorInput.value = hex;
+    colorHexInput.value = hex;
+    previewBox.style.borderColor = hex;
+    previewBox.style.boxShadow = `0 0 20px ${hex}55`;
+    previewCategory.style.color = hex;
+  };
+  colorInput.addEventListener('input', () => updateColor(colorInput.value));
+  colorHexInput.addEventListener('input', () => {
+    if (/^#[0-9A-Fa-f]{6}$/.test(colorHexInput.value)) updateColor(colorHexInput.value);
+  });
+
+  imgInput.addEventListener('input', () => {
+    selectedDataUrl = null;
+    fileStatus.style.display = 'none';
+    const val = imgInput.value.trim();
+    previewImg.src = val || 'assets/images/medal_valor.jpg';
+  });
+
+  uploadBtn.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      showToast('Selecciona un archivo de imagen válido.', 'warning');
+      return;
+    }
+    if (file.size > 3 * 1024 * 1024) {
+      showToast('La imagen supera el límite de 3MB.', 'warning');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      selectedDataUrl = ev.target.result;
+      previewImg.src = selectedDataUrl;
+      imgInput.value = '';
+      fileStatus.textContent = '✓ Archivo cargado: ' + file.name;
+      fileStatus.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  overlay.querySelectorAll('.badge-preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedDataUrl = null;
+      fileStatus.style.display = 'none';
+      imgInput.value = btn.dataset.img;
+      previewImg.src = btn.dataset.img;
+    });
+  });
+
+  // Cerrar modal
+  const closeModal = () => overlay.remove();
+  document.getElementById('closeBadgeEditorModal').addEventListener('click', closeModal);
+  document.getElementById('cancelBadgeEditor').addEventListener('click', closeModal);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+
+  // Guardar condecoración
+  document.getElementById('confirmBadgeEditor').addEventListener('click', () => {
+    const finalName = nameInput.value.trim();
+    const finalDesc = descInput.value.trim();
+    const finalCat = catInput.value;
+    const finalColor = colorHexInput.value.trim() || '#ffd166';
+    let finalImg = selectedDataUrl || imgInput.value.trim();
+    if (!finalImg) finalImg = 'assets/images/medal_valor.jpg';
+
+    if (!finalName) {
+      showToast('Introduce el nombre de la condecoración.', 'warning');
+      nameInput.focus();
+      return;
+    }
+    if (!finalDesc) {
+      showToast('Introduce el criterio o descripción de la condecoración.', 'warning');
+      descInput.focus();
+      return;
+    }
+
+    const badges = window.K9Store.getBadges();
+
+    if (isEdit) {
+      const idx = badges.findIndex(b => b.id === currentBadge.id);
+      if (idx !== -1) {
+        badges[idx] = {
+          ...badges[idx],
+          name: finalName,
+          category: finalCat,
+          desc: finalDesc,
+          image: finalImg,
+          ribbonColor: finalColor
+        };
+      }
+    } else {
+      const newId = 'badge_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 6);
+      badges.push({
+        id: newId,
+        name: finalName,
+        category: finalCat,
+        desc: finalDesc,
+        image: finalImg,
+        ribbonColor: finalColor
+      });
+    }
+
+    window.K9Store.save(STORAGE_KEYS.BADGES, badges);
+    if (window.K9CloudSync) window.K9CloudSync.push();
+
+    if (window.K9Webhook) {
+      const admin = window.K9Auth.getCurrentUser();
+      if (admin) {
+        window.K9Webhook.sendLog({
+          title: isEdit ? '🎖️ Condecoración K9 Modificada' : '🎖️ Nueva Condecoración Registrada',
+          color: 0xfbbf24,
+          fields: [
+            { name: 'Mando', value: `${admin.name} (${admin.placa})`, inline: true },
+            { name: 'Condecoración', value: finalName, inline: true },
+            { name: 'Categoría', value: finalCat, inline: true }
+          ]
+        });
+      }
+    }
+
+    if (window.K9Audio) window.K9Audio.playTacticalBeep(1200, 0.12);
+    showToast(`Condecoración "${finalName}" ${isEdit ? 'actualizada' : 'creada'} con éxito`, 'success');
+    closeModal();
+
+    if (typeof currentView !== 'undefined') {
+      if (currentView === 'jefatura') renderJefaturaSubtab('insignias');
+      else if (currentView === 'general') renderGeneralSubtab('insignias');
+    }
+  });
+};
+
+// ─── Eliminar Condecoración del Catálogo ───
+window.deleteBadge = function (badgeId) {
+  const badges = window.K9Store.getBadges();
+  const badge = badges.find(b => b.id === badgeId);
+  if (!badge) return;
+
+  const users = window.K9Store.getUsers();
+  const affectedUsers = users.filter(u => u.badges && u.badges.includes(badgeId));
+
+  const existing = document.getElementById('modalDeleteBadge');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'modalDeleteBadge';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(5,9,20,0.85);backdrop-filter:blur(6px);z-index:10001;display:flex;align-items:center;justify-content:center;padding:1rem;animation:fadeIn 0.18s ease;';
+
+  overlay.innerHTML = `
+    <div style="background:linear-gradient(135deg,#0d1424,#1a0a0a);border:1px solid rgba(255,59,48,0.35);border-radius:14px;padding:2rem;width:100%;max-width:440px;box-shadow:0 25px 60px rgba(0,0,0,0.8);text-align:center;">
+      <div style="font-size:2.5rem;margin-bottom:0.75rem;">🗑️</div>
+      <h3 style="margin:0 0 0.5rem;color:#ff5252;font-family:var(--font-tactical);font-size:1.15rem;">ELIMINAR CONDECORACIÓN</h3>
+      <div style="display:flex;align-items:center;justify-content:center;gap:0.75rem;margin:1rem 0;background:rgba(0,0,0,0.35);padding:0.75rem;border-radius:8px;border:1px solid rgba(255,255,255,0.06);">
+        <img src="${badge.image || 'assets/images/emblem.jpg'}" style="width:40px;height:40px;object-fit:contain;" onerror="this.src='assets/images/emblem.jpg'">
+        <div style="text-align:left;">
+          <strong style="color:#fff;display:block;font-size:0.95rem;">${escapeHtml(badge.name)}</strong>
+          <span style="font-size:0.75rem;color:var(--tactical-gold);">${badge.category}</span>
+        </div>
+      </div>
+      <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1.5rem;line-height:1.5;">
+        ¿Estás seguro de que deseas eliminar permanentemente esta condecoración del catálogo?<br>
+        ${affectedUsers.length > 0 ? `<strong style="color:#ff5252;display:block;margin-top:0.4rem;">⚠️ Se retirará automáticamente de los ${affectedUsers.length} agente(s) que la poseen.</strong>` : '<span style="color:var(--text-subtle);">Ningún agente posee actualmente esta medalla.</span>'}
+      </p>
+      <div style="display:flex;gap:0.75rem;">
+        <button id="cancelDeleteBadge" type="button" class="btn-tactical btn-tactical-outline" style="flex:1;justify-content:center;">Cancelar</button>
+        <button id="confirmDeleteBadge" type="button" class="btn-tactical" style="flex:1;justify-content:center;background:#ff3b30;color:#fff;font-weight:700;">Eliminar Condecoración</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const closeModal = () => overlay.remove();
+  document.getElementById('cancelDeleteBadge').addEventListener('click', closeModal);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+
+  document.getElementById('confirmDeleteBadge').addEventListener('click', () => {
+    // 1. Eliminar de la lista de condecoraciones
+    const newBadges = badges.filter(b => b.id !== badgeId);
+    window.K9Store.save(STORAGE_KEYS.BADGES, newBadges);
+
+    // 2. Retirar de todos los usuarios
+    let usersUpdated = false;
+    users.forEach(u => {
+      if (u.badges && u.badges.includes(badgeId)) {
+        u.badges = u.badges.filter(id => id !== badgeId);
+        usersUpdated = true;
+      }
+    });
+    if (usersUpdated) {
+      window.K9Store.save(STORAGE_KEYS.USERS, users);
+      const currentUser = window.K9Auth ? window.K9Auth.getCurrentUser() : null;
+      if (currentUser && currentUser.badges && currentUser.badges.includes(badgeId)) {
+        currentUser.badges = currentUser.badges.filter(id => id !== badgeId);
+        window.K9Store.save(STORAGE_KEYS.CURRENT_USER, currentUser);
+      }
+    }
+
+    // 3. Sincronizar en la nube
+    if (window.K9CloudSync) window.K9CloudSync.push();
+
+    // 4. Webhook log
+    if (window.K9Webhook) {
+      const admin = window.K9Auth.getCurrentUser();
+      if (admin) {
+        window.K9Webhook.sendLog({
+          title: '🗑️ Condecoración Eliminada del Catálogo',
+          color: 0xff3b30,
+          fields: [
+            { name: 'Mando', value: `${admin.name} (${admin.placa})`, inline: true },
+            { name: 'Condecoración', value: badge.name, inline: true },
+            { name: 'Agentes Afectados', value: affectedUsers.length.toString(), inline: true }
+          ]
+        });
+      }
+    }
+
+    if (window.K9Audio) window.K9Audio.playTacticalBeep(600, 0.15);
+    showToast(`Condecoración "${badge.name}" eliminada correctamente`, 'info');
+    closeModal();
+
+    // Refrescar vistas
+    if (typeof currentView !== 'undefined') {
+      if (currentView === 'jefatura') renderJefaturaSubtab('insignias');
+      else if (currentView === 'general') renderGeneralSubtab('insignias');
+    }
+  });
 };
 
 // -------------------------------------------------------------

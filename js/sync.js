@@ -439,6 +439,11 @@ class K9CloudSyncManager {
         if (setIfChanged(K9_SYNC_KEYS.AGENT_PRESETS, mergedPresets)) hasChanges = true;
       }
 
+      // 11c. Condecoraciones e Insignias Oficiales
+      if (Array.isArray(remote.badges) && remote.badges.length > 0) {
+        if (setIfChanged(K9_SYNC_KEYS.BADGES, remote.badges)) hasChanges = true;
+      }
+
       // 12. Logs tácticos internos
       if (Array.isArray(remote.logs)) {
         if (setIfChanged(K9_SYNC_KEYS.LOGS, remote.logs)) hasChanges = true;
