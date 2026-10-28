@@ -43,7 +43,16 @@ function renderGeneralSubnavTabs() {
       📖 Manuales & Adiestramiento
     </button>
     <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'galeria' ? 'active' : ''}" data-subtab="galeria">
-      🐕 Plantilla de Canes K9
+
+    </button>
+    <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'examen' ? 'active' : ''}" data-subtab="examen">
+      🎓 Test de Acceso K9 (Art. 10/11)
+    </button>
+    <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'examen' ? 'active' : ''}" data-subtab="examen">
+      🎓 Test de Acceso K9 (Art. 10/11)
+    </button>
+
+
     </button>
     <button class="subnav-pill-btn general-subnav-btn ${currentGeneralSubtab === 'anuncios' ? 'active' : ''}" data-subtab="anuncios">
       ${hasAccess ? '📢 Anuncios de Jefatura' : '🔒 Anuncios de Jefatura'}
@@ -85,6 +94,9 @@ function setupNavigation() {
   });
 
   renderGeneralSubnavTabs();
+  if (typeof window.renderDutyHudSwitch === 'function') {
+    window.renderDutyHudSwitch();
+  }
 
   // Subtabs de Jefatura (Informes, Agentes, Canes, Disciplinario, Insignias, Permisos)
   document.querySelectorAll('.jefatura-subnav-btn').forEach(btn => {
@@ -121,6 +133,9 @@ function switchMainView(viewName) {
     renderGeneralSubnavTabs();
     renderGeneralSubtab(currentGeneralSubtab);
     updateLiveCounters();
+    if (typeof window.renderLiveBinomiosWidget === 'function') {
+      window.renderLiveBinomiosWidget();
+    }
     if (typeof renderHomeTaskSummaryWidget === 'function') {
       renderHomeTaskSummaryWidget();
     }
@@ -278,7 +293,7 @@ function getTacticalNoRankBlockedHtml(user, sectionName, sectionDesc) {
           ⚖️ Ver Normativas Oficiales
         </button>
         <button class="btn-tactical btn-tactical-gold btn-tactical-sm" onclick="switchGeneralSubtab('galeria')">
-          🐕 Plantilla de Canes K9
+    
         </button>
       </div>
     </div>
@@ -546,6 +561,10 @@ function renderGeneralSubtab(subtab) {
     renderPromotionsSection(contentEl);
   } else if (subtab === 'condecoraciones') {
     renderDecorationsSection(contentEl);
+  } else if (subtab === 'examen') {
+    if (typeof window.renderK9ExamSection === 'function') {
+      window.renderK9ExamSection(contentEl);
+    }
   }
 }
 
@@ -1562,7 +1581,7 @@ function renderMemberProfile() {
             ⚖️ Ver Normativas Oficiales
           </button>
           <button class="btn-tactical btn-tactical-gold btn-tactical-sm" onclick="switchGeneralSubtab('galeria')">
-            🐕 Plantilla de Canes K9
+      
           </button>
         </div>
       </div>
@@ -1689,7 +1708,13 @@ function renderMemberProfile() {
             </div>
             <div class="id-spec-row">
               <span class="id-spec-label">HORAS DE PATRULLA:</span>
-              <span class="id-spec-value">${user.patrolHoursTotal || 0} hrs</span>
+              <span class="id-spec-value" style="color:var(--police-cyan); font-weight:700;">${user.patrolHoursTotal || 0} hrs (${(user.patrolMinutesTotal || 0) % 60} min)</span>
+            </div>
+            <div class="id-spec-row">
+              <span class="id-spec-label">HABILITACIÓN TEÓRICA K9:</span>
+              <span class="id-spec-value" style="color:${user.k9TheoryCert ? '#ffd166' : '#ff9800'}; font-weight:700;">
+                ${user.k9TheoryCert ? `✅ Acreditado [${user.k9TheoryCert.certCode}]` : '⏳ Pendiente (Art. 10/11)'}
+              </span>
             </div>
             <div class="id-spec-row">
               <span class="id-spec-label">INTERVENCIONES CANINAS:</span>
@@ -1793,6 +1818,50 @@ function renderMemberProfile() {
               </div>
             `;
     })()}
+        </div>
+
+        <!-- Tarjeta Oficial de Habilitación Teórica K9 (Capítulo III · Art. 10 y 11) -->
+        <div style="background:linear-gradient(135deg, rgba(16,24,43,0.95), rgba(8,14,26,0.95)); border:1px solid ${user.k9TheoryCert ? 'rgba(255,209,102,0.4)' : 'rgba(0,229,255,0.25)'}; border-radius:14px; padding:1.25rem 1.5rem; margin-bottom:1.5rem; box-shadow:0 8px 24px rgba(0,0,0,0.5);">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:0.75rem; margin-bottom:0.85rem;">
+            <div style="display:flex; align-items:center; gap:0.6rem;">
+              <span style="font-size:1.3rem;">🎓</span>
+              <div>
+                <h3 class="font-tactical" style="font-size:1.05rem; color:#fff; margin:0;">HABILITACIÓN TEÓRICA K9 · CAPÍTULO III</h3>
+                <span style="font-family:var(--font-headline); font-size:0.72rem; color:${user.k9TheoryCert ? '#ffd166' : 'var(--text-muted)'}; letter-spacing:0.06em;">SELECCIÓN Y FORMACIÓN NORMATIVA (ART. 10 Y 11)</span>
+              </div>
+            </div>
+            <span class="badge-pill" style="background:${user.k9TheoryCert ? 'rgba(255,209,102,0.15)' : 'rgba(255,152,0,0.15)'}; color:${user.k9TheoryCert ? '#ffd166' : '#ff9800'}; border:1px solid ${user.k9TheoryCert ? 'rgba(255,209,102,0.4)' : 'rgba(255,152,0,0.4)'}; padding:0.25rem 0.65rem; font-size:0.75rem; border-radius:12px; font-weight:700;">
+              ${user.k9TheoryCert ? 'ACREDITADO OPERATIVO' : 'EVALUACIÓN PENDIENTE'}
+            </span>
+          </div>
+
+          ${user.k9TheoryCert ? `
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+              <div>
+                <div style="color:#fff; font-size:0.9rem;">Certificado Oficial: <strong style="color:var(--police-cyan); font-family:var(--font-tactical);">${user.k9TheoryCert.certCode}</strong></div>
+                <div style="color:var(--text-muted); font-size:0.78rem; margin-top:2px;">
+                  Emitido el ${user.k9TheoryCert.passedDate} con calificación <strong style="color:#00e676;">${user.k9TheoryCert.score}/${user.k9TheoryCert.totalQuestions}</strong> (${user.k9TheoryCert.scorePercent}%)
+                </div>
+              </div>
+              <div style="display:flex; gap:0.5rem;">
+                <button type="button" class="btn-tactical btn-tactical-gold btn-tactical-sm" onclick="window.openK9CertificateModal()">
+                  <span>🏅</span> Ver Mi Certificado
+                </button>
+                <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="window.openK9ExamModal('exam_acceso_k9')">
+                  <span>🔄</span> Repetir Test
+                </button>
+              </div>
+            </div>
+          ` : `
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+              <p style="color:var(--text-muted); font-size:0.84rem; margin:0; max-width:550px; line-height:1.5;">
+                Para obtener la acreditación oficial de guía canino debes superar el cuestionario interactivo de 10 preguntas sobre el reglamento, simulacros y ética policial (mínimo 8/10).
+              </p>
+              <button type="button" class="btn-tactical btn-tactical-primary btn-tactical-sm" onclick="window.openK9ExamModal('exam_acceso_k9')">
+                <span>📝</span> Realizar Test de Acceso (10 Preguntas)
+              </button>
+            </div>
+          `}
         </div>
 
         <!-- Vitrina de Insignias y Condecoraciones Otorgadas -->
@@ -2004,6 +2073,12 @@ function checkJefaturaAccessAndRender() {
       </button>
       <button class="subnav-pill-btn jefatura-subnav ${currentJefaturaSubtab === 'insignias' ? 'active' : ''}" data-subtab="insignias">
         🎖️ Gestor de Insignias
+      </button>
+      <button class="subnav-pill-btn jefatura-subnav ${currentJefaturaSubtab === 'patrullas' ? 'active' : ''}" data-subtab="patrullas">
+        ⏱️ Patrullajes & Horas K9
+      </button>
+      <button class="subnav-pill-btn jefatura-subnav ${currentJefaturaSubtab === 'examen_k9' ? 'active' : ''}" data-subtab="examen_k9">
+        📝 Test de Acceso K9 (Art. 10/11)
       </button>
       <button class="subnav-pill-btn jefatura-subnav ${currentJefaturaSubtab === 'permisos' ? 'active' : ''}" data-subtab="permisos">
         🔐 Control de Permisos
@@ -4445,6 +4520,12 @@ function renderJefaturaSubtab(subtab) {
   else if (subtab === 'canes') renderDogsSection(container);
   else if (subtab === 'disciplinario') renderDisciplinarySection(container);
   else if (subtab === 'insignias') renderBadgesSection(container);
+  else if (subtab === 'patrullas') {
+    if (typeof window.renderJefaturaPatrolsSection === 'function') window.renderJefaturaPatrolsSection(container);
+  }
+  else if (subtab === 'examen_k9') {
+    if (typeof window.renderJefaturaExamManagerSection === 'function') window.renderJefaturaExamManagerSection(container);
+  }
   else if (subtab === 'permisos') renderPermissionsSection(container);
   else if (subtab === 'logs') renderLogsSection(container);
 }
@@ -8212,6 +8293,47 @@ function refreshMapMarkers() {
     marker.bindPopup(popupHtml, { maxWidth: 340, className: 'tactical-popup-wrapper' });
     window.k9MapMarkersGroup.addLayer(marker);
     window._k9MapMarkerInstances[m.id] = marker;
+  });
+
+  // Renderizar Binomios Activos en Patrulla en Leaflet
+  const activePatrols = window.K9Store ? window.K9Store.getActivePatrols() : [];
+  activePatrols.forEach(p => {
+    const elapsed = Date.now() - p.startTime;
+    const pIcon = L.divIcon({
+      className: 'tactical-custom-map-icon',
+      html: `
+        <div class="tactical-marker-pin" style="border-color:#00e676; box-shadow:0 0 16px #00e676; background:rgba(0,230,118,0.25);">
+          <span style="font-size:16px;">🐕</span>
+        </div>
+      `,
+      iconSize: [38, 38],
+      iconAnchor: [19, 19],
+      popupAnchor: [0, -19]
+    });
+
+    const pMarker = L.marker([p.lat, p.lng], { icon: pIcon });
+    const pPopup = `
+      <div class="tactical-leaflet-popup-card" style="min-width:270px; font-family:var(--font-tactical);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+          <span style="font-size:0.7rem; color:#00e676; background:rgba(0,230,118,0.15); border:1px solid #00e676; padding:0.15rem 0.5rem; border-radius:4px; font-weight:700;">
+            🟢 BINOMIO EN SERVICIO ACTIVO
+          </span>
+          <span style="font-size:0.72rem; color:#00e676;" data-patrol-timer-id="${p.id}">
+            ⏱️ ${typeof window.formatPatrolTime === 'function' ? window.formatPatrolTime(elapsed) : ''}
+          </span>
+        </div>
+        <h4 style="font-family:var(--font-headline); font-size:1.1rem; color:#fff; margin:0 0 0.35rem 0;">
+          ${escapeHtml(p.agentName)} [${escapeHtml(p.agentPlaca)}]
+        </h4>
+        <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.5rem;">
+          <div>🐕 <strong>Can:</strong> ${escapeHtml(p.dogName)} (${escapeHtml(p.dogBreed)})</div>
+          <div>📍 <strong>Sector:</strong> ${escapeHtml(p.sector)}</div>
+          <div>⏰ <strong>Inicio:</strong> ${new Date(p.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</div>
+        </div>
+      </div>
+    `;
+    pMarker.bindPopup(pPopup, { maxWidth: 320, className: 'tactical-popup-wrapper' });
+    window.k9MapMarkersGroup.addLayer(pMarker);
   });
 
   renderMapMarkersSidebarList(filtered, isJef);

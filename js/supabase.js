@@ -311,7 +311,11 @@ class K9SupabaseManager {
           events: (window.K9Store.getRawEvents ? window.K9Store.getRawEvents() : (window.K9Store.get(k.EVENTS) || [])),
           notifications: (window.K9Store.getRawNotifications ? window.K9Store.getRawNotifications() : (window.K9Store.get(k.NOTIFICATIONS) || [])),
           uniforms: (window.K9Store.getUniforms ? window.K9Store.getUniforms() : (window.K9Store.get(k.UNIFORMS) || [])),
-          mapMarkers: (window.K9Store.getMapMarkers ? window.K9Store.getMapMarkers() : (window.K9Store.get(k.MAP_MARKERS) || []))
+          mapMarkers: (window.K9Store.getMapMarkers ? window.K9Store.getMapMarkers() : (window.K9Store.get(k.MAP_MARKERS) || [])),
+          activePatrols: (window.K9Store.getActivePatrols ? window.K9Store.getActivePatrols() : (window.K9Store.get(k.ACTIVE_PATROLS) || [])),
+          patrolSessions: (window.K9Store.getPatrolSessions ? window.K9Store.getPatrolSessions() : (window.K9Store.get(k.PATROL_SESSIONS) || [])),
+          exams: (window.K9Store.getExams ? window.K9Store.getExams() : (window.K9Store.get(k.EXAMS) || [])),
+          examSubmissions: (window.K9Store.getExamSubmissions ? window.K9Store.getExamSubmissions() : (window.K9Store.get(k.EXAM_SUBMISSIONS) || []))
         };
       }
     }

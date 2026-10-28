@@ -34,7 +34,11 @@ const K9_SYNC_KEYS = (typeof window !== 'undefined' && window.STORAGE_KEYS) || (
   EVENTS: 'k9_data_events',
   NOTIFICATIONS: 'k9_data_notifications',
   UNIFORMS: 'k9_data_uniforms',
-  MAP_MARKERS: 'k9_data_map_markers'
+  MAP_MARKERS: 'k9_data_map_markers',
+  ACTIVE_PATROLS: 'k9_data_active_patrols',
+  PATROL_SESSIONS: 'k9_data_patrol_sessions',
+  EXAMS: 'k9_data_exams',
+  EXAM_SUBMISSIONS: 'k9_data_exam_submissions'
 });
 
 class K9CloudSyncManager {
@@ -124,6 +128,10 @@ class K9CloudSyncManager {
       notifications: (window.K9Store.getRawNotifications ? window.K9Store.getRawNotifications() : (window.K9Store.get(K9_SYNC_KEYS.NOTIFICATIONS) || [])),
       uniforms: (window.K9Store.getUniforms ? window.K9Store.getUniforms() : (window.K9Store.get(K9_SYNC_KEYS.UNIFORMS) || [])),
       mapMarkers: (window.K9Store.getMapMarkers ? window.K9Store.getMapMarkers() : (window.K9Store.get(K9_SYNC_KEYS.MAP_MARKERS) || [])),
+      activePatrols: (window.K9Store.getActivePatrols ? window.K9Store.getActivePatrols() : (window.K9Store.get(K9_SYNC_KEYS.ACTIVE_PATROLS) || [])),
+      patrolSessions: (window.K9Store.getPatrolSessions ? window.K9Store.getPatrolSessions() : (window.K9Store.get(K9_SYNC_KEYS.PATROL_SESSIONS) || [])),
+      exams: (window.K9Store.getExams ? window.K9Store.getExams() : (window.K9Store.get(K9_SYNC_KEYS.EXAMS) || [])),
+      examSubmissions: (window.K9Store.getExamSubmissions ? window.K9Store.getExamSubmissions() : (window.K9Store.get(K9_SYNC_KEYS.EXAM_SUBMISSIONS) || [])),
       webhookUrl: localStorage.getItem('k9_webhook_url') || null
     };
   }
@@ -484,6 +492,31 @@ class K9CloudSyncManager {
             window.refreshMapMarkers();
           }
         }
+      }
+
+      // 19. Binomios Activos en Patrullaje K9 (Estado de Servicio en Vivo)
+      if (Array.isArray(remote.activePatrols)) {
+        if (setIfChanged(K9_SYNC_KEYS.ACTIVE_PATROLS, remote.activePatrols)) {
+          hasChanges = true;
+          if (typeof window.renderDutyHudSwitch === 'function') window.renderDutyHudSwitch();
+          if (typeof window.renderLiveBinomiosWidget === 'function') window.renderLiveBinomiosWidget();
+          if (typeof window.refreshMapMarkers === 'function') window.refreshMapMarkers();
+        }
+      }
+
+      // 20. Historial de Turnos y Patrullajes K9
+      if (Array.isArray(remote.patrolSessions)) {
+        if (setIfChanged(K9_SYNC_KEYS.PATROL_SESSIONS, remote.patrolSessions)) hasChanges = true;
+      }
+
+      // 21. Formularios y Preguntas de Examen K9 (Capítulo III)
+      if (Array.isArray(remote.exams) && remote.exams.length > 0) {
+        if (setIfChanged(K9_SYNC_KEYS.EXAMS, remote.exams)) hasChanges = true;
+      }
+
+      // 22. Registro de Evaluaciones y Certificados K9
+      if (Array.isArray(remote.examSubmissions)) {
+        if (setIfChanged(K9_SYNC_KEYS.EXAM_SUBMISSIONS, remote.examSubmissions)) hasChanges = true;
       }
 
       if (hasChanges) {

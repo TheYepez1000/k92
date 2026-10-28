@@ -2488,4 +2488,402 @@
   }
 }
 
+/* ==========================================================================
+   ESTADO DE SERVICIO EN VIVO (HUD TOGGLE & BINOMIOS EN PATRULLA K9)
+   ========================================================================== */
+
+.duty-hud-wrapper {
+  display: inline-flex;
+  align-items: center;
+}
+
+.tactical-duty-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  font-family: var(--font-headline);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+  user-select: none;
+}
+
+/* Estado 10-10: Inactivo */
+.tactical-duty-btn.duty-status-1010 {
+  background: rgba(255, 82, 82, 0.08);
+  border: 1px solid rgba(255, 82, 82, 0.35);
+  color: #ff8585;
+}
+
+.tactical-duty-btn.duty-status-1010:hover {
+  background: rgba(255, 82, 82, 0.18);
+  border-color: #ff5252;
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(255, 82, 82, 0.25);
+}
+
+/* Estado Activo: En Servicio con can */
+.tactical-duty-btn.duty-status-active {
+  background: rgba(0, 230, 118, 0.12);
+  border: 1px solid #00e676;
+  color: #00e676;
+  box-shadow: 0 0 16px rgba(0, 230, 118, 0.3), inset 0 0 8px rgba(0, 230, 118, 0.1);
+  animation: dutyPulseGlow 3s infinite ease-in-out;
+}
+
+.tactical-duty-btn.duty-status-active:hover {
+  background: rgba(0, 230, 118, 0.22);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 0 24px rgba(0, 230, 118, 0.5);
+}
+
+.duty-badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.duty-badge-dot.dot-red {
+  background: #ff5252;
+  box-shadow: 0 0 8px #ff5252;
+}
+
+.duty-badge-dot.dot-green {
+  background: #00e676;
+  box-shadow: 0 0 10px #00e676;
+}
+
+.duty-timer-chip {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(0, 230, 118, 0.4);
+  color: #fff;
+  font-family: var(--font-tactical);
+  font-size: 0.75rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 6px;
+  letter-spacing: 0.08em;
+}
+
+@keyframes dutyPulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(0, 230, 118, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 22px rgba(0, 230, 118, 0.6);
+  }
+}
+
+/* Widget Táctico de Binomios Patrullando en Vivo */
+.live-binomios-container {
+  background: linear-gradient(135deg, rgba(16, 24, 43, 0.95), rgba(8, 14, 26, 0.95));
+  border: 1px solid rgba(0, 229, 255, 0.25);
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.live-binomios-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.live-binomio-card {
+  background: rgba(13, 20, 36, 0.85);
+  border: 1px solid rgba(0, 230, 118, 0.35);
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.live-binomio-card:hover {
+  transform: translateY(-2px);
+  border-color: #00e676;
+  box-shadow: 0 6px 20px rgba(0, 230, 118, 0.2);
+}
+
+.live-binomio-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #00e676, #00e5ff);
+}
+
+.live-radar-dot {
+  width: 10px;
+  height: 10px;
+  background: #00e676;
+  border-radius: 50%;
+  position: relative;
+  box-shadow: 0 0 10px #00e676;
+}
+
+.live-radar-dot::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1px solid #00e676;
+  animation: radarWave 1.8s infinite ease-out;
+}
+
+@keyframes radarWave {
+  0% { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+
+/* ==========================================================================
+   TEST TEÓRICO DE ACCESO K9 & CERTIFICADOS OFICIALES (CAPÍTULO III)
+   ========================================================================== */
+
+.quiz-progress-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1.25rem;
+}
+
+.quiz-progress-bar-bg {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.quiz-progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--police-cyan), #00e676);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.quiz-question-box {
+  background: rgba(16, 24, 43, 0.85);
+  border: 1px solid var(--border-tactical);
+  border-radius: 14px;
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.quiz-question-title {
+  font-family: var(--font-headline);
+  font-size: 1.15rem;
+  color: #fff;
+  line-height: 1.45;
+  margin-bottom: 1.25rem;
+}
+
+.quiz-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.quiz-option-item {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 0.85rem 1.15rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.quiz-option-item:hover {
+  background: rgba(0, 229, 255, 0.08);
+  border-color: rgba(0, 229, 255, 0.4);
+  transform: translateX(3px);
+}
+
+.quiz-option-item.selected {
+  background: rgba(0, 229, 255, 0.15);
+  border-color: var(--police-cyan);
+  box-shadow: 0 0 14px rgba(0, 229, 255, 0.25);
+}
+
+.quiz-option-letter {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-tactical);
+  font-size: 0.82rem;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.quiz-option-item.selected .quiz-option-letter {
+  background: var(--police-cyan);
+  color: #000;
+}
+
+.quiz-option-text {
+  font-size: 0.9rem;
+  color: #e2e8f0;
+  line-height: 1.4;
+  flex: 1;
+}
+
+/* CERTIFICADO OFICIAL DE HABILITACIÓN K9 */
+.tactical-k9-certificate-card {
+  position: relative;
+  background: radial-gradient(circle at center, #0f1c30 0%, #080f1d 100%);
+  border: 2px solid #ffd166;
+  border-radius: 18px;
+  padding: 2.5rem 2.25rem;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(255, 209, 102, 0.2);
+  color: #fff;
+  text-align: center;
+  overflow: hidden;
+}
+
+.tactical-k9-certificate-card::after {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  border: 1px dashed rgba(255, 209, 102, 0.45);
+  border-radius: 12px;
+  pointer-events: none;
+}
+
+.cert-watermark-emblem {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 320px;
+  height: 320px;
+  opacity: 0.06;
+  pointer-events: none;
+  filter: grayscale(1);
+}
+
+.cert-header-gold {
+  font-family: var(--font-headline);
+  font-size: 0.85rem;
+  letter-spacing: 0.2em;
+  color: #ffd166;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.cert-main-title {
+  font-family: var(--font-headline);
+  font-size: 1.85rem;
+  color: #fff;
+  letter-spacing: 0.06em;
+  margin: 0 0 0.5rem 0;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+}
+
+.cert-sub-title {
+  font-family: var(--font-headline);
+  font-size: 0.82rem;
+  color: var(--police-cyan);
+  letter-spacing: 0.12em;
+  margin-bottom: 1.75rem;
+}
+
+.cert-recipient-name {
+  font-family: var(--font-headline);
+  font-size: 2.1rem;
+  color: #ffd166;
+  letter-spacing: 0.04em;
+  margin: 0.75rem 0 0.25rem 0;
+  text-shadow: 0 0 15px rgba(255, 209, 102, 0.35);
+}
+
+.cert-seal-stamp {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  border: 2px solid #ffd166;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #ffd166;
+  font-family: var(--font-tactical);
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  transform: rotate(-8deg);
+  box-shadow: 0 0 15px rgba(255, 209, 102, 0.3);
+  background: rgba(255, 209, 102, 0.05);
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #modalK9Cert,
+  #modalK9Cert * {
+    visibility: visible;
+  }
+  #modalK9Cert {
+    position: fixed;
+    inset: 0;
+    background: #fff !important;
+    display: block !important;
+  }
+  .tactical-modal-card {
+    border: none !important;
+    box-shadow: none !important;
+    max-width: 100% !important;
+    background: transparent !important;
+  }
+  .modal-header-tactical,
+  .cert-print-actions {
+    display: none !important;
+  }
+  .tactical-k9-certificate-card {
+    background: #fff !important;
+    color: #000 !important;
+    border: 3px double #b48608 !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+  }
+  .cert-main-title {
+    color: #1a202c !important;
+  }
+  .cert-recipient-name {
+    color: #975a16 !important;
+  }
+  .cert-sub-title,
+  .cert-header-gold {
+    color: #744210 !important;
+  }
+}
+    max-height: 400px !important;
+  }
+}
+
 

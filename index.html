@@ -1,4 +1,4 @@
-﻿</html>
+</html>
 <!DOCTYPE html>
 <html lang="es">
 
@@ -150,6 +150,9 @@
           </div>
         </div>
 
+        <!-- Interruptor Rápido de Estado de Servicio en Vivo K9 (Cod: En servicio con can / 10-10) -->
+        <div class="duty-hud-wrapper" id="k9DutyHudWrapper"></div>
+
         <div class="tactical-live-status" data-tooltip="Terminal Policial K9 · En Línea">
           <span class="pulse-dot dot-online" id="cloudSyncDot"></span>
           <span id="cloudSyncLabel">EN LÍNEA</span>
@@ -260,6 +263,9 @@
           </div>
         </div>
       </div>
+
+      <!-- Widget de Estado de Servicio en Vivo · Binomios K9 Patrullando en Los Santos -->
+      <div id="homeLiveBinomiosWidget" style="margin-bottom: 1.75rem;"></div>
 
       <!-- Resumen Táctico del Centro de Tareas del Agente -->
       <div id="homeTaskSummaryWidget" style="margin-bottom: 2rem;"></div>
@@ -1884,6 +1890,273 @@
     </div>
   </aside>
 
+  <!-- ====================================================================
+       MODALES DE PATRULLAJE EN VIVO Y TEST TEÓRICO K9
+       ==================================================================== -->
+
+  <!-- MODAL: INICIAR SERVICIO ACTIVO CON CAN -->
+  <div class="tactical-modal-overlay" id="modalStartPatrol">
+    <div class="tactical-modal-card" style="max-width: 520px;">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical">
+          <span style="color:var(--tactical-green);">🟢</span> ENTRAR EN SERVICIO CON CAN (CÓDIGO ACTIVO)
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalStartPatrol')">✕</button>
+      </div>
+      <form id="formStartPatrol" onsubmit="window.handleFormStartPatrol(event)">
+        <div class="modal-body-tactical">
+          <p style="font-size:0.86rem; color:var(--text-muted); margin:0;">
+            Al iniciar servicio, tu binomio se marcará como <strong>🟢 En servicio con can</strong> en el mapa de Los Santos y se contabilizarán en directo tus minutos y horas de patrullaje para el registro de Jefatura.
+          </p>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="patrolDogSelect">🐕 CAN K9 DE SERVICIO</label>
+            <select id="patrolDogSelect" class="form-input-tactical" required>
+              <!-- Rellenado dinámicamente -->
+            </select>
+          </div>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="patrolSectorSelect">📍 SECTOR / CUADRANTE DE PATRULLA</label>
+            <select id="patrolSectorSelect" class="form-input-tactical" required>
+              <option value="Central Los Santos (Mission Row)">Central Los Santos · Mission Row & Downtown</option>
+              <option value="Vinewood & Rockford Hills">Zona Norte · Vinewood, Rockford Hills & Observatorio</option>
+              <option value="South Central & Davis">Zona Sur · Davis, Strawberry & Rancho</option>
+              <option value="Vespucci & Del Perro">Zona Costera · Vespucci Canals & Del Perro Beach</option>
+              <option value="Sandy Shores & Grand Senora">Condado · Sandy Shores & Desierto Grand Senora</option>
+              <option value="Paleto Bay & Mount Chiliad">Norte Profundo · Paleto Bay & Monte Chiliad</option>
+              <option value="Puerto & Aeropuerto LSIA">Infraestructuras · Puerto de Los Santos & Aeropuerto LSIA</option>
+            </select>
+          </div>
+
+          <div style="background:rgba(0,230,118,0.08); border:1px solid rgba(0,230,118,0.25); border-radius:8px; padding:0.75rem; font-size:0.8rem; color:#a7f3d0; display:flex; gap:0.5rem; align-items:center;">
+            <span>⏱️</span>
+            <span>El contador de horas se iniciará de forma automática y se actualizará segundo a segundo.</span>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:0.5rem;">
+            <button type="button" class="btn-tactical btn-tactical-outline" onclick="closeModal('modalStartPatrol')">Cancelar</button>
+            <button type="submit" class="btn-tactical btn-tactical-primary" style="background:#00e676; border-color:#00e676; color:#000; font-weight:700;">
+              <span>🟢</span> Entrar en Servicio
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: FINALIZAR SERVICIO CON CAN (10-10) -->
+  <div class="tactical-modal-overlay" id="modalEndPatrol">
+    <div class="tactical-modal-card" style="max-width: 520px;">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical">
+          <span style="color:#ff5252;">🔴</span> FINALIZAR SERVICIO CON CAN (10-10)
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalEndPatrol')">✕</button>
+      </div>
+      <form id="formEndPatrol" onsubmit="window.handleFormEndPatrol(event)">
+        <div class="modal-body-tactical">
+          <div id="endPatrolSummaryBox" style="background:rgba(255,82,82,0.08); border:1px solid rgba(255,82,82,0.25); border-radius:10px; padding:1rem;">
+            <!-- Renderizado dinámicamente con tiempo transcurrido -->
+          </div>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="endPatrolNotes">📝 RESUMEN / NOVEDADES DEL SERVICIO (OPCIONAL)</label>
+            <textarea id="endPatrolNotes" class="form-input-tactical" rows="3" placeholder="Intervenciones realizadas, controles vehiculares, apoyo en búsquedas..."></textarea>
+          </div>
+
+          <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">
+            Al confirmar, las horas y minutos de este servicio se guardarán en tu expediente permanente y quedarán reflejadas para supervisión de Jefatura.
+          </p>
+
+          <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:0.5rem;">
+            <button type="button" class="btn-tactical btn-tactical-outline" onclick="closeModal('modalEndPatrol')">Continuar en Servicio</button>
+            <button type="submit" class="btn-tactical btn-tactical-danger" style="background:#ff5252; border-color:#ff5252; font-weight:700;">
+              <span>🔴</span> Confirmar 10-10 (Cerrar Servicio)
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: TEST INTERACTIVO DE ACCESO K9 (ART. 10 Y 11) -->
+  <div class="tactical-modal-overlay" id="modalK9Exam">
+    <div class="tactical-modal-card" style="max-width: 760px; max-height: 92vh;">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical">
+          <span>🎓</span> EVALUACIÓN TEÓRICA DE ACCESO K9 · CAPÍTULO III
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalK9Exam')">✕</button>
+      </div>
+      <div class="modal-body-tactical" id="k9ExamContentArea" style="padding: 1.5rem;">
+        <!-- Renderizado dinámicamente por app.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CERTIFICADO OFICIAL DE HABILITACIÓN TEÓRICA K9 -->
+  <div class="tactical-modal-overlay" id="modalK9Cert">
+    <div class="tactical-modal-card" style="max-width: 820px; max-height: 92vh;">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical">
+          <span style="color:var(--tactical-gold);">🏅</span> CERTIFICADO OFICIAL DE HABILITACIÓN TEÓRICA K9
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalK9Cert')">✕</button>
+      </div>
+      <div class="modal-body-tactical" id="k9CertContainer" style="padding: 1.5rem;">
+        <!-- Renderizado dinámicamente por app.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: EDITOR DE PREGUNTAS DEL EXAMEN (JEFATURA) -->
+  <div class="tactical-modal-overlay" id="modalEditExamQuestion">
+    <div class="tactical-modal-card" style="max-width: 660px;">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical" id="modalEditQuestionTitle">
+          <span>✏️</span> EDITAR PREGUNTA DEL EXAMEN
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalEditExamQuestion')">✕</button>
+      </div>
+      <form id="formEditQuestion" onsubmit="window.handleSaveExamQuestion(event)">
+        <input type="hidden" id="editQuestionId">
+        <input type="hidden" id="editQuestionExamId" value="exam_acceso_k9">
+        <div class="modal-body-tactical">
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="qText">ENUNCIADO DE LA PREGUNTA</label>
+            <textarea id="qText" class="form-input-tactical" rows="3" required placeholder="Escribe el texto de la pregunta reglamentaria..."></textarea>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:0.6rem;">
+            <label class="form-label-tactical">OPCIONES DE RESPUESTA & RESPUESTA CORRECTA</label>
+            
+            <div style="display:flex; align-items:center; gap:0.6rem;">
+              <input type="radio" name="correctOptRadio" id="radioOpt0" value="0" required>
+              <input type="text" id="optText0" class="form-input-tactical" placeholder="Opción A..." required>
+            </div>
+            <div style="display:flex; align-items:center; gap:0.6rem;">
+              <input type="radio" name="correctOptRadio" id="radioOpt1" value="1">
+              <input type="text" id="optText1" class="form-input-tactical" placeholder="Opción B..." required>
+            </div>
+            <div style="display:flex; align-items:center; gap:0.6rem;">
+              <input type="radio" name="correctOptRadio" id="radioOpt2" value="2">
+              <input type="text" id="optText2" class="form-input-tactical" placeholder="Opción C..." required>
+            </div>
+            <div style="display:flex; align-items:center; gap:0.6rem;">
+              <input type="radio" name="correctOptRadio" id="radioOpt3" value="3">
+              <input type="text" id="optText3" class="form-input-tactical" placeholder="Opción D..." required>
+            </div>
+          </div>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="qExplanation">EXPLICACIÓN REGLAMENTARIA / JUSTIFICACIÓN</label>
+            <textarea id="qExplanation" class="form-input-tactical" rows="2" placeholder="Explicación basada en los artículos del reglamento o manuales..."></textarea>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:0.5rem;">
+            <button type="button" class="btn-tactical btn-tactical-outline" onclick="closeModal('modalEditExamQuestion')">Cancelar</button>
+            <button type="submit" class="btn-tactical btn-tactical-gold">Guardar Pregunta</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: AJUSTES DEL FORMULARIO Y PERMISOS (JEFATURA) -->
+  <div class="tactical-modal-overlay" id="modalExamSettings">
+    <div class="tactical-modal-card" style="max-width: 640px;">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical">
+          <span>⚙️</span> AJUSTES DEL FORMULARIO Y GESTIÓN DE PERMISOS
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalExamSettings')">✕</button>
+      </div>
+      <form id="formExamSettings" onsubmit="window.handleSaveExamSettings(event)">
+        <input type="hidden" id="cfgExamId" value="exam_acceso_k9">
+        <div class="modal-body-tactical">
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="cfgExamTitle">TÍTULO DEL EXAMEN / FORMULARIO</label>
+            <input type="text" id="cfgExamTitle" class="form-input-tactical" required>
+          </div>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="cfgExamDesc">DESCRIPCIÓN & INSTRUCCIONES OFICIALES</label>
+            <textarea id="cfgExamDesc" class="form-input-tactical" rows="3" required></textarea>
+          </div>
+
+          <div class="form-row-2col" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="cfgMinScore">ACIERTOS PARA APROBAR (MÍNIMO)</label>
+              <input type="number" id="cfgMinScore" class="form-input-tactical" min="1" max="20" value="8" required>
+            </div>
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="cfgExamState">ESTADO DEL TEST</label>
+              <select id="cfgExamState" class="form-input-tactical">
+                <option value="true">Activo / Disponible</option>
+                <option value="false">Desactivado temporalmente</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="border-top:1px solid var(--border-subtle); padding-top:1rem; margin-top:0.5rem;">
+            <div style="font-family:var(--font-headline); font-size:0.85rem; color:var(--tactical-gold); letter-spacing:0.05em; margin-bottom:0.4rem;">
+              🔐 PERMISOS ESPECÍFICOS DE GESTIÓN Y EDICIÓN
+            </div>
+            <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:0.6rem;">
+              Jefatura siempre tiene acceso total. Puedes conceder autorización adicional a <strong>agentes en concreto</strong> (por ejemplo a un Instructor K9) para editar y gestionar este cuestionario:
+            </p>
+            <div id="examManagersCheckboxes" style="max-height:140px; overflow-y:auto; background:rgba(0,0,0,0.3); border:1px solid var(--border-subtle); border-radius:8px; padding:0.6rem; display:flex; flex-direction:column; gap:0.4rem;">
+              <!-- Rellenado dinámicamente -->
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:0.75rem;">
+            <button type="button" class="btn-tactical btn-tactical-outline" onclick="closeModal('modalExamSettings')">Cancelar</button>
+            <button type="submit" class="btn-tactical btn-tactical-primary">Guardar Ajustes</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: AJUSTE MANUAL DE HORAS DE PATRULLAJE (JEFATURA) -->
+  <div class="tactical-modal-overlay" id="modalAdjustPatrolHours">
+    <div class="tactical-modal-card" style="max-width: 500px;">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical">
+          <span>⏱️</span> AJUSTAR HORAS DE PATRULLAJE · JEFATURA
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalAdjustPatrolHours')">✕</button>
+      </div>
+      <form id="formAdjustPatrolHours" onsubmit="window.handleSaveAdjustPatrolHours(event)">
+        <div class="modal-body-tactical">
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="adjustAgentSelect">AGENTE GUÍA</label>
+            <select id="adjustAgentSelect" class="form-input-tactical" required>
+              <!-- Rellenado dinámicamente -->
+            </select>
+          </div>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="adjustMinutesInput">MINUTOS A SUMAR (O RESTAR)</label>
+            <input type="number" id="adjustMinutesInput" class="form-input-tactical" placeholder="Ej: 60 (para 1 hora) o -30" required>
+          </div>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="adjustReasonInput">MOTIVO / RESOLUCIÓN DE MANDO</label>
+            <input type="text" id="adjustReasonInput" class="form-input-tactical" placeholder="Dispositivo especial, rectificación de guardia..." required>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:0.5rem;">
+            <button type="button" class="btn-tactical btn-tactical-outline" onclick="closeModal('modalAdjustPatrolHours')">Cancelar</button>
+            <button type="submit" class="btn-tactical btn-tactical-gold">Aplicar Ajuste</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Configuración de Base de Datos Privada (Protegida por .gitignore) -->
   <script src="js/config.local.js"></script>
   <!-- Base de Datos Supabase (PostgreSQL en la Nube y WebSockets en Vivo) -->
@@ -1896,6 +2169,7 @@
   <script src="js/audio.js"></script>
   <script src="js/webhook.js"></script>
   <script src="js/auth.js"></script>
+  <script src="js/duty_and_exam.js"></script>
   <!-- Mapa Leaflet (Local, sin dependencia de CDN externos ni errores SRI) -->
   <script src="js/vendor/leaflet.js"></script>
   <script src="js/app.js"></script>

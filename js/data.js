@@ -25,7 +25,11 @@ const STORAGE_KEYS = {
   EVENTS: 'k9_data_events',
   NOTIFICATIONS: 'k9_data_notifications',
   UNIFORMS: 'k9_data_uniforms',
-  MAP_MARKERS: 'k9_data_map_markers'
+  MAP_MARKERS: 'k9_data_map_markers',
+  ACTIVE_PATROLS: 'k9_data_active_patrols',
+  PATROL_SESSIONS: 'k9_data_patrol_sessions',
+  EXAMS: 'k9_data_exams',
+  EXAM_SUBMISSIONS: 'k9_data_exam_submissions'
 };
 if (typeof window !== 'undefined') window.STORAGE_KEYS = STORAGE_KEYS;
 
@@ -53,6 +57,8 @@ const SYSTEM_PERMISSIONS = [
   { id: 'manage_disciplinary', label: 'Régimen Disciplinario', desc: 'Aperturar expedientes de faltas leves, graves o muy graves y aplicar sanciones' },
   { id: 'manage_badges', label: 'Condecoraciones & Insignias', desc: 'Otorgar o revocar medallas oficiales a los miembros con citación' },
   { id: 'manage_bulletins', label: 'Anuncios & Normativas', desc: 'Publicar anuncios oficiales de jefatura y actualizar reglamentos/manuales' },
+  { id: 'manage_patrols', label: 'Control de Patrullajes K9', desc: 'Supervisar binomios en servicio, registrar horas y cerrar turnos 10-10' },
+  { id: 'manage_exams', label: 'Academia & Examen Teórico K9', desc: 'Crear y editar preguntas del test de acceso (Art. 10 y 11), gestionar formularios y evaluar certificados' },
   { id: 'manage_permissions', label: 'Administrar Permisos', desc: 'Modificar la matriz de permisos de los agentes y coordinadores' }
 ];
 
@@ -688,6 +694,152 @@ const DEFAULT_MAP_MARKERS = [
 
 
 
+// ─── ESTADO DE SERVICIO EN VIVO & PATRULLAJES K9 ───
+const DEFAULT_ACTIVE_PATROLS = [];
+const DEFAULT_PATROL_SESSIONS = [];
+
+// ─── TEST TEÓRICO OFICIAL DE ACCESO K9 (CAPÍTULO III — ART. 10 Y 11) ───
+const DEFAULT_K9_EXAM_QUESTIONS = [
+  {
+    id: 'q1',
+    question: 'Según el Art. 10 (Requisitos de acceso) del Capítulo III, ¿cuál es el rango policial mínimo requerido para solicitar el ingreso a la Unidad K9?',
+    options: [
+      'Cadete de Policía',
+      'Oficial I',
+      'Oficial II',
+      'Sargento de División'
+    ],
+    correctIndex: 2,
+    explanation: 'El Art. 10 del Reglamento General K9 establece explícitamente: «Para solicitar el ingreso en la Unidad K9 será necesario: mantener un historial disciplinario compatible, conocer los procedimientos policiales básicos, disponibilidad de formación, aceptar el reglamento y tener el rango mínimo de Oficial II».'
+  },
+  {
+    id: 'q2',
+    question: 'Conforme al Art. 11 del Reglamento, ¿cuál es la estructura reglamentaria del proceso de selección de la División Canina?',
+    options: [
+      'Solicitud formal de ingreso, psicotécnico, revisión de requisitos, entrevista o valoración, formación teórica y práctica, evaluación final y resolución de admisión',
+      'Asignación directa de can por decisión personal sin pruebas psicotécnicas ni expediente',
+      'Superación exclusiva de una prueba de tiro y persecución vehicular a gran velocidad',
+      'Ingreso automático sin período formativo ni examen de capacitación'
+    ],
+    correctIndex: 0,
+    explanation: 'El Art. 11 determina que el proceso de selección oficial comprende: solicitud formal, psicotécnico, revisión de requisitos, entrevista, formación teórica y práctica, evaluación final y resolución oficial de admisión.'
+  },
+  {
+    id: 'q3',
+    question: 'Según el Art. 9 de la cadena de mando, ¿cuál es la limitación funcional de un «Aspirante K9» durante su período de instrucción?',
+    options: [
+      'Puede realizar patrullajes tácticos en solitario con el can en cualquier código policial',
+      'Actuará bajo supervisión y no podrá desarrollar de manera independiente funciones para las que todavía no haya sido autorizado',
+      'Posee autoridad para certificar a otros guías caninos en la academia',
+      'Queda exento de obedecer las órdenes de los instructores y coordinadores'
+    ],
+    correctIndex: 1,
+    explanation: 'El Art. 9 define con claridad que el aspirante es el agente en fase de formación, actuando siempre bajo supervisión sin desarrollar funciones de manera independiente hasta recibir habilitación.'
+  },
+  {
+    id: 'q4',
+    question: 'En la FASE 1 del Manual de Entrenamiento (Familiarización), ¿cuál es el criterio que debe acreditar el agente guía?',
+    options: [
+      'Lanzar al perro a una persecución de más de 300 metros campo a través',
+      'El guía puede manejar al perro sin perderlo ni activar órdenes por error (sacar y guardar, caminar con él, detenerlo y usar el menú K9)',
+      'Ordenar mordidas directas en la vía pública ante cualquier sospecha',
+      'Realizar intervenciones veterinarias quirúrgicas de urgencia'
+    ],
+    correctIndex: 1,
+    explanation: 'El objetivo de la Fase 1 es familiarizarse con el manejo y mecánicas: el guía debe controlar al animal, caminar acompasado, evitar extravíos y conocer las funciones del menú táctico K9 sin confusiones.'
+  },
+  {
+    id: 'q5',
+    question: 'En la FASE 2 de Instrucción (Obediencia y Control), ¿cuál es el estándar exigido durante el servicio de patrulla?',
+    options: [
+      'Permitir que el perro merodee libremente sin correa en zonas comerciales',
+      'Permanecer quieto mientras el guía se desplaza, seguir al guía en patrulla, regresar a la orden y permanecer junto al agente en conversaciones',
+      'Hacer que el can ladre continuamente a los ciudadanos para intimidar',
+      'Delegar el can a civiles mientras el agente realiza gestiones administrativas'
+    ],
+    correctIndex: 1,
+    explanation: 'La Fase 2 establece que el guía debe garantizar el control del perro en situaciones normales: quietud estática, marcha en patrulla, respuesta inmediata a la llamada y calma junto al guía.'
+  },
+  {
+    id: 'q6',
+    question: 'De acuerdo con la FASE 3 (Trabajo en Equipo) y los procedimientos operativos, ¿qué paso es OBLIGATORIO antes de desplegar al K9 en una escena?',
+    options: [
+      'Desplegar al perro inmediatamente y notificar por radio una vez producida la detención',
+      'Avisar por radio policial antes de desplegar el K9 («Central, unidad K9 en servicio / desplegándose») y coordinar su retirada al concluir',
+      'Apagar el transmisor de radio para no alertar al sujeto intervenido',
+      'Esperar a que otros agentes resulten lesionados antes de emitir comunicación alguna'
+    ],
+    correctIndex: 1,
+    explanation: 'Los protocolos de la Fase 3 y la Guía Práctica exigen avisar siempre por frecuencia de radio antes del despliegue del K9 para coordinar la escena de forma segura y retirar al can de inmediato tras su función.'
+  },
+  {
+    id: 'q7',
+    question: 'Respecto a los «LÍMITES DEL K9» y la ética policial en intervenciones, ¿cuál de las siguientes afirmaciones es correcta?',
+    options: [
+      'El perro sustituye al agente investigador y su reacción es prueba judicial irrefutable por sí misma',
+      'El perro no sustituye al agente investigador, no decide por sí mismo si una persona es culpable y no garantiza el éxito infalible de una búsqueda',
+      'El guía canino está exento de presentar informes policiales si el can actuó en el procedimiento',
+      'El perro tiene criterio legal propio para determinar arrestos'
+    ],
+    correctIndex: 1,
+    explanation: 'El Manual de Funciones subraya taxativamente: «El perro no sustituye al agente investigador, no decide por sí mismo si una persona es culpable y no garantiza que una búsqueda vaya a tener éxito».'
+  },
+  {
+    id: 'q8',
+    question: 'En el SIMULACRO B (Detección de Sustancias Ilícitas), si el rastreo resulta negativo, ¿cómo debe actuar éticamente el agente guía?',
+    options: [
+      'Inventar por radio un marcaje positivo falso para justificar el registro forzado del vehículo y su ocupante',
+      'Interpretar fielmente el resultado, comunicar con veracidad que no se detectaron sustancias y recordar la prohibición de falsear positivos',
+      'Ordenar al can morder al conductor por falta de cooperación',
+      'Repetir la prueba forzando al perro hasta que marque positivo'
+    ],
+    correctIndex: 1,
+    explanation: 'La Guía Práctica de Intervenciones K9 incluye una advertencia explícita en mayúsculas: «IMPORTANTE: no inventar un resultado positivo para justificar una detención». El rigor y la ética son inquebrantables.'
+  },
+  {
+    id: 'q9',
+    question: 'Bajo el protocolo de uso proporcional de la fuerza, ¿cuándo es procedente emitir la orden de presa táctica «Fass» y qué se debe ordenar tras neutralizar al sospechoso?',
+    options: [
+      'Únicamente bajo amenaza inminente a la vida de los agentes o terceros tras agotar advertencias previas; tras la neutralización debe ordenarse «Aus» de forma instantánea',
+      'Ante infracciones de tráfico leves o desobediencia verbal, manteniendo la mordida hasta llegar al calabozo',
+      'En todo control rutinario para amedrentar a los ocupantes del vehículo',
+      'Cuando el agente prefiera no correr en una persecución pedestre sin mediar riesgo de armas'
+    ],
+    correctIndex: 0,
+    explanation: 'El Anuncio Oficial y el protocolo de sujeción dictan que la orden «Fass» solo puede emitirse bajo amenaza inminente a la vida habiendo advertido previamente. Neutralizado el sujeto, el comando «Aus» debe ser instantáneo.'
+  },
+  {
+    id: 'q10',
+    question: 'Según los Artículos 4 y 15 sobre el «Binomio Canino», ¿sobre quién recae la responsabilidad jurídica y operativa del perro durante el servicio?',
+    options: [
+      'Sobre la Jefatura Central de Guardia exclusivamente',
+      'Sobre el sospechoso intervenido',
+      'Sobre el Agente Guía que tiene asignado el can, quien responde directamente por su control, cuidado e incidencias',
+      'Sobre el proveedor del chaleco táctico canino'
+    ],
+    correctIndex: 2,
+    explanation: 'El Art. 15 y los Principios de Actuación (Art. 4) consagran la responsabilidad personal del agente guía en el control del perro durante todo el servicio y en la comunicación y registro de cualquier incidencia.'
+  }
+];
+
+const DEFAULT_EXAMS = [
+  {
+    id: 'exam_acceso_k9',
+    title: 'Test Teórico Oficial de Acceso a la Unidad Canina K9 (Capítulo III — Art. 10 y 11)',
+    description: 'Cuestionario interactivo oficial de capacitación teórica sobre el Reglamento General de la División Canina LSPD, proceso de selección, fases del programa de instrucción, simulacros de intervención y principios éticos del binomio.',
+    minScoreToPass: 8,
+    totalQuestions: 10,
+    active: true,
+    allowedRanks: ['Todos', 'Oficial II', 'Oficial III', 'Sargento I', 'Sargento II', 'Teniente', 'Capitán', 'Agente Guia', 'Instructor K9', 'Subcoordinador K9', 'Coordinador K9', 'Jefatura LSPD'],
+    allowedUserIds: [], // Vacío = abierto a todos los candidatos calificados; o IDs específicos asignados por Jefatura
+    managersUserIds: [], // IDs específicos adicionales autorizados por Jefatura para editar/gestionar este examen
+    createdAt: '28/10/2026',
+    questions: DEFAULT_K9_EXAM_QUESTIONS
+  }
+];
+
+const DEFAULT_EXAM_SUBMISSIONS = [];
+
 // Clase Gestora del Estado
 class K9DataStore {
   constructor() {
@@ -773,6 +925,18 @@ class K9DataStore {
     }
     if (!localStorage.getItem(STORAGE_KEYS.MAP_MARKERS)) {
       this.save(STORAGE_KEYS.MAP_MARKERS, DEFAULT_MAP_MARKERS);
+    }
+    if (!localStorage.getItem(STORAGE_KEYS.ACTIVE_PATROLS)) {
+      this.save(STORAGE_KEYS.ACTIVE_PATROLS, DEFAULT_ACTIVE_PATROLS);
+    }
+    if (!localStorage.getItem(STORAGE_KEYS.PATROL_SESSIONS)) {
+      this.save(STORAGE_KEYS.PATROL_SESSIONS, DEFAULT_PATROL_SESSIONS);
+    }
+    if (!localStorage.getItem(STORAGE_KEYS.EXAMS)) {
+      this.save(STORAGE_KEYS.EXAMS, DEFAULT_EXAMS);
+    }
+    if (!localStorage.getItem(STORAGE_KEYS.EXAM_SUBMISSIONS)) {
+      this.save(STORAGE_KEYS.EXAM_SUBMISSIONS, DEFAULT_EXAM_SUBMISSIONS);
     }
 
     // Asegurar que el ID oficial de Jefatura nunca esté en la lista de expulsados
@@ -1348,6 +1512,257 @@ class K9DataStore {
     const list = this.getMapMarkers().filter(m => m.id !== markerId);
     this.save(STORAGE_KEYS.MAP_MARKERS, list);
     return true;
+  }
+
+  // ─── GESTIÓN DE SERVICIO ACTIVO Y HORAS DE PATRULLAJE K9 ───
+  getActivePatrols() {
+    const list = this.get(STORAGE_KEYS.ACTIVE_PATROLS);
+    return Array.isArray(list) ? list : [];
+  }
+
+  saveActivePatrols(list) {
+    this.save(STORAGE_KEYS.ACTIVE_PATROLS, Array.isArray(list) ? list : []);
+  }
+
+  getPatrolSessions() {
+    const list = this.get(STORAGE_KEYS.PATROL_SESSIONS);
+    return Array.isArray(list) ? list : [];
+  }
+
+  savePatrolSessions(list) {
+    this.save(STORAGE_KEYS.PATROL_SESSIONS, Array.isArray(list) ? list : []);
+  }
+
+  startPatrol(patrolInfo) {
+    const user = patrolInfo.user || (patrolInfo.agentId ? { id: patrolInfo.agentId, name: patrolInfo.agentName, placa: patrolInfo.agentPlaca, rank: patrolInfo.agentRank, avatar: patrolInfo.agentAvatar } : null);
+    if (!user) return null;
+
+    const list = this.getActivePatrols().filter(p => p.agentId !== user.id);
+    const now = Date.now();
+    const dog = patrolInfo.dog || (patrolInfo.dogName ? { id: patrolInfo.dogId, name: patrolInfo.dogName, breed: patrolInfo.dogBreed, photo: patrolInfo.dogPhoto, specialty: patrolInfo.dogSpecialty } : {});
+
+    const item = {
+      id: 'patrol_' + now + '_' + Math.random().toString(36).substring(2, 6),
+      agentId: user.id,
+      agentName: user.name,
+      agentPlaca: user.placa || 'S/P',
+      agentRank: user.rank || 'Agente Guia',
+      agentAvatar: user.avatar || 'assets/images/emblem.jpg',
+      agentDiscord: user.discordUsername || '',
+      dogId: dog.id || user.assignedDogId || 'k9_rex',
+      dogName: dog.name || 'Rex',
+      dogBreed: dog.breed || 'Pastor Belga Malinois',
+      dogPhoto: dog.photo || 'assets/images/k9_rex.jpg',
+      dogSpecialty: dog.specialty || 'Intervención Táctica',
+      sector: patrolInfo.sector || 'Central Los Santos (Mission Row)',
+      lat: typeof patrolInfo.lat === 'number' ? patrolInfo.lat : -40.0,
+      lng: typeof patrolInfo.lng === 'number' ? patrolInfo.lng : -20.0,
+      startTime: now,
+      status: 'en_servicio',
+      createdAt: new Date().toISOString()
+    };
+
+    list.push(item);
+    this.saveActivePatrols(list);
+
+    // Actualizar estado de servicio en la ficha del usuario
+    const allUsers = this.getAllUsers();
+    const foundUser = allUsers.find(u => u.id === user.id);
+    if (foundUser) {
+      foundUser.serviceStatus = '🟢 Cod: En servicio con can';
+      this.save(STORAGE_KEYS.USERS, allUsers);
+    }
+
+    // Registrar log táctico
+    this.addLog({
+      type: 'patrol',
+      emoji: '🟢',
+      title: 'Inicio de Patrullaje K9',
+      description: `El binomio ${user.name} [${user.placa}] y K9 ${item.dogName} entra en servicio activo (Sector: ${item.sector}).`,
+      author: user.name
+    });
+
+    return item;
+  }
+
+  endPatrol(agentIdOrPatrolId, notes = '', closedByJefatura = false) {
+    const list = this.getActivePatrols();
+    const active = list.find(p => p.agentId === agentIdOrPatrolId || p.id === agentIdOrPatrolId);
+    if (!active) return null;
+
+    const now = Date.now();
+    const elapsedMs = Math.max(0, now - active.startTime);
+    const minutes = Math.max(1, Math.round(elapsedMs / 60000));
+    const hours = Math.round((minutes / 60) * 10) / 10;
+
+    const session = {
+      id: 'session_' + now + '_' + Math.random().toString(36).substring(2, 6),
+      patrolId: active.id,
+      agentId: active.agentId,
+      agentName: active.agentName,
+      agentPlaca: active.agentPlaca,
+      agentRank: active.agentRank,
+      dogId: active.dogId,
+      dogName: active.dogName,
+      dogBreed: active.dogBreed,
+      sector: active.sector,
+      startTime: active.startTime,
+      endTime: now,
+      durationMinutes: minutes,
+      durationHours: hours,
+      durationFormatted: `${Math.floor(minutes / 60)}h ${minutes % 60}m`,
+      date: new Date(active.startTime).toLocaleDateString('es-ES'),
+      timeStart: new Date(active.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+      timeEnd: new Date(now).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+      notes: notes || 'Patrullaje táctico rutinario con K9 completado.',
+      closedBy: closedByJefatura ? 'Jefatura de Mando' : 'Agente',
+      createdAt: new Date().toISOString()
+    };
+
+    // Quitar de activos
+    const remaining = list.filter(p => p.id !== active.id && p.agentId !== active.agentId);
+    this.saveActivePatrols(remaining);
+
+    // Agregar a historial de sesiones
+    const sessions = this.getPatrolSessions();
+    sessions.unshift(session);
+    this.savePatrolSessions(sessions);
+
+    // Sumar minutos y horas al perfil del agente
+    const allUsers = this.getAllUsers();
+    const foundUser = allUsers.find(u => u.id === active.agentId);
+    if (foundUser) {
+      foundUser.patrolMinutesTotal = (foundUser.patrolMinutesTotal || 0) + minutes;
+      foundUser.patrolHoursTotal = Math.round((foundUser.patrolMinutesTotal / 60) * 10) / 10;
+      foundUser.serviceStatus = '🔴 10-10: Servicio terminado con K9';
+      foundUser.lastPatrolDate = session.date;
+      this.save(STORAGE_KEYS.USERS, allUsers);
+    }
+
+    // Registrar log táctico
+    this.addLog({
+      type: 'patrol',
+      emoji: '🔴',
+      title: 'Fin de Patrullaje K9 (10-10)',
+      description: `El agente ${active.agentName} [${active.agentPlaca}] finalizó servicio con K9 ${active.dogName}. Tiempo patrullado: ${session.durationFormatted} (${minutes} min).`,
+      author: closedByJefatura ? 'Jefatura K9' : active.agentName
+    });
+
+    return session;
+  }
+
+  // ─── TEST DE ACCESO K9, FORMULARIOS Y CERTIFICADOS (CAPÍTULO III) ───
+  getExams() {
+    const list = this.get(STORAGE_KEYS.EXAMS);
+    return (Array.isArray(list) && list.length > 0) ? list : DEFAULT_EXAMS;
+  }
+
+  saveExams(list) {
+    this.save(STORAGE_KEYS.EXAMS, Array.isArray(list) ? list : DEFAULT_EXAMS);
+  }
+
+  getExam(examId) {
+    const exams = this.getExams();
+    return exams.find(e => e.id === examId) || exams[0];
+  }
+
+  saveExam(examData) {
+    const exams = [...this.getExams()];
+    const index = exams.findIndex(e => e.id === examData.id);
+    if (index >= 0) {
+      exams[index] = { ...exams[index], ...examData, updatedAt: new Date().toISOString() };
+    } else {
+      exams.unshift({
+        id: 'exam_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+        title: 'Nuevo Cuestionario K9',
+        description: '',
+        minScoreToPass: 8,
+        totalQuestions: (examData.questions || []).length,
+        active: true,
+        allowedRanks: ['Todos'],
+        allowedUserIds: [],
+        managersUserIds: [],
+        createdAt: new Date().toLocaleDateString('es-ES'),
+        ...examData
+      });
+    }
+    this.saveExams(exams);
+    return exams.find(e => e.id === examData.id) || exams[0];
+  }
+
+  deleteExam(examId) {
+    if (examId === 'exam_acceso_k9') return false; // Proteger examen maestro
+    const exams = this.getExams().filter(e => e.id !== examId);
+    this.saveExams(exams);
+    return true;
+  }
+
+  getExamSubmissions() {
+    const list = this.get(STORAGE_KEYS.EXAM_SUBMISSIONS);
+    return Array.isArray(list) ? list : [];
+  }
+
+  saveExamSubmissions(list) {
+    this.save(STORAGE_KEYS.EXAM_SUBMISSIONS, Array.isArray(list) ? list : []);
+  }
+
+  recordExamSubmission(submission) {
+    const list = this.getExamSubmissions();
+    const item = {
+      id: 'sub_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+      examId: submission.examId || 'exam_acceso_k9',
+      examTitle: submission.examTitle || 'Test Teórico Oficial de Acceso K9',
+      agentId: submission.agentId,
+      agentName: submission.agentName,
+      agentPlaca: submission.agentPlaca || 'S/P',
+      agentRank: submission.agentRank || 'Oficial',
+      agentDiscord: submission.agentDiscord || '',
+      score: submission.score,
+      totalQuestions: submission.totalQuestions || 10,
+      scorePercent: Math.round((submission.score / (submission.totalQuestions || 10)) * 100),
+      passed: Boolean(submission.passed),
+      certCode: submission.certCode || ('K9-CERT-' + Date.now().toString(36).toUpperCase()),
+      answers: submission.answers || {},
+      date: new Date().toLocaleDateString('es-ES'),
+      timestamp: Date.now()
+    };
+
+    list.unshift(item);
+    this.saveExamSubmissions(list);
+
+    // Si ha aprobado, registrar automáticamente el Certificado Oficial en el expediente del usuario
+    if (item.passed) {
+      const allUsers = this.getAllUsers();
+      const user = allUsers.find(u => u.id === item.agentId);
+      if (user) {
+        user.k9TheoryCert = {
+          certCode: item.certCode,
+          examId: item.examId,
+          examTitle: item.examTitle,
+          score: item.score,
+          totalQuestions: item.totalQuestions,
+          scorePercent: item.scorePercent,
+          passedDate: item.date,
+          issuedBy: 'Jefatura de División K9 & Escuela de Instrucción LSPD',
+          agentName: item.agentName,
+          agentPlaca: item.agentPlaca,
+          agentRank: item.agentRank,
+          agentDiscord: item.agentDiscord,
+          hash: 'VAL-' + Math.random().toString(36).substring(2, 10).toUpperCase()
+        };
+        this.save(STORAGE_KEYS.USERS, allUsers);
+      }
+
+      this.addLog({
+        type: 'exam',
+        emoji: '🎓',
+        title: 'Certificado de Habilitación Teórica K9 Emitido',
+        description: `El agente ${item.agentName} [${item.agentPlaca}] ha superado el Examen Teórico (Art. 10 y 11) con calificación ${item.score}/${item.totalQuestions} (${item.scorePercent}%). Código de Certificación: ${item.certCode}.`,
+        author: 'Academia K9'
+      });
+    }
+
+    return item;
   }
 
   resetAll() {
