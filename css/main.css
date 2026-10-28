@@ -1120,32 +1120,24 @@ tfoot,
   color: var(--text-muted);
 }
 
-/* Responsive */
+/* Responsive Base */
 @media (max-width: 1024px) {
-  .top-hud-container {
-    flex-wrap: wrap;
-  }
-  .nav-tabs {
-    order: 3;
-    width: 100%;
-    justify-content: center;
-    overflow-x: auto;
+  .top-hud-bar {
+    width: calc(100% - 24px);
+    max-width: 1040px;
+    margin: 10px auto 1.25rem auto;
   }
 }
 
 @media (max-width: 768px) {
   .brand-title {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
   }
   .brand-subtitle, .tactical-live-status {
     display: none;
   }
-  .nav-tab-btn {
-    font-size: 0.75rem;
-    padding: 0.5rem 0.7rem;
-  }
   .main-wrapper {
-    padding: 1rem 0.75rem 3rem;
+    padding: 1rem 0.65rem 3.5rem;
   }
   .footer-content {
     flex-direction: column;

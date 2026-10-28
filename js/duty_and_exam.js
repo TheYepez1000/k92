@@ -52,7 +52,7 @@
         <button type="button" class="tactical-duty-btn duty-status-1010" onclick="window.K9Auth.initiateDiscordOAuth()" data-tooltip="Inicia sesión con Discord para entrar en servicio con can">
           <span class="duty-badge-dot dot-red"></span>
           <span>🔴 10-10</span>
-          <span style="font-size:0.68rem; opacity:0.8;">(Desconectado)</span>
+          <span class="duty-text-offline" style="font-size:0.68rem; opacity:0.8;">(Desconectado)</span>
         </button>
       `;
       return;
@@ -66,7 +66,8 @@
       container.innerHTML = `
         <button type="button" class="tactical-duty-btn duty-status-active" onclick="window.toggleK9DutyStatus()" data-tooltip="En patrulla con ${esc(userPatrol.dogName)}. Haz clic para finalizar servicio (🔴 10-10)">
           <span class="duty-badge-dot dot-green"></span>
-          <span>🟢 Cod: En servicio con can</span>
+          <span class="duty-text-full">🟢 Cod: En servicio con can</span>
+          <span class="duty-text-compact">🟢 En servicio</span>
           <span class="duty-timer-chip" id="dutyLiveTimer">⏱️ ${formatPatrolTime(elapsed)}</span>
         </button>
       `;
@@ -74,7 +75,8 @@
       container.innerHTML = `
         <button type="button" class="tactical-duty-btn duty-status-1010" onclick="window.toggleK9DutyStatus()" data-tooltip="Haz clic para entrar en servicio activo con K9 (🟢 Código Activo)">
           <span class="duty-badge-dot dot-red"></span>
-          <span>🔴 10-10: Servicio terminado con K9</span>
+          <span class="duty-text-full">🔴 10-10: Servicio terminado con K9</span>
+          <span class="duty-text-compact">🔴 10-10</span>
         </button>
       `;
     }
