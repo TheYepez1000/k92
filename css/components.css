@@ -197,7 +197,7 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  max-width: 860px;
+  max-width: 1280px;
   margin: 0 auto;
   width: 100%;
 }
@@ -250,7 +250,7 @@
   font-weight: 400;
   color: var(--color-ash);
   line-height: 1.6;
-  max-width: 640px;
+  max-width: 880px;
   margin: 0 auto 2.25rem;
 }
 
@@ -428,9 +428,9 @@
 .raycast-stats-panel {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
+  gap: 1.25rem;
   width: 100%;
-  padding: 1.5rem 2rem 2rem;
+  padding: 1.5rem 2.5rem 2rem;
   border-top: 1px solid rgba(255, 255, 255, 0.07);
   background: rgba(4, 5, 6, 0.7);
   backdrop-filter: blur(14px);
@@ -530,14 +530,16 @@
 .subnav-tabs-row {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.45rem;
   margin-bottom: 2rem;
   overflow-x: auto;
-  padding: 0.35rem;
+  padding: 0.45rem 0.85rem;
   background: rgba(7, 8, 10, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 9999px;
+  border-radius: 14px;
   box-shadow: rgba(0, 0, 0, 0.3) 0px 4px 16px 0px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .subnav-pill-btn {
@@ -2941,14 +2943,22 @@ img, video, canvas, svg {
   display: inline;
 }
 
-/* 2. Pantallas Grandes, 2K, Ultrawide y 4K (min-width: 1600px) */
+/* 2. Pantallas Grandes, 2K, Ultrawide y 4K (Full-Bleed Edge-to-Edge) */
 @media (min-width: 1600px) {
   .main-wrapper {
-    max-width: 1560px;
-    padding: 2.5rem 2rem 5rem;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 1.5rem 2.5rem 5rem;
+  }
+  .top-hud-bar {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .top-hud-container {
+    padding: 0.75rem 2.5rem;
   }
   .hero-content, .raycast-hero-content {
-    max-width: 960px;
+    max-width: 1380px;
   }
   .live-binomios-grid {
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -2957,60 +2967,70 @@ img, video, canvas, svg {
 
 @media (min-width: 1920px) {
   .main-wrapper {
-    max-width: 1760px;
-    padding: 3rem 2.5rem 6rem;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 1.75rem 3rem 6rem;
   }
   .top-hud-bar {
-    max-width: 1500px;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .top-hud-container {
+    padding: 0.85rem 3rem;
   }
   .hero-title, .raycast-headline {
-    font-size: 2.6rem;
+    font-size: 2.8rem;
   }
   .hero-description, .raycast-subtext {
-    max-width: 780px;
-    font-size: 1.15rem;
+    max-width: 950px;
+    font-size: 1.2rem;
   }
   .members-directory-grid {
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   }
   .tactical-modal-card {
-    max-width: 760px;
+    max-width: 820px;
   }
   .search-modal-card {
-    max-width: 820px;
+    max-width: 880px;
   }
 }
 
 @media (min-width: 2560px) {
   .main-wrapper {
-    max-width: 2200px;
-    padding: 4rem 3.5rem 7rem;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 2rem 4rem 7rem;
   }
   .top-hud-bar {
-    max-width: 1800px;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .top-hud-container {
+    padding: 1rem 4rem;
   }
   .hero-title, .raycast-headline {
-    font-size: 3.2rem;
+    font-size: 3.4rem;
   }
   .hero-description, .raycast-subtext {
-    max-width: 900px;
-    font-size: 1.25rem;
+    max-width: 1100px;
+    font-size: 1.3rem;
   }
   .hero-stat-value {
-    font-size: 2.5rem !important;
+    font-size: 2.8rem !important;
   }
 }
 
 /* 3. Laptops Medianas y Tablets en Horizontal (821px - 1100px) */
 @media (max-width: 1100px) {
   .top-hud-bar {
-    width: calc(100% - 24px);
-    max-width: 1040px;
-    margin: 10px auto 1.25rem auto;
+    width: 100%;
+    max-width: 100% !important;
+    margin: 0 0 1rem 0;
   }
   .top-hud-container {
-    gap: 0.45rem;
-    padding: 0.35rem 0.65rem;
+    gap: 0.65rem;
+    padding: 0.5rem 1.25rem;
   }
   .duty-text-full {
     display: none;
@@ -3036,12 +3056,16 @@ img, video, canvas, svg {
 @media (max-width: 820px) {
   .top-hud-bar {
     position: sticky;
-    top: 6px;
-    width: calc(100% - 16px);
-    max-width: 100%;
-    margin: 6px auto 1rem auto;
-    border-radius: 18px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    top: 0;
+    width: 100%;
+    max-width: 100% !important;
+    margin: 0 0 1rem 0;
+    border-radius: 0;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.75);
   }
   .top-hud-container {
     display: grid;
@@ -3051,7 +3075,7 @@ img, video, canvas, svg {
       "brand right"
       "nav nav";
     gap: 0.4rem 0.6rem;
-    padding: 0.45rem 0.75rem;
+    padding: 0.45rem 1rem;
     width: 100%;
   }
   .brand-wrapper {
@@ -3140,10 +3164,11 @@ img, video, canvas, svg {
   
   /* Top HUD Bar Mobile */
   .top-hud-bar {
-    width: calc(100% - 10px);
-    margin: 4px auto 0.75rem auto;
-    border-radius: 14px;
-    top: 4px;
+    width: 100%;
+    max-width: 100% !important;
+    margin: 0 0 0.75rem 0;
+    border-radius: 0;
+    top: 0;
   }
   .top-hud-container {
     padding: 0.35rem 0.5rem;

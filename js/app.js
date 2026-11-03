@@ -7470,7 +7470,7 @@ function renderVestimentaSection(container) {
   const pinnedCount = allUniforms.filter(u => u.pinned).length;
 
   container.innerHTML = `
-    <div class="vestimenta-wrapper" style="max-width:1380px; margin:0 auto; padding:0 0.5rem 3rem;">
+    <div class="vestimenta-wrapper" style="width:100%; max-width:100%; margin:0; padding:0 0 3rem;">
       <!-- Header Táctico -->
       <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1.25rem; margin-bottom:2rem; background:linear-gradient(135deg,rgba(10,17,32,0.85),rgba(6,10,20,0.92)); border:1px solid rgba(0,229,255,0.18); border-radius:16px; padding:1.75rem 2rem; box-shadow:0 12px 35px rgba(0,0,0,0.5);">
         <div>

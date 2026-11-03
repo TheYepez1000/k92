@@ -823,7 +823,7 @@
     const isJef = window.K9Auth ? window.K9Auth.isJefaturaMember() : false;
 
     container.innerHTML = `
-      <div style="max-width:920px; margin:0 auto; padding:1rem 0;">
+      <div style="width:100%; max-width:100%; margin:0; padding:0.5rem 0 2rem;">
         <!-- Banner de Academia Táctica K9 -->
         <div style="background:radial-gradient(circle at top right, rgba(0,229,255,0.15), rgba(16,24,43,0.95)), var(--bg-surface); border:1px solid var(--border-tactical); border-radius:18px; padding:2rem 2.25rem; margin-bottom:2rem; box-shadow:0 15px 35px rgba(0,0,0,0.6);">
           <div style="display:inline-flex; align-items:center; gap:0.5rem; background:rgba(0,229,255,0.1); border:1px solid rgba(0,229,255,0.3); padding:0.25rem 0.75rem; border-radius:20px; font-size:0.75rem; color:var(--police-cyan); font-family:var(--font-headline); letter-spacing:0.08em; margin-bottom:0.75rem;">
