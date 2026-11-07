@@ -1,0 +1,1925 @@
+/* ==========================================================================
+   UNIDAD CANINA K9 - SISTEMA TÁCTICO DE GESTIÓN & JEFATURA
+   RAYCAST COMMAND-CENTER DESIGN SYSTEM (DESIGN (1).md)
+   Preserva: Colores tácticos (Cyan, Blue, Gold, Red) y Tipografías Oficiales (GoBold, Conthrax, Inter)
+   ========================================================================== */
+
+/* Fuentes CDN y Fallbacks */
+@import url('https://fonts.cdnfonts.com/css/conthrax');
+@import url('https://fonts.cdnfonts.com/css/gobold');
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* ========================================================================
+     RAYCAST DESIGN TOKENS (DESIGN (1).md)
+     ======================================================================== */
+  --color-void-black: #040506;
+  --color-ink: #07080a;
+  --color-obsidian: #111214;
+  --color-graphite: #1b1c1e;
+  --color-smoke: #6a6b6c;
+  --color-ash: #9c9c9d;
+  --color-mist: #e6e6e6;
+  --color-iron: #454647;
+  --color-slate: #2f3031;
+  --color-pure-white: #ffffff;
+  --color-coral-pulse: #ff6363;
+  --color-ember-hush: #452324;
+  --color-electric-sky: #63a1ff;
+  --color-cobalt-edge: #143ca3;
+  --color-deep-space: #02193b;
+  --border-raycast: #363739;
+
+  /* ========================================================================
+     TIPOGRAFÍAS OFICIALES K9 SOLICITADAS: GOBOLD & CONTHRAX
+     1. GOBOLD: Encabezados, títulos de expedientes, estadísticas, nombres de secciones y elementos destacados.
+     2. CONTHRAX: Párrafos, formularios, normativas, botones y tablas (lectura administrativa clara).
+     ======================================================================== */
+  --font-gobold: 'Gobold', 'GoBold', 'Barlow Condensed', sans-serif;
+  --font-conthrax: 'Conthrax', 'Chakra Petch', sans-serif;
+  --font-headline: 'Gobold', 'GoBold', 'Barlow Condensed', sans-serif;
+  --font-tactical: 'Conthrax', 'Chakra Petch', sans-serif;
+  --font-body: 'Conthrax', 'Chakra Petch', sans-serif;
+  --font-admin: 'Conthrax', 'Chakra Petch', sans-serif;
+
+  /* ========================================================================
+     PALETA DE COLORES PRESERVADA DE LA WEB K9
+     ======================================================================== */
+  --police-blue: #0066ff;
+  --police-blue-glow: rgba(0, 102, 255, 0.45);
+  --police-cyan: #00e5ff;
+  --police-cyan-glow: rgba(0, 229, 255, 0.35);
+  --tactical-gold: #ffb703;
+  --tactical-gold-glow: rgba(255, 183, 3, 0.4);
+  --tactical-amber: #fb8500;
+  --tactical-red: #ff2a5f;
+  --tactical-red-glow: rgba(255, 42, 95, 0.4);
+  --tactical-green: #00e676;
+  --tactical-green-glow: rgba(0, 230, 118, 0.35);
+  --discord-blurple: #5865F2;
+  --discord-blurple-hover: #4752c4;
+
+  /* Superficies Raycast adaptadas */
+  --bg-deep: var(--color-void-black);
+  --bg-primary: var(--color-ink);
+  --bg-surface: var(--color-obsidian);
+  --bg-surface-elevated: #16181d;
+  --bg-card: rgba(7, 8, 10, 0.88);
+  --bg-card-hover: rgba(17, 18, 20, 0.95);
+
+  /* Bordes Hairline de Precisión */
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-tactical: rgba(255, 255, 255, 0.12);
+  --border-cyan: rgba(0, 229, 255, 0.28);
+  --border-gold: rgba(255, 183, 3, 0.35);
+  --border-danger: rgba(255, 42, 95, 0.35);
+
+  /* Texto */
+  --text-main: #f0f4fc;
+  --text-muted: var(--color-ash);
+  --text-subtle: var(--color-smoke);
+  --text-highlight: var(--color-pure-white);
+
+  /* Sombras Táctiles Raycast (Key Shadow Stack & Elevation) */
+  --shadow-key: rgba(255, 255, 255, 0.05) 0px 1px 0px 0px inset, rgba(255, 255, 255, 0.16) 0px 0px 0px 1px, rgba(0, 0, 0, 0.4) 0px -1px 0px 0px inset;
+  --shadow-key-hover: rgba(255, 255, 255, 0.08) 0px 1px 0px 0px inset, rgba(255, 255, 255, 0.24) 0px 0px 0px 1px, rgba(0, 0, 0, 0.5) 0px -1px 0px 0px inset;
+  --shadow-btn-mist: rgba(0, 0, 0, 0.03) 0px 7px 3px 0px, rgba(0, 0, 0, 0.25) 0px 4px 4px 0px;
+  --shadow-glass-nav: rgba(0, 0, 0, 0.55) 0px 10px 36px 0px, rgba(255, 255, 255, 0.06) 0px 1px 0px 0px inset;
+  --shadow-elevation: var(--shadow-key);
+  --shadow-glow-cyan: 0 0 25px rgba(0, 229, 255, 0.25);
+  --glass-blur: blur(28px);
+
+  /* Radii según DESIGN (1).md */
+  --radius-cards: 16px;
+  --radius-largecards: 20px;
+  --radius-pills: 9999px;
+  --radius-buttons: 8px;
+  --radius-inputs: 8px;
+  --radius-badges: 6px;
+
+  /* Transiciones */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-slow: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Reset y Base */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  background-color: var(--bg-deep);
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--text-main);
+  background-color: var(--bg-deep);
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+}
+
+/* Capa fija de fondo acelerada por GPU para scroll ultra fluido a 60-120 FPS */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(0, 102, 255, 0.12) 0%, transparent 65%),
+    radial-gradient(circle at 100% 50%, rgba(0, 229, 255, 0.05) 0%, transparent 50%),
+    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+  z-index: -1;
+  transform: translateZ(0);
+}
+
+/* Scanline HUD sutil táctico ultra optimizado (sin repeating-linear-gradient de 1px) */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none;
+  background-image: linear-gradient(rgba(0, 0, 0, 0.15) 50%, transparent 50%);
+  background-size: 100% 4px;
+  opacity: 0.28;
+  z-index: 9999;
+  transform: translateZ(0);
+}
+
+/* ==========================================================================
+   1. GOBOLD: Encabezados, Títulos de Expedientes, Estadísticas, Nombres de Secciones y Elementos Destacados
+   ========================================================================== */
+/* Encabezados y títulos principales */
+h1, h2, h3, h4, h5, h6,
+.hero-title,
+.section-title,
+.section-main-title,
+.modal-title,
+.modal-title-tactical,
+.brand-title,
+.brand-subtitle,
+.k9-centerpiece-title,
+.k9-centerpiece-motto,
+.subtab-title,
+.panel-header h3,
+.panel-header h4,
+.dossier-header-title,
+.chat-dispatch-header h3,
+.card-title,
+.font-gobold,
+.font-headline {
+  font-family: 'Gobold', 'GoBold', 'Barlow Condensed', sans-serif !important;
+  color: #fff;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Títulos de expedientes (agentes, canes, fichas y registros) */
+.member-card-info h4,
+.member-tactical-card h4,
+.dog-card-info h4,
+.agent-dossier-name,
+.expediente-title,
+.dossier-title,
+.dossier-agent-title,
+.id-card-name,
+.member-dog-assignment strong,
+.record-card-title,
+.profile-name,
+.member-name,
+.chat-author-name {
+  font-family: 'Gobold', 'GoBold', 'Barlow Condensed', sans-serif !important;
+  letter-spacing: 0.04em;
+}
+
+/* Estadísticas y métricas operativas */
+.hero-stat-value,
+.stat-value,
+.metric-value,
+.stat-number,
+.k9-stat-val,
+.counter-value,
+#heroCountAgents,
+#heroCountDogs,
+#heroCountReports,
+#heroCountPatrol,
+.dog-stat-val,
+.agent-stat-number,
+.stat-pill-val,
+.hero-stat-card .hero-stat-value,
+.stat-card .stat-value,
+.counter-num {
+  font-family: 'Gobold', 'GoBold', 'Barlow Condensed', sans-serif !important;
+  letter-spacing: 0.04em;
+}
+
+/* Nombres de secciones y navegación */
+.sidebar-nav-btn,
+.sidebar-nav-btn .snb-label,
+.nav-tab-btn,
+.subnav-pill-btn,
+.sidebar-section-title,
+.subtab-btn,
+.sidebar-brand-title,
+.view-title,
+.tab-label,
+.sidebar-nav-category,
+.k9-centerpiece-badge {
+  font-family: 'Gobold', 'GoBold', 'Barlow Condensed', sans-serif !important;
+  letter-spacing: 0.05em;
+}
+
+/* Elementos destacados e insignias */
+.member-card-placa,
+.auth-role-tag,
+.chat-badge-jefatura,
+.priority-pill,
+.rank-flow-pill,
+.badge-featured,
+.highlight-pill,
+.status-badge-tactical,
+.id-card-rank,
+.id-card-number,
+.member-card-rank-badge,
+.chat-author-badge {
+  font-family: 'Gobold', 'GoBold', 'Barlow Condensed', sans-serif !important;
+  letter-spacing: 0.05em;
+}
+
+/* ==========================================================================
+   2. CONTHRAX: Párrafos, Formularios, Normativas, Botones y Tablas
+   ========================================================================== */
+/* Párrafos e información administrativa general */
+body,
+p,
+.hero-subtitle,
+.section-desc,
+.member-card-info p,
+.dog-card-info p,
+.announcement-body,
+.modal-desc,
+.text-muted,
+.text-subtle,
+.info-text,
+.alert-box p,
+.dossier-body,
+.administrative-text,
+.font-conthrax {
+  font-family: 'Conthrax', 'Chakra Petch', sans-serif !important;
+}
+
+/* Formularios */
+input,
+select,
+textarea,
+label,
+.form-group,
+.form-label,
+.form-label-tactical,
+.form-input-tactical,
+.form-select-tactical,
+.form-textarea-tactical,
+.table-search-box input,
+.global-search-input,
+.filter-select,
+.form-control,
+.input-tactical,
+.modal-form label,
+.modal-form input,
+.modal-form select,
+.modal-form textarea {
+  font-family: 'Conthrax', 'Chakra Petch', sans-serif !important;
+}
+
+/* Normativas y reglamentos */
+.normative-card,
+.normative-body,
+.normative-article,
+.rule-item,
+.manual-content,
+.normative-item,
+.manual-card,
+.normative-text,
+.article-content,
+.reglamento-box,
+.normative-article p,
+.normatives-container {
+  font-family: 'Conthrax', 'Chakra Petch', sans-serif !important;
+}
+
+/* Botones */
+button,
+.btn-tactical,
+.btn,
+.btn-action,
+.search-cat-btn,
+.modal-close-btn,
+.login-btn-discord,
+.btn-tactical-mist,
+.btn-tactical-primary,
+.btn-tactical-outline,
+.btn-tactical-ghost,
+.btn-tactical-gold,
+.btn-tactical-danger,
+.btn-tactical-sm,
+.audio-toggle-btn {
+  font-family: 'Conthrax', 'Chakra Petch', sans-serif !important;
+}
+
+/* Tablas */
+table,
+th,
+td,
+tr,
+thead,
+tbody,
+tfoot,
+.tactical-table-element,
+.tactical-table-element th,
+.tactical-table-element td,
+.tactical-table-wrapper,
+.table-container,
+.table-tactical,
+.roster-table,
+.log-table-wrap,
+.log-table {
+  font-family: 'Conthrax', 'Chakra Petch', sans-serif !important;
+}
+
+/* ==========================================================================
+   HEADER HUD TÁCTICO & NAVEGACIÓN SUPERIOR
+   ========================================================================== */
+/* ==========================================================================
+   FLOATING GLASS NAVIGATION BAR (RAYCAST STYLE)
+   ========================================================================== */
+.top-hud-bar {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  margin: 0 0 1.5rem 0;
+  width: 100%;
+  max-width: 100% !important;
+  background: rgba(7, 8, 10, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0;
+  box-shadow: 
+    0 8px 30px rgba(0, 0, 0, 0.75),
+    0 1px 0 rgba(0, 229, 255, 0.15);
+  transition: all var(--transition-fast);
+  transform: translateZ(0);
+}
+
+.top-hud-container {
+  padding: 0.65rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
+/* Marca / Logo Izquierda */
+.brand-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  text-decoration: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.brand-emblem-wrap {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.35);
+  transition: transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-ink);
+}
+
+.brand-wrapper:hover .brand-emblem-wrap {
+  transform: scale(1.08);
+}
+
+.brand-emblem-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.brand-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-title {
+  font-family: var(--font-headline) !important;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-pure-white);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.brand-sub-pill {
+  font-family: var(--font-body);
+  font-size: 0.65rem;
+  font-weight: 600;
+  background: rgba(0, 229, 255, 0.12);
+  border: 1px solid rgba(0, 229, 255, 0.35);
+  color: var(--police-cyan);
+  padding: 0.05rem 0.4rem;
+  border-radius: 9999px;
+  letter-spacing: 0.04em;
+}
+
+.brand-subtitle {
+  display: block;
+  font-family: var(--font-headline);
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   MARCA DE AGUA / LOGO DE FONDO OFICIAL K9
+   ========================================================================== */
+.k9-background-watermark {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(720px, 85vw);
+  height: min(720px, 85vw);
+  background: radial-gradient(circle at center, rgba(0, 229, 255, 0.03) 0%, transparent 65%),
+              url('../assets/images/emblem.jpg') center/contain no-repeat;
+  opacity: 0.035;
+  filter: grayscale(40%) drop-shadow(0 0 60px rgba(0, 102, 255, 0.3));
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 50%;
+}
+
+.main-wrapper {
+  position: relative;
+  z-index: 1;
+}
+
+/* ==========================================================================
+   NAVEGACIÓN PRINCIPAL (GHOST LINKS ESTILO RAYCAST)
+   ========================================================================== */
+/* ==========================================================================
+   NAVEGACIÓN PRINCIPAL (SOLO ICONOS CON TOOLTIP TÁCTICO FLOTANTE)
+   ========================================================================== */
+.top-hud-divider {
+  display: none;
+}
+
+.nav-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  background: transparent;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+  margin: 0 auto;
+}
+
+.nav-tab-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--color-ash);
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+.nav-tab-btn .nav-icon {
+  font-size: 1.15rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Ocultar texto para que SOLO se vean los iconos como pidió el usuario */
+.nav-tab-btn .nav-label,
+.nav-tab-btn .nav-lock-mini {
+  display: none !important;
+}
+
+.nav-tab-btn:hover {
+  color: var(--color-pure-white);
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-1px);
+}
+
+.nav-tab-btn:hover .nav-icon {
+  transform: scale(1.15);
+}
+
+.nav-tab-btn.active {
+  color: var(--color-pure-white);
+  background: rgba(0, 229, 255, 0.15);
+  border: 1px solid rgba(0, 229, 255, 0.45);
+  box-shadow: 
+    0 0 16px rgba(0, 229, 255, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.nav-tab-btn.jefatura-tab {
+  color: #fbbf24;
+}
+
+.nav-tab-btn.jefatura-tab:hover {
+  color: #fde68a;
+  background: rgba(251, 191, 36, 0.14);
+  border-color: rgba(251, 191, 36, 0.4);
+}
+
+.nav-tab-btn.jefatura-tab.active {
+  color: #fde68a;
+  background: rgba(251, 191, 36, 0.22);
+  border: 1px solid rgba(251, 191, 36, 0.6);
+  box-shadow: 
+    0 0 16px rgba(251, 191, 36, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.nav-tab-btn .nav-badge-mini {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  background: var(--police-cyan);
+  color: #000;
+  font-size: 0.62rem;
+  font-weight: 800;
+  min-width: 17px;
+  height: 17px;
+  line-height: 17px;
+  text-align: center;
+  border-radius: 9999px;
+  padding: 0 3px;
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.6);
+  border: 1px solid rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+}
+
+/* Cluster Derecho: Utilidades, Sincronización y Auth */
+.top-hud-right {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.top-search-trigger-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--color-ash);
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 50%;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.top-search-trigger-btn .search-icon {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.top-search-trigger-btn .search-text,
+.top-search-trigger-btn .search-kbd {
+  display: none !important;
+}
+
+.top-search-trigger-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--color-pure-white);
+  border-color: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px);
+}
+
+.notification-bell-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--color-ash);
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.notification-bell-btn:hover {
+  color: var(--color-pure-white);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px);
+}
+
+.tactical-live-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.25rem 0.6rem;
+  border-radius: 9999px;
+  font-family: var(--font-body) !important;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--police-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  position: relative;
+}
+
+.tactical-live-status:hover {
+  background: rgba(0, 229, 255, 0.08);
+  border-color: rgba(0, 229, 255, 0.3);
+}
+
+.audio-toggle-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--color-ash);
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.audio-toggle-btn:hover {
+  color: var(--color-pure-white);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   TOOLTIPS TÁCTICOS FLOTANTES (ESTILO RAYCAST — APARECEN ABAJO AL HACER HOVER)
+   ========================================================================== */
+[data-tooltip] {
+  position: relative;
+}
+
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-5px);
+  background: rgba(8, 10, 15, 0.96);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  color: #ffffff;
+  font-family: var(--font-body) !important;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 0.34rem 0.7rem;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.85),
+    0 2px 6px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.16s cubic-bezier(0.16, 1, 0.3, 1), transform 0.16s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.16s;
+  z-index: 999999;
+}
+
+[data-tooltip]::before {
+  content: "";
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-5px);
+  border-width: 0 5px 6px 5px;
+  border-style: solid;
+  border-color: transparent transparent rgba(255, 255, 255, 0.2) transparent;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.16s cubic-bezier(0.16, 1, 0.3, 1), transform 0.16s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.16s;
+  z-index: 1000000;
+}
+
+[data-tooltip]:hover::after,
+[data-tooltip]:hover::before {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.pulse-dot {
+  width: 7px;
+  height: 7px;
+  background-color: var(--tactical-green);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--tactical-green);
+  animation: pulseGreen 2s infinite ease-in-out;
+}
+
+@keyframes pulseGreen {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+/* User Profile & Auth Controls */
+.auth-controls-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+/* Botón Discord Login como botón de icono circular compacto */
+.discord-login-btn {
+  background: var(--color-mist) !important;
+  color: var(--color-void-black) !important;
+  border: none !important;
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  box-shadow: rgba(0, 0, 0, 0.25) 0px 4px 4px 0px !important;
+  transition: all var(--transition-fast) !important;
+  position: relative;
+}
+
+.discord-login-btn svg {
+  width: 19px !important;
+  height: 19px !important;
+}
+
+.discord-login-btn:hover {
+  transform: translateY(-1px) scale(1.06) !important;
+  background: #ffffff !important;
+  box-shadow: rgba(88, 101, 242, 0.35) 0px 0px 14px 0px !important;
+}
+
+.auth-user-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  padding: 0.25rem 0.75rem 0.25rem 0.35rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  position: relative;
+  transition: all var(--transition-fast);
+}
+
+.auth-user-badge:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.auth-avatar-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--police-cyan);
+  position: relative;
+}
+
+.auth-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.auth-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.auth-username {
+  font-family: var(--font-tactical);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.1;
+}
+
+.auth-badge-num {
+  font-family: var(--font-headline);
+  font-size: 0.75rem;
+  background: rgba(0, 229, 255, 0.15);
+  color: var(--police-cyan);
+  padding: 0 0.3rem;
+  border-radius: 3px;
+  font-weight: 700;
+}
+
+.auth-role-tag {
+  font-family: var(--font-headline);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+}
+
+.auth-role-tag.role-jefatura {
+  color: var(--tactical-gold);
+}
+
+/* Botón Audio SFX */
+.audio-toggle-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.audio-toggle-btn:hover {
+  color: var(--police-cyan);
+  border-color: var(--police-cyan);
+}
+
+.audio-toggle-btn.sound-on {
+  color: var(--police-cyan);
+  border-color: var(--border-tactical);
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+}
+
+/* User Account Quick Switcher Dropdown */
+.account-menu-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-tactical);
+  border-radius: 12px;
+  min-width: 290px;
+  padding: 0.75rem;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8);
+  display: none;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 1010;
+  backdrop-filter: var(--glass-blur);
+  animation: fadeInDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.account-menu-dropdown.show {
+  display: flex;
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown-section-title {
+  font-family: var(--font-headline);
+  font-size: 0.7rem;
+  color: var(--text-subtle);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.account-switch-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-main);
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: all var(--transition-fast);
+}
+
+.account-switch-item:hover {
+  background: rgba(0, 102, 255, 0.15);
+  border-color: var(--border-tactical);
+}
+
+.account-switch-item.current {
+  background: rgba(0, 229, 255, 0.1);
+  border-color: var(--border-tactical);
+}
+
+.account-switch-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--border-subtle);
+}
+
+.account-switch-details {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.account-switch-name {
+  font-family: var(--font-tactical);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.account-switch-role {
+  font-family: var(--font-headline);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.dropdown-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 6px;
+  font-family: var(--font-tactical);
+  font-size: 0.78rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-transform: uppercase;
+}
+
+.dropdown-action-btn:hover {
+  color: #fff;
+  border-color: var(--border-tactical);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.dropdown-action-btn.danger-action:hover {
+  color: var(--tactical-red);
+  border-color: var(--border-danger);
+  background: rgba(255, 42, 95, 0.1);
+}
+
+/* Contenedor Principal de la App */
+.main-wrapper {
+  width: 100%;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 1.25rem 2rem 5rem;
+  min-height: calc(100vh - 80px);
+  box-sizing: border-box;
+}
+
+/* Vistas Principales (Router) */
+.view-container {
+  display: none;
+  animation: viewFadeIn 0.3s ease-out forwards;
+}
+
+.view-container.active {
+  display: block;
+}
+
+@keyframes viewFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Footer Táctico */
+.k9-tactical-footer {
+  border-top: 1px solid var(--border-subtle);
+  background: rgba(5, 8, 17, 0.95);
+  padding: 2.5rem 1.5rem 2rem;
+  margin-top: 4rem;
+  color: var(--text-subtle);
+  font-size: 0.85rem;
+}
+
+.footer-content {
+  width: 100%;
+  max-width: 100% !important;
+  margin: 0;
+  padding: 0 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  box-sizing: border-box;
+}
+
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.footer-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  object-fit: contain;
+}
+
+.footer-text h4 {
+  font-family: var(--font-tactical);
+  font-size: 1rem;
+  color: #fff;
+  margin-bottom: 0.2rem;
+}
+
+.footer-text p {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.footer-meta {
+  font-family: var(--font-tactical);
+  font-size: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  text-align: right;
+}
+
+.footer-meta span {
+  color: var(--text-muted);
+}
+
+/* Responsive Base */
+@media (max-width: 1024px) {
+  .top-hud-bar {
+    width: calc(100% - 24px);
+    max-width: 1040px;
+    margin: 10px auto 1.25rem auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .brand-title {
+    font-size: 1.05rem;
+  }
+  .brand-subtitle, .tactical-live-status {
+    display: none;
+  }
+  .main-wrapper {
+    padding: 1rem 0.65rem 3.5rem;
+  }
+  .footer-content {
+    flex-direction: column;
+    text-align: center;
+  }
+  .footer-meta {
+    text-align: center;
+  }
+}
+
+/* ==========================================================================
+   LOGO EN MEDIO DE LA WEB (CENTERPIECE EMBLEM SHOWCASE)
+   ========================================================================== */
+.k9-centerpiece-showcase {
+  margin: 1.5rem auto 2.5rem;
+  padding: 2.5rem 1.5rem;
+  background: radial-gradient(circle at 50% 50%, rgba(16, 24, 43, 0.85) 0%, rgba(8, 12, 23, 0.95) 70%);
+  border: 1px solid var(--border-tactical);
+  border-radius: 20px;
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.7), 0 0 25px rgba(0, 229, 255, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.k9-centerpiece-showcase::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(0, 229, 255, 0.08) 0%, transparent 60%);
+  pointer-events: none;
+  animation: pulseGlow 4s ease-in-out infinite alternate;
+}
+
+@keyframes pulseGlow {
+  0% { opacity: 0.4; transform: scale(0.96); }
+  100% { opacity: 1; transform: scale(1.04); }
+}
+
+.k9-centerpiece-ring {
+  width: 140px;
+  height: 140px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
+.k9-centerpiece-ring::after {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 2px dashed rgba(0, 229, 255, 0.4);
+  animation: rotateEmblemRing 25s linear infinite;
+}
+
+@keyframes rotateEmblemRing {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.k9-centerpiece-glow {
+  position: absolute;
+  inset: -12px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 229, 255, 0.35) 0%, rgba(255, 183, 3, 0.2) 60%, transparent 80%);
+  filter: blur(12px);
+  z-index: 1;
+}
+
+.k9-centerpiece-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  position: relative;
+  z-index: 2;
+  border: 3px solid var(--border-gold);
+  box-shadow: 0 0 25px rgba(255, 183, 3, 0.4), inset 0 0 15px rgba(0, 0, 0, 0.6);
+  transition: transform var(--transition-normal);
+}
+
+.k9-centerpiece-ring:hover .k9-centerpiece-img {
+  transform: scale(1.06);
+}
+
+.k9-centerpiece-meta {
+  position: relative;
+  z-index: 2;
+  max-width: 600px;
+}
+
+.k9-centerpiece-badge {
+  display: inline-block;
+  font-family: 'Gobold', 'GoBold', 'Barlow Condensed', sans-serif !important;
+  font-size: 0.85rem;
+  letter-spacing: 0.18em;
+  color: var(--police-cyan);
+  background: rgba(0, 229, 255, 0.12);
+  border: 1px solid var(--border-tactical);
+  padding: 0.35rem 1rem;
+  border-radius: 20px;
+  margin-bottom: 0.75rem;
+}
+
+.k9-centerpiece-title {
+  font-size: 2.2rem;
+  color: #fff;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.4rem;
+  text-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
+}
+
+.k9-centerpiece-motto {
+  font-size: 0.95rem;
+  letter-spacing: 0.2em;
+  color: var(--tactical-gold);
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   DESPACHO CON JEFATURA (CHAT TÁCTICO)
+   ========================================================================== */
+.chat-dispatch-container {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-tactical);
+  border-radius: 16px;
+  box-shadow: var(--shadow-elevation);
+  display: flex;
+  flex-direction: column;
+  height: 640px;
+  overflow: hidden;
+  position: relative;
+}
+
+.chat-dispatch-header {
+  padding: 1.25rem 1.75rem;
+  background: rgba(10, 15, 29, 0.95);
+  border-bottom: 1px solid var(--border-tactical);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.chat-dispatch-feed {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: radial-gradient(circle at 50% 50%, rgba(16, 24, 43, 0.5) 0%, rgba(5, 8, 17, 0.8) 100%);
+}
+
+.chat-msg-row {
+  display: flex;
+  gap: 0.85rem;
+  max-width: 85%;
+  align-items: flex-start;
+  animation: fadeIn 0.2s ease;
+}
+
+.chat-msg-row.mine {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.chat-avatar-wrap {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--border-tactical);
+  flex-shrink: 0;
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+}
+
+.chat-avatar-wrap.jefatura {
+  border-color: var(--tactical-gold);
+  box-shadow: 0 0 12px rgba(255, 183, 3, 0.35);
+}
+
+.chat-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.chat-bubble {
+  background: rgba(22, 34, 59, 0.85);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 0.85rem 1.15rem;
+  color: var(--text-main);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.chat-msg-row.mine .chat-bubble {
+  background: rgba(0, 102, 255, 0.18);
+  border-color: rgba(0, 229, 255, 0.35);
+}
+
+.chat-bubble.jefatura {
+  background: rgba(255, 183, 3, 0.08);
+  border-color: var(--border-gold);
+}
+
+.chat-meta-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.chat-author-name {
+  font-family: 'Gobold', 'GoBold', 'Barlow Condensed', sans-serif !important;
+  font-size: 0.92rem;
+  color: #fff;
+  letter-spacing: 0.04em;
+}
+
+.chat-author-badge {
+  font-family: 'Gobold', 'GoBold', 'Barlow Condensed', sans-serif !important;
+  font-size: 0.68rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+.chat-badge-jefatura {
+  background: rgba(255, 183, 3, 0.2);
+  border: 1px solid var(--tactical-gold);
+  color: var(--tactical-gold);
+}
+
+.chat-badge-member {
+  background: rgba(0, 229, 255, 0.15);
+  border: 1px solid var(--border-tactical);
+  color: var(--police-cyan);
+}
+
+.chat-time-tag {
+  font-size: 0.7rem;
+  color: var(--text-subtle);
+  margin-left: auto;
+}
+
+.chat-body-text {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--text-main);
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.chat-input-bar {
+  padding: 1rem 1.5rem;
+  background: rgba(10, 15, 29, 0.98);
+  border-top: 1px solid var(--border-tactical);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.chat-input-field {
+  flex: 1;
+  background: rgba(16, 24, 43, 0.8);
+  border: 1px solid var(--border-tactical);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  color: #fff;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.chat-input-field:focus {
+  border-color: var(--police-cyan);
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
+}
+
+/* ==========================================================================
+   BADGES DE PRIORIDAD DE ANUNCIOS DE JEFATURA
+   ========================================================================== */
+.ann-priority-badge {
+  font-family: var(--font-tactical);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.ann-priority-urgente {
+  background: rgba(255, 42, 95, 0.2);
+  color: var(--tactical-red);
+  border: 1px solid var(--tactical-red);
+  box-shadow: 0 0 12px rgba(255, 42, 95, 0.35);
+  animation: pulseTacticalRed 2s infinite;
+}
+
+.ann-priority-importante {
+  background: rgba(255, 183, 3, 0.2);
+  color: var(--tactical-gold);
+  border: 1px solid var(--tactical-gold);
+  box-shadow: 0 0 12px rgba(255, 183, 3, 0.25);
+}
+
+.ann-priority-oficial {
+  background: rgba(0, 229, 255, 0.15);
+  color: var(--police-cyan);
+  border: 1px solid var(--border-tactical);
+}
+
+.ann-priority-informativo {
+  background: rgba(140, 160, 195, 0.15);
+  color: #a5b4fc;
+  border: 1px solid rgba(140, 160, 195, 0.3);
+}
+
+.ann-priority-formacion {
+  background: rgba(52, 211, 153, 0.18);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.4);
+}
+
+.ann-priority-canino {
+  background: rgba(56, 189, 248, 0.18);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+}
+
+@keyframes pulseTacticalRed {
+  0% { box-shadow: 0 0 8px rgba(255, 42, 95, 0.3); }
+  50% { box-shadow: 0 0 18px rgba(255, 42, 95, 0.6); }
+  100% { box-shadow: 0 0 8px rgba(255, 42, 95, 0.3); }
+}
+
+.announcement-photo-wrap {
+  margin: 1rem 0;
+  border-radius: 10px;
+  overflow: hidden;
+  max-height: 380px;
+  border: 1px solid var(--border-tactical);
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.announcement-photo-img {
+  width: 100%;
+  height: 100%;
+  max-height: 380px;
+  object-fit: cover;
+  display: block;
+}
+
+/* ==========================================================================
+   DIRECTORIO DE MIEMBROS K9 (TARJETAS OFICIALES)
+   ========================================================================== */
+.members-directory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.member-tactical-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-tactical);
+  border-radius: 14px;
+  padding: 1.5rem;
+  position: relative;
+  box-shadow: var(--shadow-elevation);
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+  contain: layout paint;
+  transform: translateZ(0);
+}
+
+.member-tactical-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--police-cyan);
+  box-shadow: var(--shadow-glow-cyan);
+}
+
+.member-card-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.member-card-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 2px solid var(--police-cyan);
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.25);
+  background: #000;
+}
+
+.member-card-info h4 {
+  font-family: var(--font-headline);
+  font-size: 1.15rem;
+  color: #fff;
+  margin-bottom: 0.2rem;
+  line-height: 1.2;
+}
+
+.member-card-placa {
+  font-family: var(--font-tactical);
+  font-size: 0.8rem;
+  color: var(--police-cyan);
+}
+
+.member-card-rank-badge {
+  display: inline-block;
+  font-family: var(--font-headline);
+  font-size: 0.72rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  background: rgba(0, 229, 255, 0.12);
+  color: var(--police-cyan);
+  border: 1px solid var(--border-tactical);
+  margin-top: 0.35rem;
+}
+
+.member-dog-assignment {
+  background: rgba(10, 15, 29, 0.7);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.member-dog-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--border-tactical);
+}
+
+.member-badges-row {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.member-badge-chip {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  object-fit: contain;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid var(--tactical-gold);
+  padding: 2px;
+  cursor: pointer;
+  transition: transform var(--transition-fast);
+}
+
+.member-badge-chip:hover {
+  transform: scale(1.15);
+}
+
+/* ==========================================================================
+   ÓRDENES DE ASCENSO OFICIALES (DECRETO TÁCTICO)
+   ========================================================================== */
+.promotion-decree-card {
+  background: linear-gradient(135deg, rgba(16, 24, 43, 0.95), rgba(10, 15, 29, 0.98));
+  border: 1px solid var(--border-gold);
+  border-radius: 14px;
+  padding: 1.75rem;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(255, 183, 3, 0.15);
+  margin-bottom: 1.5rem;
+}
+
+.promotion-seal {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  opacity: 0.15;
+  width: 90px;
+  pointer-events: none;
+}
+
+.promotion-ranks-flow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.75rem 0 1rem;
+  flex-wrap: wrap;
+}
+
+.rank-flow-pill {
+  font-family: var(--font-headline);
+  font-size: 0.85rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: 6px;
+}
+
+.rank-flow-old {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+}
+
+.rank-flow-arrow {
+  color: var(--tactical-gold);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.rank-flow-new {
+  background: rgba(255, 183, 3, 0.15);
+  color: var(--tactical-gold);
+  border: 1px solid var(--tactical-gold);
+  box-shadow: 0 0 12px rgba(255, 183, 3, 0.25);
+  font-weight: 700;
+}
+
+.promotion-citation-box {
+  background: rgba(0, 0, 0, 0.4);
+  border-left: 3px solid var(--tactical-gold);
+  padding: 0.85rem 1.15rem;
+  border-radius: 0 8px 8px 0;
+  font-style: italic;
+  color: var(--text-main);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+/* ==========================================================================
+   REGISTRO DE LOGS DE JEFATURA
+   ========================================================================== */
+.log-table-wrap {
+  overflow-x: auto;
+}
+
+.log-entry-row {
+  transition: background var(--transition-fast);
+}
+
+.log-entry-row:hover {
+  background: rgba(0, 229, 255, 0.04);
+}
+
+.log-badge-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-family: var(--font-tactical);
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
+/* ==========================================================================
+   WIDGET FLOTANTE INFERIOR DERECHO (ESTILO "MEET GLAZE" DE RAYCAST)
+   ========================================================================== */
+.raycast-floating-card {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 330px;
+  max-width: calc(100vw - 32px);
+  background: rgba(17, 18, 20, 0.94);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 1rem 1.15rem;
+  box-shadow: 
+    rgba(0, 0, 0, 0.65) 0px 14px 40px 0px,
+    rgba(255, 255, 255, 0.06) 0px 1px 0px 0px inset,
+    rgba(0, 229, 255, 0.12) 0px 0px 20px 0px;
+  z-index: 1000;
+  animation: raycastFloatIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: all 0.25s ease;
+}
+
+@keyframes raycastFloatIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.raycast-floating-card:hover {
+  border-color: rgba(0, 229, 255, 0.35);
+  box-shadow: 
+    rgba(0, 0, 0, 0.75) 0px 16px 48px 0px,
+    rgba(255, 255, 255, 0.1) 0px 1px 0px 0px inset,
+    rgba(0, 229, 255, 0.22) 0px 0px 25px 0px;
+  transform: translateY(-2px);
+}
+
+.floating-card-close {
+  position: absolute;
+  top: 9px;
+  right: 11px;
+  background: transparent;
+  border: none;
+  color: var(--color-smoke);
+  font-size: 1.15rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: color 0.15s ease;
+}
+
+.floating-card-close:hover {
+  color: var(--color-pure-white);
+}
+
+.floating-card-body {
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+}
+
+.floating-card-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: var(--color-ink);
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.6);
+}
+
+.floating-card-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.floating-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  flex: 1;
+}
+
+.floating-card-title {
+  font-family: var(--font-headline);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-pure-white);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.floating-card-desc {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  color: var(--color-ash);
+  line-height: 1.35;
+  margin: 0;
+}
+
+.floating-card-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--color-pure-white);
+  font-family: var(--font-body);
+  font-size: 0.74rem;
+  font-weight: 500;
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  margin-top: 0.4rem;
+  align-self: flex-start;
+  transition: all 0.15s ease;
+}
+
+.floating-card-pill:hover {
+  background: var(--color-mist);
+  color: var(--color-void-black);
+  border-color: var(--color-mist);
+}
+
+/* ==========================================================================
+   CARDS Y CONTENEDORES CON KEY-SHADOW DE RAYCAST
+   ========================================================================== */
+.tactical-card,
+.announcement-card,
+.directory-card,
+.report-card,
+.dog-card,
+.task-card,
+.table-container-tactical,
+.modal-content-tactical,
+.promotion-decree-card {
+  background: var(--color-ink) !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  border-radius: 16px !important;
+  box-shadow: 
+    rgba(255, 255, 255, 0.04) 0px 1px 0px 0px inset,
+    rgba(255, 255, 255, 0.14) 0px 0px 0px 1px,
+    rgba(0, 0, 0, 0.45) 0px -1px 0px 0px inset !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.tactical-card:hover,
+.announcement-card:hover,
+.directory-card:hover,
+.dog-card:hover {
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  box-shadow: 
+    rgba(255, 255, 255, 0.08) 0px 1px 0px 0px inset,
+    rgba(255, 255, 255, 0.22) 0px 0px 0px 1px,
+    rgba(0, 0, 0, 0.5) 0px -1px 0px 0px inset,
+    rgba(0, 0, 0, 0.6) 0px 12px 30px 0px !important;
+  transform: translateY(-2px);
+}
+
+/* Inputs estilo Well / Obsidian Recessed */
+input[type="text"],
+input[type="password"],
+input[type="search"],
+input[type="number"],
+input[type="url"],
+input[type="date"],
+input[type="datetime-local"],
+select,
+textarea {
+  background: var(--color-obsidian) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 8px !important;
+  color: var(--color-pure-white) !important;
+  font-family: var(--font-body) !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.45) !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--police-cyan) !important;
+  outline: none !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.45), 0 0 0 2px rgba(0, 229, 255, 0.2) !important;
+}
+
+
+
