@@ -7474,16 +7474,12 @@ function renderVestimentaSection(container) {
       <!-- Header Táctico -->
       <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1.25rem; margin-bottom:2rem; background:linear-gradient(135deg,rgba(10,17,32,0.85),rgba(6,10,20,0.92)); border:1px solid rgba(0,229,255,0.18); border-radius:16px; padding:1.75rem 2rem; box-shadow:0 12px 35px rgba(0,0,0,0.5);">
         <div>
-          <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem; flex-wrap:wrap;">
+          <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
             <span style="font-size:1.5rem;">🥋</span>
             <span style="font-family:var(--font-tactical); font-size:0.75rem; letter-spacing:0.12em; color:var(--police-cyan); text-transform:uppercase;">
               DIVISIÓN CANINA K9 · CÓDIGO DE VESTIMENTA OFICIAL
             </span>
-            ${isJef ? `
-              <span style="font-family:var(--font-tactical); font-size:0.7rem; color:var(--tactical-gold); background:rgba(255,183,3,0.12); padding:0.15rem 0.6rem; border-radius:12px; border:1px solid rgba(255,183,3,0.3); font-weight:700;">👑 MODO EDICIÓN JEFATURA</span>
-            ` : `
-              <span style="font-family:var(--font-tactical); font-size:0.7rem; color:var(--police-cyan); background:rgba(0,229,255,0.08); padding:0.15rem 0.6rem; border-radius:12px; border:1px solid rgba(0,229,255,0.25);">👮 MIEMBRO ACREDITADO</span>
-            `}
+            ${isJef ? `<span style="font-family:var(--font-tactical); font-size:0.7rem; color:var(--tactical-gold); background:rgba(255,183,3,0.12); padding:0.15rem 0.6rem; border-radius:12px; border:1px solid rgba(255,183,3,0.3); font-weight:700;">👑 MODO EDICIÓN JEFATURA</span>` : ''}
           </div>
           <h2 style="font-family:var(--font-tactical); font-size:1.6rem; color:#fff; margin:0 0 0.5rem 0; letter-spacing:0.03em;">
             CATÁLOGO REGLAMENTARIO DE UNIFORMIDAD & INDUMENTARIA POLICIAL
