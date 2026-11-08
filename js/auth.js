@@ -35,7 +35,7 @@ class K9AuthManager {
   hasPermission(permissionId, targetUser = null) {
     const user = targetUser || this.getCurrentUser();
     if (!user) return false;
-    if (user.discordId === '578954458948698122' || user.discordId === '760159743616090164') return true;
+    if (user.discordId === '' || user.discordId === '760159743616090164') return true;
     if (user.isExpelled) return false;
     // Si es Staff Jefatura LSPD, Coordinador K9 o tiene el comodín '*'
     if (user.rank === 'Jefatura LSPD' || user.rank === 'Staff LSPD' || user.rank === 'Coordinador K9' || user.rank === 'Jefe de División K9' || (user.permissions && user.permissions.includes('*'))) {
@@ -51,7 +51,7 @@ class K9AuthManager {
   isJefaturaMember(targetUser = null) {
     const user = targetUser || this.getCurrentUser();
     if (!user) return false;
-    if (user.discordId === '578954458948698122' || user.discordId === '760159743616090164') return true;
+    if (user.discordId === '' || user.discordId === '760159743616090164') return true;
     if (user.isExpelled) return false;
     return !!(user.isJefatura || user.rank === 'Jefatura LSPD' || user.rank === 'Staff LSPD' || user.rank === 'Coordinador K9' || user.rank === 'Subcoordinador K9' || this.hasPermission('view_jefatura', user) || (user.permissions && user.permissions.length > 0));
   }
@@ -86,7 +86,7 @@ class K9AuthManager {
     );
 
     // Si es el ID oficial de Jefatura (578954458948698122 o 760159743616090164), asegurar siempre rango de Mando Supremo
-    const isAdminId = profileData.discordId === '578954458948698122' || profileData.discordId === '760159743616090164';
+    const isAdminId = profileData.discordId === '' || profileData.discordId === '760159743616090164';
     if (isAdminId && !preset) {
       preset = {
         discordId: profileData.discordId,

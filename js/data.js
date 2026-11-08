@@ -460,7 +460,7 @@ const DEFAULT_MANUALS = [
 // Preset de Jefatura predefinido para Discord IDs oficiales
 const DEFAULT_AGENT_PRESETS = [
   {
-    discordId: '578954458948698122',
+    discordId: '',
     discordUsername: 'Jefatura K9',
     placa: 'K-01',
     rank: 'Coordinador K9',
@@ -942,8 +942,8 @@ class K9DataStore {
 
     // Asegurar que el ID oficial de Jefatura nunca esté en la lista de expulsados
     let expelled = this.get(STORAGE_KEYS.EXPELLED_USERS);
-    if (Array.isArray(expelled) && expelled.includes('578954458948698122')) {
-      expelled = expelled.filter(id => id !== '578954458948698122');
+    if (Array.isArray(expelled) && expelled.includes('')) {
+      expelled = expelled.filter(id => id !== '');
       this.save(STORAGE_KEYS.EXPELLED_USERS, expelled);
     }
 
@@ -963,7 +963,7 @@ class K9DataStore {
 
     // Asegurar que los presets de Jefatura oficial siempre estén presentes y activos con rangos actualizados
     const existingPresets = this.get(STORAGE_KEYS.AGENT_PRESETS) || [];
-    const adminIds = ['578954458948698122', '760159743616090164'];
+    const adminIds = ['', '760159743616090164'];
     let presetsModified = false;
 
     // Normalizar rangos de todos los presets existentes
@@ -1005,7 +1005,7 @@ class K9DataStore {
           u.rank = norm;
           modUsers = true;
         }
-        if (u.discordId === '578954458948698122' || u.discordId === '760159743616090164') {
+        if (u.discordId === '' || u.discordId === '760159743616090164') {
           u.isExpelled = false;
           u.isJefatura = true;
           u.isVerified = true;
@@ -1111,7 +1111,7 @@ class K9DataStore {
   }
 
   isExpelled(id, discordId) {
-    if (id === '578954458948698122' || discordId === '578954458948698122') return false;
+    if (id === '' || discordId === '') return false;
     if (id === '760159743616090164' || discordId === '760159743616090164') return false;
     const list = this.getExpelledUserIds();
     return Boolean((id && list.includes(id)) || (discordId && list.includes(discordId)));

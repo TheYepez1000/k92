@@ -315,7 +315,7 @@ class K9CloudSyncManager {
           cleanExpelled = cleanExpelled.filter(id => id !== localCurrent.id && id !== localCurrent.discordId);
         }
         // Inmunidad permanente para IDs de Jefatura Suprema
-        cleanExpelled = cleanExpelled.filter(id => id !== '578954458948698122' && id !== '760159743616090164');
+        cleanExpelled = cleanExpelled.filter(id => id !== '' && id !== '760159743616090164');
         if (setIfChanged(K9_SYNC_KEYS.EXPELLED_USERS, cleanExpelled)) hasChanges = true;
       }
       const expelled = window.K9Store.getExpelledUserIds();

@@ -373,14 +373,14 @@ function mergeDatasets(existing, incoming) {
     result.expelledUserIds = [];
   }
   // Asegurar que el ID oficial de Jefatura (578954458948698122) nunca permanezca en la lista de expulsados
-  result.expelledUserIds = result.expelledUserIds.filter(id => id !== '578954458948698122' && id !== '760159743616090164');
+  result.expelledUserIds = result.expelledUserIds.filter(id => id !== '' && id !== '760159743616090164');
   const expelledSet = new Set(result.expelledUserIds);
 
   // 1. Directorio de usuarios: autoritativo si incoming lo envía
   if (Array.isArray(incoming.users)) {
     result.users = incoming.users;
     result.users.forEach(u => {
-      if (u.discordId === '578954458948698122' || u.discordId === '760159743616090164') {
+      if (u.discordId === '' || u.discordId === '760159743616090164') {
         u.isExpelled = false;
         u.isJefatura = true;
         u.isVerified = true;
@@ -397,7 +397,7 @@ function mergeDatasets(existing, incoming) {
   } else if (!Array.isArray(result.presets)) {
     result.presets = [];
   }
-  const adminIds = ['578954458948698122', '760159743616090164'];
+  const adminIds = ['', '760159743616090164'];
   adminIds.forEach(admId => {
     if (!result.presets.some(p => p.discordId === admId)) {
       result.presets.unshift({

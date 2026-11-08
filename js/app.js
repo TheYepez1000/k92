@@ -225,7 +225,7 @@ function checkUserRankAccess() {
   if (!user) return { allowed: false, reason: 'no_auth', user: null };
 
   // Administrador / Mandos Supremos: bypass permanente
-  if (user.discordId === '578954458948698122' || user.discordId === '760159743616090164') {
+  if (user.discordId === '' || user.discordId === '760159743616090164') {
     user.isExpelled = false;
     user.isJefatura = true;
     user.isVerified = true;
@@ -665,13 +665,13 @@ function renderAnnouncements(container) {
     <div style="display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap; margin-bottom:1.5rem; background:rgba(16,24,43,0.7); border:1px solid var(--border-tactical); padding:0.6rem 0.85rem; border-radius:10px;">
       <span style="font-family:var(--font-headline); font-size:0.72rem; color:var(--text-muted); letter-spacing:0.06em; margin-right:0.35rem;">ETIQUETAS:</span>
       ${TAGS.map(t => {
-        const isActive = currentAnnouncementTag === t.id;
-        return `
+    const isActive = currentAnnouncementTag === t.id;
+    return `
           <button type="button" class="ann-filter-tag-btn" onclick="window.setAnnouncementTagFilter('${t.id}')" style="background:${isActive ? 'rgba(0,229,255,0.2)' : 'rgba(255,255,255,0.04)'}; border:1px solid ${isActive ? 'var(--police-cyan)' : 'rgba(255,255,255,0.1)'}; color:${isActive ? '#00e5ff' : 'var(--text-muted)'}; font-family:var(--font-headline); font-size:0.75rem; padding:0.25rem 0.65rem; border-radius:6px; cursor:pointer; transition:all 0.15s;">
             ${t.label}
           </button>
         `;
-      }).join('')}
+  }).join('')}
     </div>
 
     <div style="display:flex; flex-direction:column; gap:1.25rem;">
@@ -1260,7 +1260,7 @@ window.reenterService = function (userId) {
   u.serviceStatus = 'En Activo';
   u.isVerified = true;
 
-  if (u.discordId === '578954458948698122' || u.discordId === '760159743616090164') {
+  if (u.discordId === '' || u.discordId === '760159743616090164') {
     u.rank = 'Coordinador K9';
     u.placa = 'K-01';
     u.isJefatura = true;
@@ -1419,8 +1419,8 @@ function renderDecorationsSection(container) {
 
     <div style="display:flex; flex-direction:column; gap:1.75rem;">
       ${badges.map(b => {
-        const recipients = users.filter(u => (u.badges || []).includes(b.id));
-        return `
+    const recipients = users.filter(u => (u.badges || []).includes(b.id));
+    return `
           <div style="background:var(--bg-surface); border:1px solid ${b.ribbonColor ? b.ribbonColor + '55' : 'var(--border-gold)'}; border-radius:14px; padding:1.5rem; box-shadow:var(--shadow-elevation);">
             <div style="display:flex; gap:1.25rem; align-items:flex-start; flex-wrap:wrap; margin-bottom:1.25rem;">
               <img src="${b.image || 'assets/images/medal_valor.jpg'}" style="width:75px; height:75px; object-fit:contain; filter:drop-shadow(0 4px 12px rgba(255,183,3,0.3)); cursor:pointer;" alt="${b.name}" onclick="window.inspectBadgeModal('${b.id}', 'Honores K9')">
@@ -1457,7 +1457,7 @@ function renderDecorationsSection(container) {
             </div>
           </div>
         `;
-      }).join('')}
+  }).join('')}
     </div>
   `;
 }
@@ -1474,8 +1474,8 @@ function renderCanineGallery(container) {
 
     <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:1.5rem;">
       ${dogs.map(dog => {
-        const dogBadges = (dog.badges || []).map(bId => allBadges.find(b => b.id === bId)).filter(Boolean);
-        return `
+    const dogBadges = (dog.badges || []).map(bId => allBadges.find(b => b.id === bId)).filter(Boolean);
+    return `
         <div style="background:var(--bg-surface); border:1px solid var(--border-tactical); border-radius:14px; overflow:hidden; box-shadow:var(--shadow-elevation); display:flex; flex-direction:column; transition:transform 0.2s, box-shadow 0.2s;" onmouseenter="this.style.transform='translateY(-4px)'; this.style.boxShadow='var(--shadow-glow-cyan)'" onmouseleave="this.style.transform='none'; this.style.boxShadow='var(--shadow-elevation)'">
           <div style="height:210px; width:100%; position:relative; overflow:hidden;">
             <img src="${dog.photo}" alt="${escapeHtml(dog.name)}" style="width:100%; height:100%; object-fit:cover; transition:transform 0.5s;" loading="lazy" onmouseenter="this.style.transform='scale(1.08)'" onmouseleave="this.style.transform='scale(1)'">
@@ -1536,7 +1536,7 @@ function renderCanineGallery(container) {
           </div>
         </div>
       `;
-      }).join('')}
+  }).join('')}
     </div>
   `;
 }
@@ -1567,7 +1567,7 @@ function renderMemberProfile() {
   }
 
   // Si el usuario es el Administrador / Jefatura (578954458948698122 o 760159743616090164), asegurar acceso permanente sin bloqueo
-  if (user && (user.discordId === '578954458948698122' || user.discordId === '760159743616090164')) {
+  if (user && (user.discordId === '' || user.discordId === '760159743616090164')) {
     user.isExpelled = false;
     user.isJefatura = true;
     user.isVerified = true;
@@ -1840,15 +1840,15 @@ function renderMemberProfile() {
                   <div style="margin-top:0.75rem; display:flex; flex-wrap:wrap; align-items:center; gap:0.4rem;">
                     <span style="font-family:var(--font-headline); font-size:0.7rem; color:var(--tactical-gold); letter-spacing:0.04em;">CONDECORACIONES:</span>
                     ${assignedDog.badges.map(bId => {
-                      const b = allBadges.find(x => x.id === bId);
-                      if (!b) return '';
-                      return `
+    const b = allBadges.find(x => x.id === bId);
+    if (!b) return '';
+    return `
                         <span class="badge-pill" style="font-size:0.68rem; background:rgba(255,183,3,0.12); color:var(--tactical-gold); border:1px solid rgba(255,183,3,0.3); padding:0.12rem 0.45rem; border-radius:10px; display:inline-flex; align-items:center; gap:0.25rem;" title="${escapeHtml(b.name)} - ${escapeHtml(b.category)}">
                           <span>${b.icon || '🎖️'}</span>
                           <span style="font-family:var(--font-headline); font-weight:600;">${escapeHtml(b.name)}</span>
                         </span>
                       `;
-                    }).join('')}
+  }).join('')}
                   </div>
                 ` : ''}
               </div>
@@ -2805,7 +2805,7 @@ function renderAgentsSection(container) {
       const tbodyEl = document.getElementById('agentsTableBody');
       if (tbodyEl) {
         const freshUsers = window.K9Store.getUsers();
-        const freshDogs  = window.K9Store.getDogs();
+        const freshDogs = window.K9Store.getDogs();
         tbodyEl.innerHTML = renderAgentsTableRows(freshUsers, freshDogs);
       }
       // Re-renderizar solo si hay cambio visual importante (presets añadidos)
@@ -2934,13 +2934,13 @@ window.editAgentRank = function (userId) {
   if (!user) return;
 
   const RANKS = [
-    { value: 'Jefatura LSPD',     label: '👑 Jefatura LSPD (Staff)', color: '#f43f5e' },
-    { value: 'Coordinador K9',    label: '🦅 Coordinador K9',     color: '#fbbf24' },
-    { value: 'Subcoordinador K9', label: '⭐ Subcoordinador K9',  color: '#f59e0b' },
-    { value: 'Instructor K9',     label: '🎓 Instructor K9',      color: '#34d399' },
-    { value: 'Agente Guia',       label: '🐾 Agente Guia',        color: '#38bdf8' },
-    { value: 'Aspirante K9',      label: '🔰 Aspirante K9',       color: '#94a3b8' },
-    { value: 'Sin Rango',         label: '⏳ Sin Rango Asignado', color: '#64748b' }
+    { value: 'Jefatura LSPD', label: '👑 Jefatura LSPD (Staff)', color: '#f43f5e' },
+    { value: 'Coordinador K9', label: '🦅 Coordinador K9', color: '#fbbf24' },
+    { value: 'Subcoordinador K9', label: '⭐ Subcoordinador K9', color: '#f59e0b' },
+    { value: 'Instructor K9', label: '🎓 Instructor K9', color: '#34d399' },
+    { value: 'Agente Guia', label: '🐾 Agente Guia', color: '#38bdf8' },
+    { value: 'Aspirante K9', label: '🔰 Aspirante K9', color: '#94a3b8' },
+    { value: 'Sin Rango', label: '⏳ Sin Rango Asignado', color: '#64748b' }
   ];
 
   // Crear modal inline de edición de agente y rango
@@ -3095,20 +3095,20 @@ window.editAgentRank = function (userId) {
 
   // Confirmar cambio
   document.getElementById('confirmEditRank').addEventListener('click', () => {
-    const newName  = document.getElementById('editAgentName').value.trim();
+    const newName = document.getElementById('editAgentName').value.trim();
     const newPlaca = document.getElementById('editRankPlaca').value.trim();
-    const isJef   = document.getElementById('editRankIsJef').checked;
+    const isJef = document.getElementById('editRankIsJef').checked;
 
     if (!newName) { showToast('Introduce un nombre válido dentro del juego.', 'warning'); return; }
     if (!newPlaca) { showToast('Introduce una placa válida.', 'warning'); return; }
 
     const isStaffOrJef = isJef || selectedRank === 'Jefatura LSPD' || selectedRank === 'Coordinador K9';
-    user.name          = newName;
-    user.rank          = selectedRank;
-    user.placa         = newPlaca;
-    user.isJefatura    = isStaffOrJef;
-    user.isVerified    = selectedRank !== 'Sin Rango';
-    user.permissions   = isStaffOrJef ? ['*'] : [];
+    user.name = newName;
+    user.rank = selectedRank;
+    user.placa = newPlaca;
+    user.isJefatura = isStaffOrJef;
+    user.isVerified = selectedRank !== 'Sin Rango';
+    user.permissions = isStaffOrJef ? ['*'] : [];
     user.serviceStatus = selectedRank === 'Sin Rango' ? 'Pendiente de Asignación por Jefatura' : (isStaffOrJef ? 'En Activo / Mando' : 'En Activo');
 
     const newAvatar = selectedAgentAvatarData || agentAvatarInput.value.trim();
@@ -3355,7 +3355,7 @@ window.openChangeAvatarModal = function (targetUserId) {
 // ─── Expulsar agente de la unidad (revocar rango y registrar expulsión) ───
 window.removeAgentFromRoster = function (userId) {
   const allUsers = window.K9Store.getAllUsers ? window.K9Store.getAllUsers() : window.K9Store.getUsers();
-  const user  = allUsers.find(u => u.id === userId);
+  const user = allUsers.find(u => u.id === userId);
   if (!user) return;
 
   // Confirmación rápida con modal inline
@@ -3410,9 +3410,9 @@ window.removeAgentFromRoster = function (userId) {
     // 3. Si tenía un can asignado, liberarlo
     if (user.assignedDogId) {
       const dogs = window.K9Store.getDogs();
-      const dog  = dogs.find(d => d.id === user.assignedDogId);
+      const dog = dogs.find(d => d.id === user.assignedDogId);
       if (dog) {
-        dog.handlerId   = null;
+        dog.handlerId = null;
         dog.handlerName = 'Pendiente de Asignación';
         window.K9Store.save(STORAGE_KEYS.DOGS, dogs);
       }
@@ -3759,7 +3759,7 @@ window.deleteDog = function (dogId) {
   // Abrir modal táctico de confirmación de baja de can
   window._pendingDeleteDogId = dogId;
   const delName = document.getElementById('delDogName');
-  const delTag  = document.getElementById('delDogTag');
+  const delTag = document.getElementById('delDogTag');
   const delBreed = document.getElementById('delDogBreed');
   const delPhoto = document.getElementById('delDogPhoto');
   if (delName) delName.textContent = dog.name;
@@ -3874,8 +3874,8 @@ function renderDisciplinarySection(container) {
           </thead>
           <tbody>
             ${records.map(rec => {
-              const isInternal = rec.category === 'expediente_interno' || rec.isInternal;
-              return `
+    const isInternal = rec.category === 'expediente_interno' || rec.isInternal;
+    return `
               <tr>
                 <td style="font-family:var(--font-tactical); font-size:0.8rem;">${rec.date}</td>
                 <td><strong style="color:#fff;">${rec.agentName}</strong></td>
@@ -3916,7 +3916,8 @@ function renderDisciplinarySection(container) {
                   </div>
                 </td>
               </tr>
-            `;}).join('')}
+            `;
+  }).join('')}
           </tbody>
         </table>
       </div>
@@ -3935,13 +3936,13 @@ window.deleteDisciplinaryRecord = function (id) {
 
   // Abrir modal táctico de confirmación de baja de disciplinario
   window._pendingDeleteDiscId = id;
-  const delAgent    = document.getElementById('delDiscAgent');
+  const delAgent = document.getElementById('delDiscAgent');
   const delSeverity = document.getElementById('delDiscSeverity');
-  const delReason   = document.getElementById('delDiscReason');
+  const delReason = document.getElementById('delDiscReason');
   const delSanction = document.getElementById('delDiscSanction');
-  if (delAgent)    delAgent.textContent    = rec.agentName || 'Agente';
+  if (delAgent) delAgent.textContent = rec.agentName || 'Agente';
   if (delSeverity) delSeverity.textContent = rec.type || 'Falta';
-  if (delReason)   delReason.textContent   = rec.reason || '—';
+  if (delReason) delReason.textContent = rec.reason || '—';
   if (delSanction) delSanction.textContent = rec.sanction || '—';
   openModal('modalDeleteDisciplinary');
 };
@@ -4006,8 +4007,8 @@ function renderBadgesSection(container) {
           </thead>
           <tbody>
             ${users.map(u => {
-              const uBadges = (u.badges || []).map(bid => badges.find(b => b.id === bid)).filter(Boolean);
-              return `
+    const uBadges = (u.badges || []).map(bid => badges.find(b => b.id === bid)).filter(Boolean);
+    return `
                 <tr>
                   <td>
                     <div style="display:flex; align-items:center; gap:0.6rem;">
@@ -4039,7 +4040,7 @@ function renderBadgesSection(container) {
                   </td>
                 </tr>
               `;
-            }).join('')}
+  }).join('')}
           </tbody>
         </table>
       </div>
@@ -4831,7 +4832,7 @@ function renderLogRowsHtml(logs) {
   }).join('');
 }
 
-window.clearLogsTactical = function() {
+window.clearLogsTactical = function () {
   window.K9Store.save(STORAGE_KEYS.LOGS, []);
   if (window.K9CloudSync) window.K9CloudSync.push();
   if (window.K9Audio) window.K9Audio.playTacticalBeep(350, 0.15);
@@ -4839,7 +4840,7 @@ window.clearLogsTactical = function() {
   renderJefaturaSubtab('logs');
 };
 
-window.exportLogsDossier = function() {
+window.exportLogsDossier = function () {
   const logs = window.K9Store.getLogs();
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(logs, null, 2));
   const dl = document.createElement('a');
@@ -5862,7 +5863,7 @@ ON CONFLICT (id) DO NOTHING;
         isJefatura: true,
         text: text,
         timestamp: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) +
-                   ' · ' + new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }),
+          ' · ' + new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }),
         createdAt: Date.now()
       };
 
@@ -6014,14 +6015,14 @@ function renderChatSection(container) {
         ` : ''}
 
         ${threadMsgs.map(m => {
-          const isMine = !m.isJefatura && (m.authorId === user.id || m.authorId === user.discordId);
-          const isJef = !!m.isJefatura;
-          const ts = m.timestamp || '';
-          const rankBadge = isJef
-            ? '<span class="chat-author-badge chat-badge-jefatura">👑 JEFATURA K9</span>'
-            : '<span class="chat-author-badge chat-badge-member">🐾 ' + escapeHtml(m.authorRank || user.rank || 'AGENTE') + '</span>';
+    const isMine = !m.isJefatura && (m.authorId === user.id || m.authorId === user.discordId);
+    const isJef = !!m.isJefatura;
+    const ts = m.timestamp || '';
+    const rankBadge = isJef
+      ? '<span class="chat-author-badge chat-badge-jefatura">👑 JEFATURA K9</span>'
+      : '<span class="chat-author-badge chat-badge-member">🐾 ' + escapeHtml(m.authorRank || user.rank || 'AGENTE') + '</span>';
 
-          return `
+    return `
             <div class="chat-msg-row ${isMine ? 'mine' : ''}">
               <div class="chat-avatar-wrap ${isJef ? 'jefatura' : ''}">
                 <img src="${escapeHtml(m.authorAvatar || 'assets/images/emblem.jpg')}" class="chat-avatar-img" onerror="this.src='assets/images/emblem.jpg'">
@@ -6036,7 +6037,7 @@ function renderChatSection(container) {
               </div>
             </div>
           `;
-        }).join('')}
+  }).join('')}
       </div>
 
       <div class="chat-input-bar">
@@ -6077,7 +6078,7 @@ function renderChatSection(container) {
       isJefatura: false,
       text: text,
       timestamp: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) +
-                 ' · ' + new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }),
+        ' · ' + new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }),
       createdAt: Date.now()
     };
 
@@ -6233,9 +6234,9 @@ function renderJefaturaDispatchesSection(container) {
               ${threads.length === 0 ? 'Sin despachos iniciados todavía. Los agentes que envíen consultas aparecerán aquí.' : 'No hay resultados para la búsqueda.'}
             </div>
           ` : filteredThreads.map(t => {
-            const isActive = t.agentId === currentJefaturaActiveAgentId;
-            const snippet = t.lastMsg && t.lastMsg.text ? t.lastMsg.text.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'Sin mensajes';
-            return `
+    const isActive = t.agentId === currentJefaturaActiveAgentId;
+    const snippet = t.lastMsg && t.lastMsg.text ? t.lastMsg.text.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'Sin mensajes';
+    return `
               <div class="jefatura-thread-item ${isActive ? 'active' : ''}" onclick="window.selectJefaturaDispatchAgent('${t.agentId}')">
                 <img src="${escapeHtml(t.avatar)}" class="jefatura-thread-avatar" onerror="this.src='assets/images/emblem.jpg'">
                 <div class="jefatura-thread-meta">
@@ -6259,7 +6260,7 @@ function renderJefaturaDispatchesSection(container) {
                 </div>
               </div>
             `;
-          }).join('')}
+  }).join('')}
         </div>
       </div>
 
@@ -6290,13 +6291,13 @@ function renderJefaturaDispatchesSection(container) {
 
           <div class="jefatura-dispatch-main-feed" id="jefDispatchFeedContainer">
             ${activeThread.messages.map(m => {
-              const isJef = !!m.isJefatura;
-              const isMine = isJef && (m.authorId === currentUser.id || m.authorId === currentUser.discordId);
-              const rankBadge = isJef
-                ? '<span class="chat-author-badge chat-badge-jefatura">👑 JEFATURA K9</span>'
-                : '<span class="chat-author-badge chat-badge-member">🐾 ' + escapeHtml(m.authorRank || activeThread.rank || 'AGENTE') + '</span>';
+    const isJef = !!m.isJefatura;
+    const isMine = isJef && (m.authorId === currentUser.id || m.authorId === currentUser.discordId);
+    const rankBadge = isJef
+      ? '<span class="chat-author-badge chat-badge-jefatura">👑 JEFATURA K9</span>'
+      : '<span class="chat-author-badge chat-badge-member">🐾 ' + escapeHtml(m.authorRank || activeThread.rank || 'AGENTE') + '</span>';
 
-              return `
+    return `
                 <div class="chat-msg-row ${isJef ? 'mine' : ''}">
                   <div class="chat-avatar-wrap ${isJef ? 'jefatura' : ''}">
                     <img src="${escapeHtml(m.authorAvatar || 'assets/images/emblem.jpg')}" class="chat-avatar-img" onerror="this.src='assets/images/emblem.jpg'">
@@ -6312,7 +6313,7 @@ function renderJefaturaDispatchesSection(container) {
                   </div>
                 </div>
               `;
-            }).join('')}
+  }).join('')}
           </div>
 
           <div class="chat-input-bar">
@@ -6377,7 +6378,7 @@ function renderJefaturaDispatchesSection(container) {
       isJefatura: true,
       text: text,
       timestamp: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) +
-                 ' · ' + new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }),
+        ' · ' + new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }),
       createdAt: Date.now()
     };
 
@@ -6888,27 +6889,27 @@ function renderTasksCenter(container) {
             </button>
           </div>
         ` : filtered.map(t => {
-          const isDone = t.status === 'completada';
-          const overdue = isTaskOverdue(t);
-          const isOfficial = t.type === 'oficial' || t.isOfficial;
-          const priorityClass = t.priority || 'normal';
-          const priorityLabel = t.priority ? t.priority.toUpperCase() : 'NORMAL';
-          const statusClass = overdue ? 'vencida' : (t.status || 'pendiente');
-          const statusLabel = overdue ? 'VENCIDA' : (t.status ? t.status.replace('_', ' ').toUpperCase() : 'PENDIENTE');
+    const isDone = t.status === 'completada';
+    const overdue = isTaskOverdue(t);
+    const isOfficial = t.type === 'oficial' || t.isOfficial;
+    const priorityClass = t.priority || 'normal';
+    const priorityLabel = t.priority ? t.priority.toUpperCase() : 'NORMAL';
+    const statusClass = overdue ? 'vencida' : (t.status || 'pendiente');
+    const statusLabel = overdue ? 'VENCIDA' : (t.status ? t.status.replace('_', ' ').toUpperCase() : 'PENDIENTE');
 
-          const dueFormatted = t.dueDate ? new Date(t.dueDate).toLocaleString('es-ES', {
-            day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
-          }) : 'Sin fecha límite';
+    const dueFormatted = t.dueDate ? new Date(t.dueDate).toLocaleString('es-ES', {
+      day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+    }) : 'Sin fecha límite';
 
-          const createdFormatted = t.createdAt ? new Date(t.createdAt).toLocaleDateString('es-ES', {
-            day: '2-digit', month: 'short', year: 'numeric'
-          }) : '—';
+    const createdFormatted = t.createdAt ? new Date(t.createdAt).toLocaleDateString('es-ES', {
+      day: '2-digit', month: 'short', year: 'numeric'
+    }) : '—';
 
-          const completedFormatted = t.completedAt ? new Date(t.completedAt).toLocaleString('es-ES', {
-            day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
-          }) : null;
+    const completedFormatted = t.completedAt ? new Date(t.completedAt).toLocaleString('es-ES', {
+      day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+    }) : null;
 
-          return `
+    return `
             <div class="task-card priority-${priorityClass} ${overdue ? 'is-overdue' : ''}" id="taskCard_${t.id}" style="background:linear-gradient(135deg, rgba(16,24,43,0.92), rgba(9,14,27,0.95)); border:1px solid ${overdue ? 'var(--tactical-red)' : 'var(--border-subtle)'}; border-left:4px solid ${priorityClass === 'urgente' ? 'var(--tactical-red)' : priorityClass === 'alta' ? 'var(--tactical-amber)' : priorityClass === 'normal' ? 'var(--police-cyan)' : 'var(--text-muted)'}; border-radius:10px; padding:1.25rem; display:flex; flex-direction:column; justify-content:space-between; gap:0.9rem; transition:transform 0.2s, box-shadow 0.2s;">
               
               <div>
@@ -6980,7 +6981,7 @@ function renderTasksCenter(container) {
 
             </div>
           `;
-        }).join('')}
+  }).join('')}
       </div>
 
     </div>
@@ -7340,10 +7341,10 @@ window.openAgendaModal = function () {
           No hay eventos o convocatorias programadas en la agenda.
         </div>
       ` : events.map(ev => {
-        const evDate = new Date(ev.date).toLocaleString('es-ES', {
-          weekday: 'short', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
-        });
-        return `
+    const evDate = new Date(ev.date).toLocaleString('es-ES', {
+      weekday: 'short', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+    return `
           <div style="background:rgba(0,0,0,0.35); border:1px solid var(--border-subtle); border-left:3px solid var(--tactical-gold); border-radius:8px; padding:0.85rem 1rem; display:flex; justify-content:space-between; align-items:center; gap:1rem;">
             <div style="flex:1;">
               <div style="font-family:var(--font-headline); font-size:0.95rem; color:#fff; margin-bottom:0.2rem;">${escapeHtml(ev.title)}</div>
@@ -7362,7 +7363,7 @@ window.openAgendaModal = function () {
             ` : ''}
           </div>
         `;
-      }).join('')}
+  }).join('')}
     </div>
   `;
 
@@ -7463,9 +7464,9 @@ function renderHomeTaskSummaryWidget() {
       ` : `
         <div class="home-task-list-mini">
           ${top3.map(t => {
-            const overdue = isTaskOverdue(t);
-            const dueFormatted = t.dueDate ? new Date(t.dueDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) : 'Sin límite';
-            return `
+    const overdue = isTaskOverdue(t);
+    const dueFormatted = t.dueDate ? new Date(t.dueDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) : 'Sin límite';
+    return `
               <div class="home-task-item-mini" onclick="switchMainView('tareas')" title="Ir a Centro de Tareas">
                 <div style="display:flex; align-items:center; gap:0.55rem; min-width:0;">
                   <span style="width:8px; height:8px; border-radius:50%; background:${t.priority === 'urgente' ? 'var(--tactical-red)' : t.priority === 'alta' ? 'var(--tactical-gold)' : 'var(--police-cyan)'}; flex-shrink:0;"></span>
@@ -7480,7 +7481,7 @@ function renderHomeTaskSummaryWidget() {
                 </div>
               </div>
             `;
-          }).join('')}
+  }).join('')}
         </div>
       `}
     </div>
@@ -7724,11 +7725,11 @@ function renderNotificationsList() {
 
   container.innerHTML = filtered.map(n => {
     const icon = n.type === 'tarea_vencida' ? '⚠️' :
-                 n.type === 'tarea_proxima' ? '📋' :
-                 n.type === 'evento_proximo' ? '📅' :
-                 n.type === 'formacion' ? '🎓' :
-                 n.type === 'certificacion' ? '🏅' :
-                 n.type === 'evaluacion' ? '📝' : '📢';
+      n.type === 'tarea_proxima' ? '📋' :
+        n.type === 'evento_proximo' ? '📅' :
+          n.type === 'formacion' ? '🎓' :
+            n.type === 'certificacion' ? '🏅' :
+              n.type === 'evaluacion' ? '📝' : '📢';
 
     const timeAgo = formatTimeAgo(n.createdAt);
 
@@ -8827,7 +8828,7 @@ function initTacticalLeafletMap(isJef) {
     if (mapEl) {
       mapEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--police-cyan);font-family:var(--font-headline);gap:.6rem;"><span class="pulse-dot dot-online"></span>Iniciando cartografía táctica de Los Santos...</div>';
     }
-    
+
     // Carga dinámica de respaldo
     const script = document.createElement('script');
     script.src = 'js/vendor/leaflet.js';
@@ -8854,7 +8855,7 @@ function initTacticalLeafletMap(isJef) {
 
   // Destruir instancia previa limpiamente
   if (window.k9TacticalMap) {
-    try { window.k9TacticalMap.remove(); } catch (e) {}
+    try { window.k9TacticalMap.remove(); } catch (e) { }
     window.k9TacticalMap = null;
     window.k9MapTileLayer = null;
     window.k9MapMarkersGroup = null;
@@ -9016,8 +9017,8 @@ function refreshMapMarkers() {
     const statusBadge = m.status === 'en_curso'
       ? '<span class="marker-status-badge status-live">🟢 EN CURSO</span>'
       : m.status === 'finalizado'
-      ? '<span class="marker-status-badge status-done">⚪ FINALIZADO</span>'
-      : '<span class="marker-status-badge status-prog">📅 PROGRAMADO</span>';
+        ? '<span class="marker-status-badge status-done">⚪ FINALIZADO</span>'
+        : '<span class="marker-status-badge status-prog">📅 PROGRAMADO</span>';
 
     const popupHtml = `
       <div class="tactical-leaflet-popup-card" style="min-width:250px; font-family:var(--font-tactical);">
