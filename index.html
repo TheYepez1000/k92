@@ -742,6 +742,141 @@
     </div>
   </div>
 
+  <!-- MODAL: EDITAR EXPEDIENTE CANINO K9 (JEFATURA) -->
+  <div class="tactical-modal-overlay" id="modalEditDog">
+    <div class="tactical-modal-card" style="max-width: 620px;">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical">
+          <span>🐕</span> EDITAR EXPEDIENTE CANINO K9
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalEditDog')">✕</button>
+      </div>
+      <form id="formEditDog">
+        <input type="hidden" id="editDogId">
+        <div class="modal-body-tactical" style="max-height:75vh; overflow-y:auto; padding:1.25rem;">
+          
+          <div class="form-grid-2">
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="editDogName">NOMBRE DEL CAN</label>
+              <input type="text" id="editDogName" class="form-input-tactical" required>
+            </div>
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="editDogTag">PLACA CANINA / CHIP TÁCTICO</label>
+              <input type="text" id="editDogTag" class="form-input-tactical" required>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="editDogBreed">RAZA</label>
+              <input type="text" id="editDogBreed" class="form-input-tactical" list="dogBreedsList" required>
+              <datalist id="dogBreedsList">
+                <option value="Pastor Belga Malinois">
+                <option value="Pastor Alemán Sable">
+                <option value="Labrador Retriever">
+                <option value="Bloodhound (Sabueso)">
+                <option value="Rottweiler Táctico">
+                <option value="Dóberman Policial">
+              </datalist>
+            </div>
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="editDogSpecialty">ESPECIALIDAD OPERATIVA</label>
+              <select id="editDogSpecialty" class="form-select-tactical" required>
+                <option value="Intervención Táctica & Asalto">Intervención Táctica & Asalto</option>
+                <option value="Detección de Narcóticos & Sustancias">Detección de Narcóticos & Sustancias</option>
+                <option value="Detección de Explosivos & IED">Detección de Explosivos & IED</option>
+                <option value="Búsqueda & Rastreo de Personas">Búsqueda & Rastreo de Personas</option>
+                <option value="Control de Masas & Seguridad Perimetral">Control de Masas & Seguridad Perimetral</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="editDogHandler">GUÍA ASIGNADO / PROPIETARIO</label>
+              <select id="editDogHandler" class="form-select-tactical">
+                <option value="">Sin asignar (Chenil)</option>
+              </select>
+            </div>
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="editDogHealth">ESTADO DE SALUD OPERATIVO</label>
+              <select id="editDogHealth" class="form-select-tactical" required>
+                <option value="Apto Operativo">Apto Operativo</option>
+                <option value="En Entrenamiento">En Entrenamiento</option>
+                <option value="En Recuperación">En Recuperación</option>
+                <option value="Baja Médica">Baja Médica</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="editDogSync">NIVEL DE ADIESTRAMIENTO TÁCTICO (%)</label>
+              <input type="number" id="editDogSync" class="form-input-tactical" min="0" max="100" required>
+            </div>
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="editDogAge">EDAD</label>
+              <input type="text" id="editDogAge" class="form-input-tactical" placeholder="Ej: 3 años">
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="editDogWeight">PESO OPERATIVO</label>
+              <input type="text" id="editDogWeight" class="form-input-tactical" placeholder="Ej: 34 kg">
+            </div>
+            <div class="form-group-tactical">
+              <label class="form-label-tactical" for="editDogBlood">GRUPO SANGUÍNEO CANINO</label>
+              <input type="text" id="editDogBlood" class="form-input-tactical" placeholder="Ej: DEA 1.1 Negativo">
+            </div>
+          </div>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="editDogEmergencyCallsign">INDICATIVO RADIAL DE EMERGENCIA</label>
+            <input type="text" id="editDogEmergencyCallsign" class="form-input-tactical" placeholder="Ej: ALPHA-K9-01">
+          </div>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="editDogPhoto">FOTOGRAFÍA DEL CAN</label>
+            <div style="display:flex; gap:0.5rem; align-items:center;">
+              <input type="text" id="editDogPhoto" class="form-input-tactical" placeholder="https://... o assets/images/k9_rex.jpg">
+              <input type="file" id="editDogPhotoFile" accept="image/*" style="display:none;"
+                onchange="(function(e){const f=e.target.files&&e.target.files[0];if(f){const r=new FileReader();r.onload=function(ev){document.getElementById('editDogPhoto').value=ev.target.result;};r.readAsDataURL(f);}})(event)">
+              <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" style="white-space:nowrap; padding:0.55rem 0.75rem;" onclick="document.getElementById('editDogPhotoFile').click()">
+                📁 Subir
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" for="editDogNotes">NOTAS DE ADIESTRAMIENTO & COMPORTAMIENTO</label>
+            <textarea id="editDogNotes" class="form-textarea-tactical" rows="3" placeholder="Comandos conocidos, temperamento..."></textarea>
+          </div>
+
+          <!-- Selector de Condecoraciones / Medallas del Can -->
+          <div class="form-group-tactical">
+            <label class="form-label-tactical" style="color:var(--tactical-gold); display:flex; justify-content:space-between;">
+              <span>🎖️ MEDALLAS Y CONDECORACIONES CANINAS:</span>
+              <span id="editDogBadgesCount" style="font-size:0.75rem; color:var(--text-muted); font-weight:400;">0 seleccionadas</span>
+            </label>
+            <div id="editDogBadgesContainer" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:0.5rem; max-height:180px; overflow-y:auto; background:rgba(0,0,0,0.3); border:1px solid var(--border-subtle); border-radius:8px; padding:0.75rem;">
+              <!-- Rellenado dinámicamente -->
+            </div>
+          </div>
+
+        </div>
+        <div class="modal-footer-tactical">
+          <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="closeModal('modalEditDog')">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-tactical btn-tactical-gold btn-tactical-sm">
+            💾 Guardar Expediente Canino
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- MODAL: REGISTRAR FALTA DISCIPLINARIA -->
   <div class="tactical-modal-overlay" id="modalNewDisciplinary">
     <div class="tactical-modal-card">

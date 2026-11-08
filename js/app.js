@@ -1464,6 +1464,7 @@ function renderDecorationsSection(container) {
 
 function renderCanineGallery(container) {
   const dogs = window.K9Store.getDogs();
+  const allBadges = window.K9Store.getBadges ? window.K9Store.getBadges() : [];
 
   container.innerHTML = `
     <div style="margin-bottom:1.5rem;">
@@ -1472,7 +1473,9 @@ function renderCanineGallery(container) {
     </div>
 
     <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:1.5rem;">
-      ${dogs.map(dog => `
+      ${dogs.map(dog => {
+        const dogBadges = (dog.badges || []).map(bId => allBadges.find(b => b.id === bId)).filter(Boolean);
+        return `
         <div style="background:var(--bg-surface); border:1px solid var(--border-tactical); border-radius:14px; overflow:hidden; box-shadow:var(--shadow-elevation); display:flex; flex-direction:column; transition:transform 0.2s, box-shadow 0.2s;" onmouseenter="this.style.transform='translateY(-4px)'; this.style.boxShadow='var(--shadow-glow-cyan)'" onmouseleave="this.style.transform='none'; this.style.boxShadow='var(--shadow-elevation)'">
           <div style="height:210px; width:100%; position:relative; overflow:hidden;">
             <img src="${dog.photo}" alt="${escapeHtml(dog.name)}" style="width:100%; height:100%; object-fit:cover; transition:transform 0.5s;" loading="lazy" onmouseenter="this.style.transform='scale(1.08)'" onmouseleave="this.style.transform='scale(1)'">
@@ -1490,16 +1493,36 @@ function renderCanineGallery(container) {
               <span style="font-family:var(--font-headline); font-size:0.82rem; color:var(--tactical-gold); letter-spacing:0.04em;">${escapeHtml(dog.breed)}</span>
             </div>
 
-            <div style="background:rgba(0,0,0,0.3); border:1px solid var(--border-subtle); border-radius:8px; padding:0.65rem 0.85rem; margin:0.75rem 0 1rem; font-size:0.8rem;">
+            <div style="background:rgba(0,0,0,0.3); border:1px solid var(--border-subtle); border-radius:8px; padding:0.65rem 0.85rem; margin:0.75rem 0 0.85rem; font-size:0.8rem;">
               <div style="display:flex; justify-content:space-between; margin-bottom:0.35rem;">
                 <span style="color:var(--text-subtle); font-family:var(--font-headline); font-size:0.72rem;">ESPECIALIDAD:</span>
                 <span style="color:var(--police-cyan); font-weight:600;">${escapeHtml(dog.specialty)}</span>
               </div>
-              <div style="display:flex; justify-content:space-between;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:0.35rem;">
                 <span style="color:var(--text-subtle); font-family:var(--font-headline); font-size:0.72rem;">GUÍA ASIGNADO:</span>
                 <span style="color:#fff; font-weight:600;">${escapeHtml(dog.handlerName || 'Sin asignar')}</span>
               </div>
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="color:var(--text-subtle); font-family:var(--font-headline); font-size:0.72rem;">ADIESTRAMIENTO:</span>
+                <div style="display:flex; align-items:center; gap:0.4rem;">
+                  <div class="k9-progress-track" style="width:55px; height:5px;">
+                    <div class="k9-progress-fill" style="width:${dog.syncLevel || 90}%"></div>
+                  </div>
+                  <span style="font-family:var(--font-tactical); font-size:0.72rem; color:var(--police-cyan);">${dog.syncLevel || 90}%</span>
+                </div>
+              </div>
             </div>
+
+            ${dogBadges.length > 0 ? `
+              <div style="display:flex; flex-wrap:wrap; gap:0.35rem; margin-bottom:0.85rem;">
+                ${dogBadges.map(b => `
+                  <span class="badge-pill" style="font-size:0.68rem; background:rgba(255,183,3,0.12); color:var(--tactical-gold); border:1px solid rgba(255,183,3,0.3); padding:0.15rem 0.45rem; border-radius:10px; display:inline-flex; align-items:center; gap:0.25rem;" title="${escapeHtml(b.name)} - ${escapeHtml(b.category)}">
+                    <span>${b.icon || '🎖️'}</span>
+                    <span style="font-family:var(--font-headline); font-weight:600;">${escapeHtml(b.name)}</span>
+                  </span>
+                `).join('')}
+              </div>
+            ` : ''}
 
             <details class="k9-notes-details" style="margin-top:auto;">
               <summary class="k9-notes-summary">
@@ -1512,7 +1535,8 @@ function renderCanineGallery(container) {
             </details>
           </div>
         </div>
-      `).join('')}
+      `;
+      }).join('')}
     </div>
   `;
 }
@@ -1812,6 +1836,21 @@ function renderMemberProfile() {
                   <div class="k9-attr-box"><span class="k9-attr-name">INDICATIVO RADIAL</span><span class="k9-attr-val">${assignedDog.emergencyCallsign}</span></div>
                   <div class="k9-attr-box"><span class="k9-attr-name">GRUPO SANGUÍNEO</span><span class="k9-attr-val">${assignedDog.bloodType}</span></div>
                 </div>
+                ${(assignedDog.badges && assignedDog.badges.length > 0) ? `
+                  <div style="margin-top:0.75rem; display:flex; flex-wrap:wrap; align-items:center; gap:0.4rem;">
+                    <span style="font-family:var(--font-headline); font-size:0.7rem; color:var(--tactical-gold); letter-spacing:0.04em;">CONDECORACIONES:</span>
+                    ${assignedDog.badges.map(bId => {
+                      const b = allBadges.find(x => x.id === bId);
+                      if (!b) return '';
+                      return `
+                        <span class="badge-pill" style="font-size:0.68rem; background:rgba(255,183,3,0.12); color:var(--tactical-gold); border:1px solid rgba(255,183,3,0.3); padding:0.12rem 0.45rem; border-radius:10px; display:inline-flex; align-items:center; gap:0.25rem;" title="${escapeHtml(b.name)} - ${escapeHtml(b.category)}">
+                          <span>${b.icon || '🎖️'}</span>
+                          <span style="font-family:var(--font-headline); font-weight:600;">${escapeHtml(b.name)}</span>
+                        </span>
+                      `;
+                    }).join('')}
+                  </div>
+                ` : ''}
               </div>
             </div>
             <div style="margin-top:1.25rem; padding-top:1rem; border-top:1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
@@ -3608,42 +3647,109 @@ function renderDogsTableRows(dogs) {
     <tr>
       <td>
         <div style="display:flex; align-items:center; gap:0.75rem;">
-          <img src="${d.photo}" style="width:40px; height:40px; border-radius:8px; object-fit:cover; border:1px solid var(--border-tactical);" alt="${d.name}" loading="lazy" decoding="async" onerror="this.src='assets/images/emblem.jpg'">
+          <img src="${d.photo}" style="width:40px; height:40px; border-radius:8px; object-fit:cover; border:1px solid var(--border-tactical);" alt="${escapeHtml(d.name)}" loading="lazy" decoding="async" onerror="this.src='assets/images/emblem.jpg'">
           <div>
-            <strong style="color:#fff; font-family:var(--font-tactical); font-size:1rem;">${d.name}</strong>
-            <div style="font-family:var(--font-headline); font-size:0.75rem; color:var(--police-cyan);">${d.tag}</div>
+            <div style="display:flex; align-items:center; gap:0.4rem;">
+              <strong style="color:#fff; font-family:var(--font-tactical); font-size:1rem;">${escapeHtml(d.name)}</strong>
+              ${(d.badges && d.badges.length > 0) ? `<span class="badge-pill" style="font-size:0.68rem; background:rgba(255,183,3,0.15); color:var(--tactical-gold); border:1px solid rgba(255,183,3,0.3); padding:0.05rem 0.4rem; border-radius:10px;" title="${d.badges.length} medalla(s) otorgadas">🎖️ ${d.badges.length}</span>` : ''}
+            </div>
+            <div style="font-family:var(--font-headline); font-size:0.75rem; color:var(--police-cyan);">${escapeHtml(d.tag)}</div>
           </div>
         </div>
       </td>
-      <td>${d.breed}</td>
-      <td><span style="color:var(--police-cyan); font-weight:600;">${d.specialty}</span></td>
-      <td>${d.handlerName || '<span style="color:var(--text-subtle);">Sin asignar</span>'}</td>
+      <td>${escapeHtml(d.breed)}</td>
+      <td><span style="color:var(--police-cyan); font-weight:600;">${escapeHtml(d.specialty)}</span></td>
+      <td>${d.handlerName ? `<span style="color:#fff; font-weight:600;">${escapeHtml(d.handlerName)}</span>` : '<span style="color:var(--text-subtle); font-style:italic;">Sin asignar</span>'}</td>
       <td>
         <div style="display:flex; align-items:center; gap:0.5rem;">
           <div class="k9-progress-track" style="width:70px; height:6px;">
-            <div class="k9-progress-fill" style="width:${d.syncLevel}%"></div>
+            <div class="k9-progress-fill" style="width:${d.syncLevel || 0}%"></div>
           </div>
-          <span style="font-family:var(--font-tactical); font-size:0.75rem; font-weight:700;">${d.syncLevel}%</span>
+          <span style="font-family:var(--font-tactical); font-size:0.75rem; font-weight:700;">${d.syncLevel || 0}%</span>
         </div>
       </td>
       <td>
         <span class="k9-status-pill ${d.healthStatus === 'Apto Operativo' ? 'status-apto' : d.healthStatus === 'En Recuperación' ? 'status-baja' : 'status-entrenamiento'}">
-          ${d.healthStatus}
+          ${escapeHtml(d.healthStatus || 'Apto Operativo')}
         </span>
       </td>
       <td>
         <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
-          <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="editDogTraining('${d.id}')" title="Modificar nivel de adiestramiento">
+          <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="window.editDog('${d.id}')" title="Editar expediente completo del can (nombre, placa, foto, adiestramiento, guía, medallas)">
+            ✏️ Editar
+          </button>
+          <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="editDogTraining('${d.id}')" title="Ajuste rápido de adiestramiento">
             ⚡ Adiestramiento
           </button>
           <button class="btn-tactical btn-tactical-sm" onclick="window.deleteDog('${d.id}')" style="background:rgba(255,59,48,0.12); border:1px solid rgba(255,59,48,0.4); color:#ff5252; font-weight:700;" title="Dar de baja y eliminar can">
-            🗑️ Eliminar
+            🗑️
           </button>
         </div>
       </td>
     </tr>
   `).join('');
 }
+
+window.editDog = function (dogId) {
+  const dogs = window.K9Store.getDogs();
+  const dog = dogs.find(d => d.id === dogId);
+  if (!dog) return;
+
+  document.getElementById('editDogId').value = dog.id;
+  document.getElementById('editDogName').value = dog.name || '';
+  document.getElementById('editDogTag').value = dog.tag || '';
+  document.getElementById('editDogBreed').value = dog.breed || 'Pastor Belga Malinois';
+  document.getElementById('editDogSpecialty').value = dog.specialty || 'Intervención Táctica & Asalto';
+  document.getElementById('editDogHealth').value = dog.healthStatus || 'Apto Operativo';
+  document.getElementById('editDogSync').value = dog.syncLevel !== undefined ? dog.syncLevel : 90;
+  document.getElementById('editDogAge').value = dog.age || '';
+  document.getElementById('editDogWeight').value = dog.weight || '';
+  document.getElementById('editDogBlood').value = dog.bloodType || '';
+  document.getElementById('editDogEmergencyCallsign').value = dog.emergencyCallsign || '';
+  document.getElementById('editDogPhoto').value = dog.photo || '';
+  document.getElementById('editDogNotes').value = dog.trainingNotes || '';
+
+  // Selector de Guía Asignado / Propietario
+  const handlerSelect = document.getElementById('editDogHandler');
+  if (handlerSelect) {
+    const users = window.K9Store.getUsers().filter(userHasRank);
+    handlerSelect.innerHTML = `<option value="">Sin asignar (Chenil)</option>` + users.map(u => `
+      <option value="${u.id}" ${dog.handlerId === u.id ? 'selected' : ''}>
+        ${escapeHtml(u.name)} (Placa #${escapeHtml(u.placa || 'K9')} · ${escapeHtml(u.rank || 'Agente')})
+      </option>
+    `).join('');
+  }
+
+  // Selector de Medallas / Condecoraciones Caninas
+  const badgesContainer = document.getElementById('editDogBadgesContainer');
+  const badgesCountEl = document.getElementById('editDogBadgesCount');
+  if (badgesContainer) {
+    const allBadges = window.K9Store.getBadges();
+    const dogBadges = Array.isArray(dog.badges) ? dog.badges : [];
+    if (badgesCountEl) badgesCountEl.textContent = `${dogBadges.length} seleccionada(s)`;
+
+    badgesContainer.innerHTML = allBadges.map(b => {
+      const isChecked = dogBadges.includes(b.id);
+      return `
+        <label style="display:flex; align-items:center; gap:0.5rem; background:rgba(255,255,255,0.03); border:1px solid ${isChecked ? 'var(--tactical-gold)' : 'var(--border-subtle)'}; border-radius:6px; padding:0.4rem 0.6rem; cursor:pointer; transition:all 0.15s ease;">
+          <input type="checkbox" class="edit-dog-badge-checkbox" value="${b.id}" ${isChecked ? 'checked' : ''} onchange="(function(el){
+            el.closest('label').style.borderColor = el.checked ? 'var(--tactical-gold)' : 'var(--border-subtle)';
+            const checkedCount = document.querySelectorAll('.edit-dog-badge-checkbox:checked').length;
+            const cnt = document.getElementById('editDogBadgesCount');
+            if (cnt) cnt.textContent = checkedCount + ' seleccionada(s)';
+          })(this)">
+          <img src="${b.image || 'assets/images/medal_valor.jpg'}" style="width:24px; height:24px; object-fit:contain;" alt="${b.name}">
+          <div style="min-width:0; flex:1;">
+            <div style="font-size:0.78rem; color:#fff; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(b.name)}</div>
+            <div style="font-size:0.68rem; color:var(--text-muted);">${escapeHtml(b.category)}</div>
+          </div>
+        </label>
+      `;
+    }).join('');
+  }
+
+  openModal('modalEditDog');
+};
 
 window.deleteDog = function (dogId) {
   const dogs = window.K9Store.getDogs();
@@ -4879,6 +4985,102 @@ function setupModals() {
         if (_admin) window.K9Webhook.onDogAssignment(_admin, newDog, 'Sin asignar', false);
       }
       renderJefaturaSubtab('canes');
+      updateLiveCounters();
+    });
+  }
+
+  // Formulario: Editar Can K9 Existente
+  const formEditD = document.getElementById('formEditDog');
+  if (formEditD) {
+    formEditD.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const dogId = document.getElementById('editDogId').value;
+      const dogs = window.K9Store.getDogs();
+      const dog = dogs.find(d => d.id === dogId);
+      if (!dog) return;
+
+      const oldHandlerId = dog.handlerId;
+      const newHandlerId = (document.getElementById('editDogHandler').value || '').trim() || null;
+
+      dog.name = (document.getElementById('editDogName').value || '').trim();
+      dog.tag = (document.getElementById('editDogTag').value || '').trim();
+      dog.breed = (document.getElementById('editDogBreed').value || '').trim();
+      dog.specialty = (document.getElementById('editDogSpecialty').value || '').trim();
+      dog.healthStatus = document.getElementById('editDogHealth').value;
+      dog.syncLevel = parseInt(document.getElementById('editDogSync').value, 10) || 90;
+      dog.age = (document.getElementById('editDogAge').value || '').trim();
+      dog.weight = (document.getElementById('editDogWeight').value || '').trim();
+      dog.bloodType = (document.getElementById('editDogBlood').value || '').trim();
+      dog.emergencyCallsign = (document.getElementById('editDogEmergencyCallsign').value || '').trim();
+      dog.photo = (document.getElementById('editDogPhoto').value || '').trim() || 'assets/images/k9_rex.jpg';
+      dog.trainingNotes = (document.getElementById('editDogNotes').value || '').trim();
+
+      // Medallas / Condecoraciones asignadas al can
+      const selectedBadges = Array.from(document.querySelectorAll('.edit-dog-badge-checkbox:checked')).map(cb => cb.value);
+      dog.badges = selectedBadges;
+
+      // Actualizar vínculos con el usuario guía / propietario
+      const users = window.K9Store.getUsers();
+      if (oldHandlerId && oldHandlerId !== newHandlerId) {
+        const oldUser = users.find(u => u.id === oldHandlerId);
+        if (oldUser && oldUser.assignedDogId === dog.id) {
+          oldUser.assignedDogId = null;
+        }
+      }
+
+      if (newHandlerId) {
+        const newUser = users.find(u => u.id === newHandlerId);
+        if (newUser) {
+          newUser.assignedDogId = dog.id;
+          dog.handlerId = newUser.id;
+          dog.handlerName = `${newUser.name} (${newUser.placa || 'K9'})`;
+
+          // Si el agente tenía otro perro antes, desvincular al perro anterior
+          dogs.forEach(otherDog => {
+            if (otherDog.id !== dog.id && otherDog.handlerId === newUser.id) {
+              otherDog.handlerId = null;
+              otherDog.handlerName = 'Sin asignar';
+            }
+          });
+        }
+      } else {
+        dog.handlerId = null;
+        dog.handlerName = 'Sin asignar';
+        users.forEach(u => {
+          if (u.assignedDogId === dog.id) u.assignedDogId = null;
+        });
+      }
+
+      window.K9Store.save(STORAGE_KEYS.DOGS, dogs);
+      window.K9Store.save(STORAGE_KEYS.USERS, users);
+      if (window.K9CloudSync) window.K9CloudSync.push();
+
+      closeModal('modalEditDog');
+      showToast(`Expediente de ${dog.name} [${dog.tag}] guardado correctamente`, 'success');
+
+      if (window.K9Webhook) {
+        const _admin = window.K9Auth.getCurrentUser();
+        if (_admin) {
+          window.K9Webhook.sendLog({
+            title: '🐕 Expediente Canino Modificado',
+            color: 0x00e5ff,
+            fields: [
+              { name: 'Mando', value: `${_admin.name} [${_admin.placa}]`, inline: true },
+              { name: 'Can', value: `${dog.name} [${dog.tag}] (${dog.breed})`, inline: true },
+              { name: 'Guía Asignado', value: dog.handlerName || 'Sin asignar', inline: true },
+              { name: 'Adiestramiento', value: `${dog.syncLevel}%`, inline: true },
+              { name: 'Medallas', value: `${(dog.badges || []).length} condecoraciones`, inline: true }
+            ]
+          });
+        }
+      }
+
+      if (currentView === 'jefatura') {
+        renderDogsSection(document.getElementById('jefaturaSubtabContent'));
+      }
+      if (currentView === 'inicio' && currentGeneralSubtab === 'galeria') {
+        renderCanineGallery(document.getElementById('generalSubtabContent'));
+      }
       updateLiveCounters();
     });
   }
