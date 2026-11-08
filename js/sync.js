@@ -400,13 +400,13 @@ class K9CloudSyncManager {
         if (setIfChanged(K9_SYNC_KEYS.DISCIPLINARY, remote.disciplinary)) hasChanges = true;
       }
 
-      // 7. Chat de Despacho con Jefatura
+      // 7. Chat de Despacho con Jefatura (Historial de Despachos Privados)
       if (Array.isArray(remote.chatMessages)) {
         const localChat = window.K9Store.getChatMessages();
         const chatMap = new Map();
         localChat.forEach(m => { if (m.id) chatMap.set(m.id, m); });
         remote.chatMessages.forEach(m => { if (m.id) chatMap.set(m.id, m); });
-        const mergedChat = Array.from(chatMap.values()).slice(-60);
+        const mergedChat = Array.from(chatMap.values()).slice(-500);
         if (setIfChanged(K9_SYNC_KEYS.CHAT_MESSAGES, mergedChat)) {
           hasChanges = true;
           window.dispatchEvent(new CustomEvent('k9_chat_updated', { detail: mergedChat }));

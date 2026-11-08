@@ -16,6 +16,7 @@ function initApp() {
   setupGlobalSearch();
   renderCurrentView();
   updateLiveCounters();
+  if (typeof updateJefaturaDispatchBadge === 'function') updateJefaturaDispatchBadge();
   // Log de visita al portal (solo para visitantes anónimos)
   if (window.K9Webhook) window.K9Webhook.onPortalVisit();
 }
@@ -2108,6 +2109,9 @@ function checkJefaturaAccessAndRender() {
       <button class="subnav-pill-btn jefatura-subnav ${currentJefaturaSubtab === 'informes' ? 'active' : ''}" data-subtab="informes">
         📑 Informes Semanales
       </button>
+      <button class="subnav-pill-btn jefatura-subnav ${currentJefaturaSubtab === 'despachos' ? 'active' : ''}" data-subtab="despachos">
+        💬 Despachos de Agentes <span id="jefaturaPendingDispatchBadge" style="display:none; margin-left:4px; background:var(--tactical-gold); color:#000; font-size:0.7rem; padding:0.1rem 0.45rem; border-radius:10px; font-weight:700;"></span>
+      </button>
       <button class="subnav-pill-btn jefatura-subnav ${currentJefaturaSubtab === 'agentes' ? 'active' : ''}" data-subtab="agentes">
         👮 Apartado de Agentes
       </button>
@@ -2150,6 +2154,7 @@ function checkJefaturaAccessAndRender() {
   });
 
   renderJefaturaSubtab(currentJefaturaSubtab);
+  updateJefaturaDispatchBadge();
 }
 
 // -------------------------------------------------------------
@@ -4562,6 +4567,7 @@ function renderJefaturaSubtab(subtab) {
 
   if (subtab === 'anuncios') renderAnnouncements(container);
   else if (subtab === 'informes') renderReportsSection(container);
+  else if (subtab === 'despachos') renderJefaturaDispatchesSection(container);
   else if (subtab === 'agentes') renderAgentsSection(container);
   else if (subtab === 'canes') renderDogsSection(container);
   else if (subtab === 'disciplinario') renderDisciplinarySection(container);
@@ -4574,6 +4580,8 @@ function renderJefaturaSubtab(subtab) {
   }
   else if (subtab === 'permisos') renderPermissionsSection(container);
   else if (subtab === 'logs') renderLogsSection(container);
+
+  if (typeof updateJefaturaDispatchBadge === 'function') updateJefaturaDispatchBadge();
 }
 window.renderJefaturaSubtab = renderJefaturaSubtab;
 
@@ -5619,108 +5627,270 @@ ON CONFLICT (id) DO NOTHING;
 
   const btnConfPromo = document.getElementById('btnConfirmDeletePromoAction');
   if (btnConfPromo) btnConfPromo.addEventListener('click', () => { if (window._confirmDeletePromotion) window._confirmDeletePromotion(); });
+
+  // Formulario: Iniciar Nuevo Despacho Privado con Agente (Jefatura)
+  const formNewDispatch = document.getElementById('formNewDispatchThread');
+  if (formNewDispatch) {
+    formNewDispatch.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const select = document.getElementById('newDispatchAgentSelect');
+      const msgInput = document.getElementById('newDispatchInitialMessage');
+      const agentId = select ? select.value : '';
+      const text = msgInput ? msgInput.value.trim() : '';
+      if (!agentId || !text) return;
+
+      const allUsers = window.K9Store.getUsers();
+      const targetAgent = allUsers.find(u => u.id === agentId);
+      if (!targetAgent) return;
+
+      const currentUser = window.K9Auth.getCurrentUser();
+      const msgs = window.K9Store.getChatMessages();
+      const newMsg = {
+        id: 'msg_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+        agentId: targetAgent.id,
+        agentName: targetAgent.name,
+        agentPlaca: targetAgent.placa || 'K9',
+        agentRank: targetAgent.rank || 'Agente',
+        agentAvatar: targetAgent.avatar || 'assets/images/emblem.jpg',
+        authorId: currentUser.discordId || currentUser.id,
+        authorName: currentUser.name,
+        authorPlaca: currentUser.placa || 'K-01',
+        authorRank: currentUser.rank || 'Mando K9',
+        authorAvatar: currentUser.avatar || 'assets/images/emblem.jpg',
+        isJefatura: true,
+        text: text,
+        timestamp: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) +
+                   ' · ' + new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }),
+        createdAt: Date.now()
+      };
+
+      msgs.push(newMsg);
+      const trimmed = msgs.slice(-500);
+      window.K9Store.save(STORAGE_KEYS.CHAT_MESSAGES, trimmed);
+      if (window.K9CloudSync) window.K9CloudSync.push();
+
+      if (window.K9Store && window.K9Store.saveNotification) {
+        window.K9Store.saveNotification({
+          sourceId: 'dispatch_start_' + newMsg.id,
+          recipientId: targetAgent.id,
+          title: '💬 Nuevo Despacho Privado de Jefatura',
+          message: `${currentUser.name} [${currentUser.placa || 'K-01'}] ha abierto un despacho confidencial contigo.`,
+          category: 'avisos',
+          type: 'despacho_nuevo',
+          targetView: 'perfil',
+          isRead: false
+        });
+      }
+
+      currentJefaturaActiveAgentId = targetAgent.id;
+      closeModal('modalNewDispatchThread');
+      showToast(`Despacho iniciado con ${targetAgent.name}`, 'success');
+      const c = document.getElementById('jefaturaSubtabContent');
+      if (c && currentView === 'jefatura') renderJefaturaDispatchesSection(c);
+      updateJefaturaDispatchBadge();
+    });
+  }
+
+  // Confirmar Vaciado de Despacho (Jefatura)
+  const btnConfirmClearDispatch = document.getElementById('btnConfirmClearDispatchAction');
+  if (btnConfirmClearDispatch) {
+    btnConfirmClearDispatch.addEventListener('click', () => {
+      const agentId = window._pendingClearDispatchAgentId;
+      if (!agentId) return;
+      const all = window.K9Store.getChatMessages();
+      const remaining = all.filter(m => {
+        const tId = m.agentId || (!m.isJefatura ? (m.authorId || m.agentId) : null);
+        return tId !== agentId;
+      });
+      window.K9Store.save(STORAGE_KEYS.CHAT_MESSAGES, remaining);
+      if (window.K9CloudSync) window.K9CloudSync.push();
+      closeModal('modalConfirmClearDispatch');
+      showToast('Historial del despacho eliminado', 'info');
+      const c = document.getElementById('jefaturaSubtabContent');
+      if (c && currentView === 'jefatura') renderJefaturaDispatchesSection(c);
+      updateJefaturaDispatchBadge();
+    });
+  }
 }
 
 // ==========================================
-// CHAT — DESPACHO TÁCTICO CON JEFATURA
+// BADGE DE DESPACHOS PENDIENTES DE JEFATURA
+// ==========================================
+function updateJefaturaDispatchBadge() {
+  const badge = document.getElementById('jefaturaPendingDispatchBadge');
+  if (!badge) return;
+  const allMsgs = window.K9Store ? window.K9Store.getChatMessages() : [];
+  const threadsMap = new Map();
+  allMsgs.forEach(m => {
+    const threadId = m.agentId || (!m.isJefatura ? (m.authorId || m.agentId) : null);
+    if (!threadId) return;
+    if (!threadsMap.has(threadId)) threadsMap.set(threadId, []);
+    threadsMap.get(threadId).push(m);
+  });
+
+  let pendingCount = 0;
+  threadsMap.forEach((msgs) => {
+    if (msgs.length > 0) {
+      const lastMsg = msgs[msgs.length - 1];
+      if (lastMsg && !lastMsg.isJefatura) {
+        pendingCount++;
+      }
+    }
+  });
+
+  if (pendingCount > 0) {
+    badge.textContent = pendingCount;
+    badge.style.display = 'inline-block';
+    badge.title = `${pendingCount} despacho(s) de agentes esperando respuesta de Jefatura`;
+  } else {
+    badge.style.display = 'none';
+  }
+}
+window.updateJefaturaDispatchBadge = updateJefaturaDispatchBadge;
+
+// ==========================================
+// CHAT — DESPACHO PRIVADO DE AGENTE CON JEFATURA
+// (Canal confidencial 1 a 1 por miembro)
 // ==========================================
 function renderChatSection(container) {
-  const user      = window.K9Auth.getCurrentUser();
-  const msgs      = window.K9Store.getChatMessages();
-  const isJefU    = user && user.isJefatura;
+  const user = window.K9Auth.getCurrentUser();
+  if (!user) {
+    container.innerHTML = `
+      <div class="empty-state-box" style="margin:2.5rem auto; max-width:520px;">
+        <div class="empty-icon">🔒</div>
+        <h3 class="font-tactical" style="color:#fff; margin-bottom:0.5rem;">AUTENTICACIÓN REQUERIDA</h3>
+        <p style="color:var(--text-muted); font-size:0.86rem; margin-bottom:1.25rem;">
+          Inicia sesión con tu cuenta oficial de Discord para acceder a tu despacho confidencial con la Jefatura K9.
+        </p>
+        <button class="btn-tactical btn-tactical-primary" onclick="window.K9Auth.initiateDiscordOAuth()">
+          <span>✦</span> Iniciar Sesión con Discord
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  // Filtrado estricto por hilo del agente actual: solo mensajes entre este agente y jefatura
+  const allMsgs = window.K9Store.getChatMessages();
+  const threadMsgs = allMsgs.filter(m => {
+    const threadId = m.agentId || (!m.isJefatura ? (m.authorId || m.agentId) : null);
+    return threadId === user.id || threadId === user.discordId;
+  });
 
   container.innerHTML = `
     <div class="chat-dispatch-container">
       <div class="chat-dispatch-header">
         <div>
-          <h3 class="font-gobold" style="color:#fff; font-size:1.1rem; margin-bottom:0.2rem;">💬 DESPACHO CON JEFATURA</h3>
-          <span style="font-size:0.78rem; color:var(--text-muted);">Canal oficial de comunicación directa con los mandos de la Unidad K9</span>
+          <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.25rem;">
+            <span style="font-size:1.25rem;">🔒</span>
+            <h3 class="font-gobold" style="color:#fff; font-size:1.15rem; margin:0;">DESPACHO CONFIDENCIAL CON JEFATURA</h3>
+          </div>
+          <span style="font-size:0.78rem; color:var(--text-muted);">
+            Canal privado 1 a 1 de ${escapeHtml(user.name)} [PLACA ${escapeHtml(user.placa || 'K9')}] · Solo tú y la Jefatura K9 tienen acceso a esta conversación
+          </span>
         </div>
         <div style="display:flex; align-items:center; gap:0.6rem;">
           <span style="width:9px; height:9px; border-radius:50%; background:var(--tactical-green); box-shadow:0 0 8px var(--tactical-green); flex-shrink:0;"></span>
-          <span style="font-family:'Gobold','GoBold',sans-serif; font-size:0.72rem; color:var(--tactical-green); letter-spacing:0.08em;">CANAL ACTIVO</span>
+          <span style="font-family:'Gobold','GoBold',sans-serif; font-size:0.72rem; color:var(--tactical-green); letter-spacing:0.08em;">CANAL CIFRADO ACTIVO</span>
         </div>
       </div>
 
       <div class="chat-dispatch-feed" id="chatFeedContainer">
-        ${msgs.length === 0 ? '<div style="text-align:center;color:var(--text-subtle);font-size:0.85rem;margin:3rem auto;">Sin mensajes aún. Inicia la comunicación con Jefatura.</div>' : ''}
-        ${msgs.map(m => {
-          const isMine = user && (m.authorId === user.id || m.authorId === user.discordId);
-          const isJef  = m.isJefatura;
-          const ts     = m.timestamp || '';
+        <!-- Aviso informativo inicial -->
+        <div style="background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.25); border-radius:10px; padding:0.85rem 1.1rem; margin-bottom:0.5rem; display:flex; align-items:center; gap:0.75rem;">
+          <span style="font-size:1.4rem; flex-shrink:0;">🛡️</span>
+          <div style="font-size:0.8rem; color:var(--text-muted); line-height:1.4;">
+            <strong style="color:var(--police-cyan);">Canal oficial de despacho directo:</strong> Puedes enviar dudas reglamentarias, reportes operativos o solicitudes a los mandos. Tus mensajes son recibidos en el panel de Jefatura y respondidos aquí de manera estrictamente privada.
+          </div>
+        </div>
+
+        ${threadMsgs.length === 0 ? `
+          <div style="text-align:center; color:var(--text-subtle); font-size:0.85rem; margin:2.5rem auto;">
+            <div style="font-size:1.8rem; margin-bottom:0.4rem; opacity:0.6;">💬</div>
+            Sin mensajes en tu despacho todavía.<br>Escribe abajo para iniciar una consulta o comunicación con Jefatura.
+          </div>
+        ` : ''}
+
+        ${threadMsgs.map(m => {
+          const isMine = !m.isJefatura && (m.authorId === user.id || m.authorId === user.discordId);
+          const isJef = !!m.isJefatura;
+          const ts = m.timestamp || '';
           const rankBadge = isJef
-            ? '<span class="chat-author-badge chat-badge-jefatura">👑 JEFATURA</span>'
-            : '<span class="chat-author-badge chat-badge-member">🐾 ' + (m.authorRank || 'AGENTE') + '</span>';
-          const deleteBtn = isJefU && !isMine
-            ? '<button onclick="window._deleteChatMsg(\'' + m.id + '\')" style="background:none;border:none;color:var(--text-subtle);cursor:pointer;font-size:0.72rem;padding:0 0.3rem;margin-left:auto;" title="Retirar mensaje">🗑️</button>'
-            : '';
-          return '<div class="chat-msg-row ' + (isMine ? 'mine' : '') + '">' +
-            '<div class="chat-avatar-wrap ' + (isJef ? 'jefatura' : '') + '">' +
-              '<img src="' + (m.authorAvatar || 'assets/images/emblem.jpg') + '" class="chat-avatar-img" onerror="this.src=\'assets/images/emblem.jpg\'">' +
-            '</div>' +
-            '<div class="chat-bubble ' + (isJef ? 'jefatura' : '') + '">' +
-              '<div class="chat-meta-bar">' +
-                '<span class="chat-author-name">' + m.authorName + '</span>' +
-                rankBadge +
-                '<span class="chat-time-tag">' + ts + '</span>' +
-                deleteBtn +
-              '</div>' +
-              '<div class="chat-body-text">' + (m.text || '').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>' +
-            '</div>' +
-          '</div>';
+            ? '<span class="chat-author-badge chat-badge-jefatura">👑 JEFATURA K9</span>'
+            : '<span class="chat-author-badge chat-badge-member">🐾 ' + escapeHtml(m.authorRank || user.rank || 'AGENTE') + '</span>';
+
+          return `
+            <div class="chat-msg-row ${isMine ? 'mine' : ''}">
+              <div class="chat-avatar-wrap ${isJef ? 'jefatura' : ''}">
+                <img src="${escapeHtml(m.authorAvatar || 'assets/images/emblem.jpg')}" class="chat-avatar-img" onerror="this.src='assets/images/emblem.jpg'">
+              </div>
+              <div class="chat-bubble ${isJef ? 'jefatura' : ''}">
+                <div class="chat-meta-bar">
+                  <span class="chat-author-name">${escapeHtml(m.authorName || (isJef ? 'Jefatura K9' : user.name))}</span>
+                  ${rankBadge}
+                  <span class="chat-time-tag">${escapeHtml(ts)}</span>
+                </div>
+                <div class="chat-body-text">${escapeHtml(m.text || '')}</div>
+              </div>
+            </div>
+          `;
         }).join('')}
       </div>
 
       <div class="chat-input-bar">
-        ${user ? (
-          '<img src="' + (user.avatar || 'assets/images/emblem.jpg') + '" onerror="this.src=\'assets/images/emblem.jpg\'" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--border-tactical);flex-shrink:0;">' +
-          '<input type="text" id="chatMsgInput" class="chat-input-field" placeholder="Escribe un mensaje a Jefatura… (Intro para enviar)" maxlength="500">' +
-          '<button class="btn-tactical btn-tactical-primary btn-tactical-sm" id="btnSendChatMsg" style="flex-shrink:0;">📡 Enviar</button>'
-        ) : (
-          '<div style="flex:1;text-align:center;font-size:0.85rem;color:var(--text-muted);"><a href="#" onclick="window.K9Auth.initiateDiscordOAuth();return false;" style="color:var(--police-cyan);">Inicia sesión con Discord</a> para escribir en el Despacho.</div>'
-        )}
+        <img src="${user.avatar || 'assets/images/emblem.jpg'}" onerror="this.src='assets/images/emblem.jpg'" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--border-tactical);flex-shrink:0;">
+        <input type="text" id="chatMsgInput" class="chat-input-field" placeholder="Escribe un mensaje privado a Jefatura… (Intro para enviar)" maxlength="500">
+        <button class="btn-tactical btn-tactical-primary btn-tactical-sm" id="btnSendChatMsg" style="flex-shrink:0;">
+          <span>📡</span> Enviar
+        </button>
       </div>
     </div>
   `;
 
-  // Scroll automático al último mensaje
+  // Scroll al final
   const feed = document.getElementById('chatFeedContainer');
   if (feed) setTimeout(() => { feed.scrollTop = feed.scrollHeight; }, 30);
 
   const msgInput = document.getElementById('chatMsgInput');
-  const sendBtn  = document.getElementById('btnSendChatMsg');
+  const sendBtn = document.getElementById('btnSendChatMsg');
 
   const doSend = () => {
-    if (!user) return;
     const text = (msgInput.value || '').trim();
     if (!text) return;
 
-    const allMsgs = window.K9Store.getChatMessages();
+    const msgs = window.K9Store.getChatMessages();
     const newMsg = {
       id: 'msg_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-      authorId:     user.discordId || user.id,
-      authorName:   user.name,
-      authorPlaca:  user.placa,
-      authorRank:   user.rank,
+      agentId: user.id,
+      agentName: user.name,
+      agentPlaca: user.placa || 'PENDIENTE',
+      agentRank: user.rank || 'Aspirante K9',
+      agentAvatar: user.avatar || 'assets/images/emblem.jpg',
+      agentDiscordId: user.discordId || null,
+      authorId: user.discordId || user.id,
+      authorName: user.name,
+      authorPlaca: user.placa || 'PENDIENTE',
+      authorRank: user.rank || 'Aspirante K9',
       authorAvatar: user.avatar || 'assets/images/emblem.jpg',
-      isJefatura:   !!user.isJefatura,
-      text:         text,
+      isJefatura: false,
+      text: text,
       timestamp: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) +
-                 ' · ' + new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })
+                 ' · ' + new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }),
+      createdAt: Date.now()
     };
 
-    allMsgs.push(newMsg);
-    const trimmed = allMsgs.slice(-60);
+    msgs.push(newMsg);
+    const trimmed = msgs.slice(-500);
     window.K9Store.save(STORAGE_KEYS.CHAT_MESSAGES, trimmed);
     if (window.K9CloudSync) window.K9CloudSync.push();
 
-    if (window.K9Webhook && user.isJefatura) {
+    if (window.K9Webhook) {
       window.K9Webhook.sendLog({
-        title: '💬 Jefatura K9 en Despacho',
-        color: 0xffb703,
+        title: '💬 Nuevo Mensaje en Despacho Privado de Agente',
+        color: 0x00e5ff,
         fields: [
-          { name: 'Mando', value: user.name + ' [' + user.placa + ']', inline: true },
-          { name: 'Mensaje', value: text.slice(0, 200), inline: false }
+          { name: 'Agente', value: `${user.name} [${user.placa || 'PENDIENTE'}] (${user.rank || 'Aspirante'})`, inline: true },
+          { name: 'Mensaje', value: text.slice(0, 250), inline: false }
         ]
       });
     }
@@ -5728,29 +5898,379 @@ function renderChatSection(container) {
     if (window.K9Audio) window.K9Audio.playTacticalClick();
     msgInput.value = '';
     renderChatSection(container);
+    updateJefaturaDispatchBadge();
   };
 
-  if (sendBtn)  sendBtn.addEventListener('click', doSend);
+  if (sendBtn) sendBtn.addEventListener('click', doSend);
   if (msgInput) msgInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSend(); }
   });
 
-  // Escuchar actualizaciones remotas del chat en tiempo real
+  // Listener para sincronización remota en tiempo real
   if (window._chatListenerRef) window.removeEventListener('k9_chat_updated', window._chatListenerRef);
-  window._chatListenerRef = (evt) => {
-    window.K9Store.save(STORAGE_KEYS.CHAT_MESSAGES, evt.detail);
+  window._chatListenerRef = () => {
     renderChatSection(container);
   };
   window.addEventListener('k9_chat_updated', window._chatListenerRef);
 }
 
-// Retirar mensaje del despacho (solo Jefatura puede moderar)
+// =============================================================================
+// SUBTAB JEFATURA: GESTOR DE DESPACHOS PRIVADOS CON AGENTES (1 A 1)
+// =============================================================================
+let currentJefaturaActiveAgentId = null;
+let currentJefaturaDispatchSearch = '';
+
+function renderJefaturaDispatchesSection(container) {
+  if (!container) return;
+
+  const currentUser = window.K9Auth.getCurrentUser();
+  const allUsers = window.K9Store.getUsers().filter(userHasRank);
+  const allMsgs = window.K9Store.getChatMessages();
+
+  // Agrupar mensajes por hilo de cada agente
+  const threadsMap = new Map();
+  allMsgs.forEach(m => {
+    const threadId = m.agentId || (!m.isJefatura ? (m.authorId || m.agentId) : null);
+    if (!threadId) return;
+    if (!threadsMap.has(threadId)) {
+      threadsMap.set(threadId, []);
+    }
+    threadsMap.get(threadId).push(m);
+  });
+
+  // Construir lista estructurada de hilos
+  const threads = [];
+  threadsMap.forEach((msgs, agentId) => {
+    const matchingUser = allUsers.find(u => u.id === agentId || u.discordId === agentId);
+    const firstMsg = msgs[0] || {};
+    const lastMsg = msgs[msgs.length - 1] || {};
+    const agentName = matchingUser ? matchingUser.name : (firstMsg.agentName || firstMsg.authorName || 'Agente Desconocido');
+    const agentPlaca = matchingUser ? matchingUser.placa : (firstMsg.agentPlaca || firstMsg.authorPlaca || '—');
+    const agentRank = matchingUser ? matchingUser.rank : (firstMsg.agentRank || firstMsg.authorRank || 'Agente');
+    const agentAvatar = matchingUser ? matchingUser.avatar : (firstMsg.agentAvatar || firstMsg.authorAvatar || 'assets/images/emblem.jpg');
+    const needsResponse = lastMsg && !lastMsg.isJefatura;
+
+    threads.push({
+      agentId: agentId,
+      user: matchingUser,
+      name: agentName,
+      placa: agentPlaca,
+      rank: agentRank,
+      avatar: agentAvatar,
+      messages: msgs,
+      lastMsg: lastMsg,
+      needsResponse: needsResponse,
+      lastTimestamp: lastMsg.createdAt || 0
+    });
+  });
+
+  // Ordenar: primero los pendientes de respuesta, luego por fecha más reciente
+  threads.sort((a, b) => {
+    if (a.needsResponse && !b.needsResponse) return -1;
+    if (!a.needsResponse && b.needsResponse) return 1;
+    return (b.lastTimestamp || 0) - (a.lastTimestamp || 0);
+  });
+
+  // Filtrar por término de búsqueda si existe
+  const q = currentJefaturaDispatchSearch.toLowerCase().trim();
+  const filteredThreads = threads.filter(t =>
+    !q || t.name.toLowerCase().includes(q) || t.placa.toLowerCase().includes(q) || t.rank.toLowerCase().includes(q)
+  );
+
+  // Si no hay agente activo seleccionado o el actual ya no existe, seleccionar el primero
+  if (!currentJefaturaActiveAgentId && filteredThreads.length > 0) {
+    currentJefaturaActiveAgentId = filteredThreads[0].agentId;
+  }
+  if (currentJefaturaActiveAgentId && !threads.some(t => t.agentId === currentJefaturaActiveAgentId)) {
+    currentJefaturaActiveAgentId = filteredThreads.length > 0 ? filteredThreads[0].agentId : null;
+  }
+
+  const activeThread = threads.find(t => t.agentId === currentJefaturaActiveAgentId);
+
+  container.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.25rem; flex-wrap:wrap; gap:1rem;">
+      <div>
+        <div style="display:inline-flex; align-items:center; gap:0.4rem; background:rgba(0,229,255,0.1); border:1px solid rgba(0,229,255,0.3); padding:0.2rem 0.65rem; border-radius:20px; font-size:0.72rem; color:var(--police-cyan); font-family:var(--font-headline); letter-spacing:0.08em; margin-bottom:0.5rem;">
+          <span>💬</span> ATENCIÓN DE DESPACHOS CONFIDENCIALES
+        </div>
+        <h3 class="font-tactical" style="font-size:1.4rem; color:#fff; margin:0 0 0.3rem 0;">CENTRO DE DESPACHOS PRIVADOS · JEFATURA K9</h3>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin:0;">
+          Comunicaciones directas 1 a 1 entre agentes y mandos. Cada despacho es privado e individual para el miembro asignado.
+        </p>
+      </div>
+
+      <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+        <button class="btn-tactical btn-tactical-gold btn-tactical-sm" onclick="window.openStartAgentDispatchModal()">
+          <span>➕</span> Iniciar Despacho con Agente
+        </button>
+      </div>
+    </div>
+
+    <!-- Consola Split de Despachos -->
+    <div class="jefatura-dispatch-console">
+      
+      <!-- Panel Lateral Izquierdo: Lista de Hilos de Agentes -->
+      <div class="jefatura-dispatch-sidebar">
+        <div class="jefatura-dispatch-sidebar-header">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-family:var(--font-headline); font-size:0.75rem; color:var(--text-subtle); letter-spacing:0.06em;">CONVERSACIONES (${threads.length})</span>
+            <span class="badge-pill" style="font-size:0.68rem; background:rgba(0,229,255,0.1); color:var(--police-cyan); border:1px solid rgba(0,229,255,0.25); padding:0.1rem 0.4rem; border-radius:10px;">
+              ${threads.filter(t => t.needsResponse).length} pendientes
+            </span>
+          </div>
+          <div class="table-search-box" style="margin:0; width:100%;">
+            <span>🔍</span>
+            <input type="text" id="jefSearchDispatchInput" placeholder="Buscar agente o placa..." value="${escapeHtml(currentJefaturaDispatchSearch)}">
+          </div>
+        </div>
+
+        <div class="jefatura-dispatch-threads-list" id="jefThreadsList">
+          ${filteredThreads.length === 0 ? `
+            <div style="text-align:center; padding:2.5rem 1rem; color:var(--text-subtle); font-size:0.82rem;">
+              <span style="font-size:1.6rem; display:block; margin-bottom:0.4rem; opacity:0.5;">💬</span>
+              ${threads.length === 0 ? 'Sin despachos iniciados todavía. Los agentes que envíen consultas aparecerán aquí.' : 'No hay resultados para la búsqueda.'}
+            </div>
+          ` : filteredThreads.map(t => {
+            const isActive = t.agentId === currentJefaturaActiveAgentId;
+            const snippet = t.lastMsg && t.lastMsg.text ? t.lastMsg.text.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'Sin mensajes';
+            return `
+              <div class="jefatura-thread-item ${isActive ? 'active' : ''}" onclick="window.selectJefaturaDispatchAgent('${t.agentId}')">
+                <img src="${escapeHtml(t.avatar)}" class="jefatura-thread-avatar" onerror="this.src='assets/images/emblem.jpg'">
+                <div class="jefatura-thread-meta">
+                  <div class="jefatura-thread-top">
+                    <span class="jefatura-thread-name">${escapeHtml(t.name)}</span>
+                    <span class="jefatura-thread-time">${escapeHtml((t.lastMsg.timestamp || '').split('·')[0] || '')}</span>
+                  </div>
+                  <div style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.2rem;">
+                    <span style="font-size:0.7rem; color:var(--police-cyan); font-family:var(--font-tactical);">#${escapeHtml(t.placa)}</span>
+                    <span style="font-size:0.68rem; color:var(--text-subtle);">· ${escapeHtml(t.rank)}</span>
+                  </div>
+                  <div class="jefatura-thread-preview">
+                    ${t.lastMsg.isJefatura ? '<strong style="color:var(--tactical-gold);">Tú: </strong>' : ''}${snippet}
+                  </div>
+                  ${t.needsResponse ? `
+                    <div class="jefatura-thread-tag-pending">
+                      <span style="width:6px; height:6px; border-radius:50%; background:var(--tactical-gold); display:inline-block;"></span>
+                      <span>Pendiente de respuesta</span>
+                    </div>
+                  ` : ''}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+
+      <!-- Panel Principal Derecho: Conversación con el Agente Seleccionado -->
+      <div class="jefatura-dispatch-main">
+        ${activeThread ? `
+          <div class="jefatura-dispatch-main-header">
+            <div style="display:flex; align-items:center; gap:0.75rem;">
+              <img src="${escapeHtml(activeThread.avatar)}" style="width:42px; height:42px; border-radius:50%; object-fit:cover; border:2px solid var(--police-cyan);" onerror="this.src='assets/images/emblem.jpg'">
+              <div>
+                <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                  <h4 style="margin:0; font-family:var(--font-tactical); font-size:1.15rem; color:#fff;">${escapeHtml(activeThread.name)}</h4>
+                  <span class="member-card-placa">PLACA #${escapeHtml(activeThread.placa)}</span>
+                  <span class="chat-author-badge chat-badge-member">${escapeHtml(activeThread.rank)}</span>
+                </div>
+                <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">
+                  Expediente de agente K9 · Despacho confidencial 1 a 1
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+              <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="window.confirmClearDispatch('${activeThread.agentId}', '${escapeHtml(activeThread.name)}')" title="Vaciar mensajes de este hilo">
+                <span>🗑️</span> Vaciar Historial
+              </button>
+            </div>
+          </div>
+
+          <div class="jefatura-dispatch-main-feed" id="jefDispatchFeedContainer">
+            ${activeThread.messages.map(m => {
+              const isJef = !!m.isJefatura;
+              const isMine = isJef && (m.authorId === currentUser.id || m.authorId === currentUser.discordId);
+              const rankBadge = isJef
+                ? '<span class="chat-author-badge chat-badge-jefatura">👑 JEFATURA K9</span>'
+                : '<span class="chat-author-badge chat-badge-member">🐾 ' + escapeHtml(m.authorRank || activeThread.rank || 'AGENTE') + '</span>';
+
+              return `
+                <div class="chat-msg-row ${isJef ? 'mine' : ''}">
+                  <div class="chat-avatar-wrap ${isJef ? 'jefatura' : ''}">
+                    <img src="${escapeHtml(m.authorAvatar || 'assets/images/emblem.jpg')}" class="chat-avatar-img" onerror="this.src='assets/images/emblem.jpg'">
+                  </div>
+                  <div class="chat-bubble ${isJef ? 'jefatura' : ''}">
+                    <div class="chat-meta-bar">
+                      <span class="chat-author-name">${escapeHtml(m.authorName || (isJef ? 'Jefatura K9' : activeThread.name))}</span>
+                      ${rankBadge}
+                      <span class="chat-time-tag">${escapeHtml(m.timestamp || '')}</span>
+                      <button onclick="window._deleteChatMsg('${m.id}')" style="background:none;border:none;color:var(--text-subtle);cursor:pointer;font-size:0.72rem;padding:0 0.3rem;margin-left:auto;" title="Retirar mensaje">🗑️</button>
+                    </div>
+                    <div class="chat-body-text">${escapeHtml(m.text || '')}</div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+
+          <div class="chat-input-bar">
+            <img src="${currentUser.avatar || 'assets/images/emblem.jpg'}" onerror="this.src='assets/images/emblem.jpg'" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--tactical-gold);flex-shrink:0;">
+            <input type="text" id="jefDispatchReplyInput" class="chat-input-field" placeholder="Escribe una respuesta oficial de Jefatura para ${escapeHtml(activeThread.name)}… (Intro para enviar)" maxlength="500">
+            <button class="btn-tactical btn-tactical-gold btn-tactical-sm" id="btnJefSendReply" style="flex-shrink:0;">
+              <span>📡</span> Responder
+            </button>
+          </div>
+        ` : `
+          <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:3rem; text-align:center; color:var(--text-subtle);">
+            <div style="font-size:3rem; margin-bottom:1rem; opacity:0.6;">💬</div>
+            <h4 class="font-tactical" style="color:#fff; font-size:1.2rem; margin-bottom:0.4rem;">NINGUNA CONVERSACIÓN SELECCIONADA</h4>
+            <p style="font-size:0.85rem; max-width:420px; line-height:1.5; margin-bottom:1.5rem;">
+              Selecciona un agente de la lista lateral para atender su despacho confidencial o utiliza el botón de arriba para iniciar un nuevo canal 1 a 1.
+            </p>
+            <button class="btn-tactical btn-tactical-gold" onclick="window.openStartAgentDispatchModal()">
+              <span>➕</span> Iniciar Despacho con un Agente
+            </button>
+          </div>
+        `}
+      </div>
+
+    </div>
+  `;
+
+  // Scroll al final del feed en el hilo activo
+  const jefFeed = document.getElementById('jefDispatchFeedContainer');
+  if (jefFeed) setTimeout(() => { jefFeed.scrollTop = jefFeed.scrollHeight; }, 30);
+
+  // Evento de búsqueda de hilos
+  const searchInp = document.getElementById('jefSearchDispatchInput');
+  if (searchInp) {
+    searchInp.addEventListener('input', (e) => {
+      currentJefaturaDispatchSearch = e.target.value;
+      renderJefaturaDispatchesSection(container);
+    });
+  }
+
+  // Envío de respuesta de Jefatura
+  const replyInp = document.getElementById('jefDispatchReplyInput');
+  const sendReplyBtn = document.getElementById('btnJefSendReply');
+
+  const doJefReply = () => {
+    if (!activeThread) return;
+    const text = (replyInp.value || '').trim();
+    if (!text) return;
+
+    const msgs = window.K9Store.getChatMessages();
+    const newMsg = {
+      id: 'msg_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+      agentId: activeThread.agentId,
+      agentName: activeThread.name,
+      agentPlaca: activeThread.placa,
+      agentRank: activeThread.rank,
+      agentAvatar: activeThread.avatar,
+      authorId: currentUser.discordId || currentUser.id,
+      authorName: currentUser.name,
+      authorPlaca: currentUser.placa || 'K-01',
+      authorRank: currentUser.rank || 'Mando K9',
+      authorAvatar: currentUser.avatar || 'assets/images/emblem.jpg',
+      isJefatura: true,
+      text: text,
+      timestamp: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) +
+                 ' · ' + new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }),
+      createdAt: Date.now()
+    };
+
+    msgs.push(newMsg);
+    const trimmed = msgs.slice(-500);
+    window.K9Store.save(STORAGE_KEYS.CHAT_MESSAGES, trimmed);
+    if (window.K9CloudSync) window.K9CloudSync.push();
+
+    // Notificación en el buzón táctico del agente destinatario
+    if (window.K9Store && window.K9Store.saveNotification && activeThread.agentId) {
+      window.K9Store.saveNotification({
+        sourceId: 'dispatch_reply_' + newMsg.id,
+        recipientId: activeThread.agentId,
+        title: '💬 Respuesta de Jefatura en tu Despacho',
+        message: `${currentUser.name} [${currentUser.placa || 'K-01'}] ha respondido a tu despacho privado.`,
+        category: 'avisos',
+        type: 'despacho_respuesta',
+        targetView: 'perfil',
+        isRead: false
+      });
+    }
+
+    if (window.K9Webhook) {
+      window.K9Webhook.sendLog({
+        title: '💬 Jefatura K9 respondió en Despacho',
+        color: 0xffb703,
+        fields: [
+          { name: 'Mando', value: `${currentUser.name} [${currentUser.placa || 'K-01'}]`, inline: true },
+          { name: 'Destinatario', value: `${activeThread.name} [#${activeThread.placa}]`, inline: true },
+          { name: 'Mensaje', value: text.slice(0, 250), inline: false }
+        ]
+      });
+    }
+
+    if (window.K9Audio) window.K9Audio.playTacticalClick();
+    replyInp.value = '';
+    renderJefaturaDispatchesSection(container);
+    updateJefaturaDispatchBadge();
+  };
+
+  if (sendReplyBtn) sendReplyBtn.addEventListener('click', doJefReply);
+  if (replyInp) replyInp.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doJefReply(); }
+  });
+}
+window.renderJefaturaDispatchesSection = renderJefaturaDispatchesSection;
+
+window.selectJefaturaDispatchAgent = function (agentId) {
+  currentJefaturaActiveAgentId = agentId;
+  const c = document.getElementById('jefaturaSubtabContent');
+  if (c) renderJefaturaDispatchesSection(c);
+};
+
+window.openStartAgentDispatchModal = function () {
+  const select = document.getElementById('newDispatchAgentSelect');
+  const msgInput = document.getElementById('newDispatchInitialMessage');
+  if (msgInput) msgInput.value = '';
+
+  if (select) {
+    const users = window.K9Store.getUsers().filter(userHasRank);
+    select.innerHTML = '<option value="">Selecciona un agente de la plantilla...</option>' + users.map(u => `
+      <option value="${u.id}">${escapeHtml(u.name)} (Placa #${escapeHtml(u.placa || 'K9')} · ${escapeHtml(u.rank || 'Agente')})</option>
+    `).join('');
+  }
+  openModal('modalNewDispatchThread');
+};
+
+window.confirmClearDispatch = function (agentId, agentName) {
+  window._pendingClearDispatchAgentId = agentId;
+  const promptEl = document.getElementById('clearDispatchAgentPrompt');
+  if (promptEl) {
+    promptEl.textContent = `¿Confirmas que deseas eliminar todo el historial del despacho con ${agentName || 'el agente'}?`;
+  }
+  openModal('modalConfirmClearDispatch');
+};
+
+// Retirar mensaje del despacho (moderación)
 window._deleteChatMsg = function (msgId) {
   const msgs = window.K9Store.getChatMessages().filter(m => m.id !== msgId);
   window.K9Store.save(STORAGE_KEYS.CHAT_MESSAGES, msgs);
   if (window.K9CloudSync) window.K9CloudSync.push();
-  const c = document.getElementById('generalSubtabContent');
-  if (c) renderChatSection(c);
+
+  // Si estamos en el despacho de Jefatura
+  const jefCont = document.getElementById('jefaturaSubtabContent');
+  if (jefCont && currentView === 'jefatura' && currentJefaturaSubtab === 'despachos') {
+    renderJefaturaDispatchesSection(jefCont);
+  }
+
+  // Si estamos en Mi Perfil
+  const profCont = document.getElementById('profileDispatchContainer');
+  if (profCont) {
+    renderChatSection(profCont);
+  }
+
+  updateJefaturaDispatchBadge();
 };
 
 
@@ -5873,6 +6393,7 @@ function updateLiveCounters() {
     const totalHours = agents.reduce((acc, u) => acc + (u.patrolHoursTotal || 0), 0);
     countPatrolEl.textContent = `${totalHours}h`;
   }
+  if (typeof updateJefaturaDispatchBadge === 'function') updateJefaturaDispatchBadge();
 }
 window.updateLiveCounters = updateLiveCounters;
 

@@ -2147,6 +2147,55 @@
     </div>
   </div>
 
+  <!-- Modal: Iniciar Nuevo Despacho Privado con Agente (Jefatura) -->
+  <div class="tactical-modal-overlay" id="modalNewDispatchThread">
+    <div class="tactical-modal-card" style="max-width:500px;">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical"><span>💬</span> INICIAR DESPACHO CON AGENTE</div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalNewDispatchThread')">✕</button>
+      </div>
+      <form id="formNewDispatchThread">
+        <div class="form-body-tactical" style="padding:1.5rem; display:flex; flex-direction:column; gap:1rem;">
+          <p style="font-size:0.85rem; color:var(--text-muted); margin:0; line-height:1.5;">
+            Selecciona un agente para abrir un canal de despacho confidencial 1 a 1. El agente podrá leer y responder a tus mensajes directamente desde su perfil operativo.
+          </p>
+          <div class="form-group-tactical">
+            <label class="form-label-tactical">SELECCIONAR AGENTE DE LA UNIDAD:</label>
+            <select id="newDispatchAgentSelect" class="form-input-tactical" required></select>
+          </div>
+          <div class="form-group-tactical">
+            <label class="form-label-tactical">MENSAJE INICIAL DE JEFATURA:</label>
+            <textarea id="newDispatchInitialMessage" class="form-input-tactical" rows="3" placeholder="Escribe el comunicado, citación o consulta directa para el agente..." required></textarea>
+          </div>
+          <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:0.5rem;">
+            <button type="button" class="btn-tactical btn-tactical-outline" onclick="closeModal('modalNewDispatchThread')">Cancelar</button>
+            <button type="submit" class="btn-tactical btn-tactical-gold"><span>📡</span> Iniciar Despacho</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Confirmar Vaciado de Despacho (Jefatura) -->
+  <div class="tactical-modal-overlay" id="modalConfirmClearDispatch">
+    <div class="tactical-modal-card" style="max-width:440px;">
+      <div class="modal-header-tactical">
+        <div class="modal-title-tactical" style="color:var(--tactical-red);"><span>⚠️</span> VACIAR DESPACHO</div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalConfirmClearDispatch')">✕</button>
+      </div>
+      <div class="form-body-tactical" style="padding:1.5rem; display:flex; flex-direction:column; gap:1rem;">
+        <p style="font-size:0.88rem; color:#fff; margin:0;" id="clearDispatchAgentPrompt">
+          ¿Confirmas que deseas eliminar todo el historial de conversación con este agente?
+        </p>
+        <span style="font-size:0.75rem; color:var(--text-muted);">Esta acción es permanente y se sincronizará con la base de datos.</span>
+        <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:0.5rem;">
+          <button type="button" class="btn-tactical btn-tactical-outline" onclick="closeModal('modalConfirmClearDispatch')">Cancelar</button>
+          <button type="button" class="btn-tactical btn-tactical-danger" id="btnConfirmClearDispatchAction">🗑️ Confirmar Vaciado</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Configuración de Base de Datos Privada (Protegida por .gitignore) -->
   <script src="js/config.local.js"></script>
   <!-- Base de Datos Supabase (PostgreSQL en la Nube y WebSockets en Vivo) -->

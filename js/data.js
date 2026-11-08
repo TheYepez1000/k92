@@ -58,6 +58,7 @@ const SYSTEM_PERMISSIONS = [
   { id: 'manage_badges', label: 'Condecoraciones & Insignias', desc: 'Otorgar o revocar medallas oficiales a los miembros con citación' },
   { id: 'manage_bulletins', label: 'Anuncios & Normativas', desc: 'Publicar anuncios oficiales de jefatura y actualizar reglamentos/manuales' },
   { id: 'manage_patrols', label: 'Control de Patrullajes K9', desc: 'Supervisar binomios en servicio, registrar horas y cerrar turnos 10-10' },
+  { id: 'manage_dispatch', label: 'Despachos Privados', desc: 'Atender y responder los despachos privados y consultas 1 a 1 de los agentes' },
   { id: 'manage_exams', label: 'Academia & Examen Teórico K9', desc: 'Crear y editar preguntas del test de acceso (Art. 10 y 11), gestionar formularios y evaluar certificados' },
   { id: 'manage_permissions', label: 'Administrar Permisos', desc: 'Modificar la matriz de permisos de los agentes y coordinadores' }
 ];
@@ -1154,6 +1155,24 @@ class K9DataStore {
     return presets.filter(p => !expelled.includes(p.discordId));
   }
   getChatMessages() { return this.get(STORAGE_KEYS.CHAT_MESSAGES) || DEFAULT_CHAT_MESSAGES; }
+  getAgentChatMessages(agentId) {
+    if (!agentId) return [];
+    const all = this.getChatMessages();
+    return all.filter(m => {
+      const threadId = m.agentId || (!m.isJefatura ? (m.authorId || m.agentId) : null);
+      return threadId === agentId;
+    });
+  }
+  clearAgentChatMessages(agentId) {
+    if (!agentId) return [];
+    const all = this.get(STORAGE_KEYS.CHAT_MESSAGES) || [];
+    const remaining = all.filter(m => {
+      const threadId = m.agentId || (!m.isJefatura ? (m.authorId || m.agentId) : null);
+      return threadId !== agentId;
+    });
+    this.save(STORAGE_KEYS.CHAT_MESSAGES, remaining);
+    return remaining;
+  }
   getPromotions() { return this.get(STORAGE_KEYS.PROMOTIONS) || DEFAULT_PROMOTIONS; }
   getLogs() {
     const logs = this.get(STORAGE_KEYS.LOGS);
