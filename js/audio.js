@@ -8,7 +8,7 @@ class TacticalAudioEngine {
     this.ctx = null;
     this.enabled = localStorage.getItem('k9_sound_enabled') === 'true';
   }
-  s
+
   ensureContext() {
     if (!this.ctx) {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
