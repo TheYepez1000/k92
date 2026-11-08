@@ -809,50 +809,71 @@ function renderNormatives(container) {
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
       <div>
         <h3 class="font-tactical" style="font-size:1.35rem; color:#fff;">REGLAMENTO Y MARCO NORMATIVO K9</h3>
-        <p style="font-size:0.85rem; color:var(--text-muted);">Protocolos obligatorios de actuación, ética y uso proporcional de la fuerza canina</p>
+        <p style="font-size:0.85rem; color:var(--text-muted);">Protocolos obligatorios de actuación, ética y uso de la fuerza canina</p>
       </div>
-      ${isJef ? `
-        <button class="btn-tactical btn-tactical-gold btn-tactical-sm" onclick="window.openNewNormativeModal()">
-          <span>+</span> Añadir Capítulo Normativo
+      <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+        <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="window.toggleAllNormatives(true)" title="Desplegar todos los capítulos">
+          <span>▾</span> Expandir Todo
         </button>
-      ` : ''}
+        <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="window.toggleAllNormatives(false)" title="Plegar todos los capítulos">
+          <span>▸</span> Colapsar
+        </button>
+        ${isJef ? `
+          <button class="btn-tactical btn-tactical-gold btn-tactical-sm" onclick="window.openNewNormativeModal()">
+            <span>+</span> Añadir Capítulo
+          </button>
+        ` : ''}
+      </div>
     </div>
 
-    <div style="display:flex; flex-direction:column; gap:1.5rem;">
-      ${normatives.map(norm => `
-        <div style="background:var(--bg-surface); border:1px solid var(--border-tactical); border-radius:14px; padding:1.5rem; box-shadow:var(--shadow-elevation);">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem; border-bottom:1px solid var(--border-subtle); padding-bottom:0.5rem; flex-wrap:wrap; gap:0.5rem;">
-            <h4 style="font-family:var(--font-headline); font-size:1.05rem; color:var(--tactical-gold); letter-spacing:0.08em; margin:0;">
-              ${norm.chapter}
-            </h4>
+    <div class="normatives-accordion-group" id="normativesAccordionGroup" style="display:flex; flex-direction:column; gap:1rem;">
+      ${normatives.map((norm, idx) => `
+        <details class="tactical-accordion" ${idx === 0 ? 'open' : ''}>
+          <summary class="tactical-accordion-summary">
+            <div style="display:flex; align-items:center; gap:0.75rem; flex:1; min-width:0;">
+              <span class="accordion-chevron">▶</span>
+              <span class="accordion-title font-headline">${escapeHtml(norm.chapter)}</span>
+              <span class="accordion-count">(${(norm.articles || []).length} artículos)</span>
+            </div>
             ${isJef ? `
-              <div style="display:flex; gap:0.4rem;">
+              <div class="accordion-actions" onclick="event.stopPropagation();" style="display:flex; gap:0.4rem;">
                 <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="window.editNormative('${norm.id}')" title="Editar capítulo">
-                  ✏️ Editar
+                  ✏️
                 </button>
                 <button class="btn-tactical btn-tactical-sm" onclick="window.deleteNormative('${norm.id}')" style="background:rgba(255,59,48,0.12); border:1px solid rgba(255,59,48,0.4); color:#ff5252;" title="Eliminar capítulo">
                   🗑️
                 </button>
               </div>
             ` : ''}
-          </div>
-          <div style="display:flex; flex-direction:column; gap:1.15rem;">
-            ${(norm.articles || []).map(art => `
-              <div style="background:rgba(0,0,0,0.3); border-left:3px solid var(--police-cyan); padding:0.85rem 1.15rem; border-radius:0 8px 8px 0;">
-                <div style="font-family:var(--font-tactical); font-size:0.88rem; font-weight:700; color:#fff; margin-bottom:0.35rem;">
-                  <span style="color:var(--police-cyan); margin-right:0.3rem;">${art.num}</span> - ${art.title}
+          </summary>
+          <div class="tactical-accordion-content">
+            <div style="display:flex; flex-direction:column; gap:0.85rem; padding-top:0.85rem;">
+              ${(norm.articles || []).map(art => `
+                <div class="normative-article-card">
+                  <div class="normative-article-header">
+                    <span class="normative-article-num">${escapeHtml(art.num)}</span>
+                    <span class="normative-article-title">— ${escapeHtml(art.title)}</span>
+                  </div>
+                  <p class="normative-article-body">
+                    ${escapeHtml(art.text)}
+                  </p>
                 </div>
-                <p style="font-size:0.88rem; color:var(--text-muted); line-height:1.6;">
-                  ${art.text}
-                </p>
-              </div>
-            `).join('')}
+              `).join('')}
+            </div>
           </div>
-        </div>
+        </details>
       `).join('')}
     </div>
   `;
 }
+
+window.toggleAllNormatives = function (openState) {
+  const container = document.getElementById('normativesAccordionGroup');
+  if (!container) return;
+  container.querySelectorAll('details.tactical-accordion').forEach(d => {
+    d.open = !!openState;
+  });
+};
 
 window.openNewNormativeModal = function () {
   document.getElementById('normId').value = '';
@@ -902,55 +923,73 @@ function renderManuals(container) {
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
       <div>
         <h3 class="font-tactical" style="font-size:1.35rem; color:#fff;">MANUALES Y GUÍAS DE ADIESTRAMIENTO K9</h3>
-        <p style="font-size:0.85rem; color:var(--text-muted);">Vocabulario de comandos caninos, táctica de combate y soporte veterinario de emergencia</p>
+        <p style="font-size:0.85rem; color:var(--text-muted);">Comandos caninos, táctica de combate y soporte veterinario de emergencia</p>
       </div>
-      ${isJef ? `
-        <button class="btn-tactical btn-tactical-gold btn-tactical-sm" onclick="window.openNewManualModal()">
-          <span>+</span> Añadir Manual de Instrucción
+      <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+        <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="window.toggleAllManuals(true)" title="Desplegar todos los manuales">
+          <span>▾</span> Expandir Todo
         </button>
-      ` : ''}
+        <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="window.toggleAllManuals(false)" title="Plegar todos los manuales">
+          <span>▸</span> Colapsar
+        </button>
+        ${isJef ? `
+          <button class="btn-tactical btn-tactical-gold btn-tactical-sm" onclick="window.openNewManualModal()">
+            <span>+</span> Añadir Manual
+          </button>
+        ` : ''}
+      </div>
     </div>
 
-    <div style="display:flex; flex-direction:column; gap:2rem;">
-      ${manuals.map(man => `
-        <div style="background:var(--bg-surface); border:1px solid var(--border-tactical); border-radius:14px; padding:1.5rem; box-shadow:var(--shadow-elevation);">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem; border-bottom:1px solid var(--border-subtle); padding-bottom:0.6rem; flex-wrap:wrap; gap:0.5rem;">
-            <div style="display:flex; align-items:center; gap:0.6rem;">
-              <h4 style="font-family:var(--font-tactical); font-size:1.1rem; color:#fff;">
-                ${man.title}
-              </h4>
-              <span style="font-family:var(--font-headline); font-size:0.75rem; color:var(--police-cyan); background:rgba(0,229,255,0.1); border:1px solid var(--border-tactical); padding:0.2rem 0.6rem; border-radius:20px; text-transform:uppercase;">
-                ${man.category}
+    <div class="manuals-accordion-group" id="manualsAccordionGroup" style="display:flex; flex-direction:column; gap:1rem;">
+      ${manuals.map((man, idx) => `
+        <details class="tactical-accordion" ${idx === 0 ? 'open' : ''}>
+          <summary class="tactical-accordion-summary">
+            <div style="display:flex; align-items:center; gap:0.75rem; flex:1; min-width:0; flex-wrap:wrap;">
+              <span class="accordion-chevron">▶</span>
+              <span class="accordion-title font-tactical" style="color:#fff;">${escapeHtml(man.title)}</span>
+              <span style="font-family:var(--font-headline); font-size:0.72rem; color:var(--police-cyan); background:rgba(0,229,255,0.1); border:1px solid var(--border-tactical); padding:0.15rem 0.55rem; border-radius:20px; text-transform:uppercase;">
+                ${escapeHtml(man.category)}
               </span>
+              <span class="accordion-count">(${(man.items || []).length} comandos)</span>
             </div>
             ${isJef ? `
-              <div style="display:flex; gap:0.4rem;">
+              <div class="accordion-actions" onclick="event.stopPropagation();" style="display:flex; gap:0.4rem;">
                 <button class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="window.editManual('${man.id}')" title="Editar manual">
-                  ✏️ Editar
+                  ✏️
                 </button>
                 <button class="btn-tactical btn-tactical-sm" onclick="window.deleteManual('${man.id}')" style="background:rgba(255,59,48,0.12); border:1px solid rgba(255,59,48,0.4); color:#ff5252;" title="Eliminar manual">
                   🗑️
                 </button>
               </div>
             ` : ''}
-          </div>
+          </summary>
 
-          <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:1rem;">
-            ${(man.items || []).map(item => `
-              <div style="background:rgba(10,15,29,0.8); border:1px solid var(--border-subtle); border-radius:10px; padding:1rem; transition:border-color 0.2s;" onmouseenter="this.style.borderColor='var(--police-cyan)'" onmouseleave="this.style.borderColor='var(--border-subtle)'">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
-                  <span style="font-family:var(--font-tactical); font-size:1.1rem; font-weight:700; color:var(--tactical-gold);">${item.command}</span>
-                  <span style="font-family:var(--font-headline); font-size:0.78rem; color:var(--text-muted); text-transform:uppercase;">[${item.trans}]</span>
+          <div class="tactical-accordion-content">
+            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:0.85rem; padding-top:0.85rem;">
+              ${(man.items || []).map(item => `
+                <div class="manual-command-chip">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">
+                    <span style="font-family:var(--font-tactical); font-size:1.05rem; font-weight:700; color:var(--tactical-gold);">${escapeHtml(item.command)}</span>
+                    <span style="font-family:var(--font-headline); font-size:0.75rem; color:var(--text-muted); text-transform:uppercase;">[${escapeHtml(item.trans)}]</span>
+                  </div>
+                  <p style="font-size:0.82rem; color:var(--text-muted); line-height:1.45; margin:0;">${escapeHtml(item.desc)}</p>
                 </div>
-                <p style="font-size:0.82rem; color:var(--text-muted); line-height:1.4;">${item.desc}</p>
-              </div>
-            `).join('')}
+              `).join('')}
+            </div>
           </div>
-        </div>
+        </details>
       `).join('')}
     </div>
   `;
 }
+
+window.toggleAllManuals = function (openState) {
+  const container = document.getElementById('manualsAccordionGroup');
+  if (!container) return;
+  container.querySelectorAll('details.tactical-accordion').forEach(d => {
+    d.open = !!openState;
+  });
+};
 
 window.openNewManualModal = function () {
   document.getElementById('manId').value = '';
@@ -1083,45 +1122,49 @@ function renderMemberCardsHtml(users, dogs, allBadges, isJef) {
     return `
       <div class="member-tactical-card">
         <div class="member-card-header">
-          <img src="${u.avatar || 'assets/images/emblem.jpg'}" class="member-card-avatar" alt="${u.name}" loading="lazy" decoding="async" onerror="this.src='assets/images/emblem.jpg'">
+          <img src="${u.avatar || 'assets/images/emblem.jpg'}" class="member-card-avatar" alt="${escapeHtml(u.name)}" loading="lazy" decoding="async" onerror="this.src='assets/images/emblem.jpg'">
           <div class="member-card-info">
-            <span class="member-card-placa">PLACA #${u.placa || 'PENDIENTE'}</span>
-            <h4 class="font-gobold">${u.name}</h4>
-            <span class="member-card-rank-badge ${u.isJefatura ? 'chat-badge-jefatura' : ''}">${u.rank || 'Aspirante K9'}</span>
+            <span class="member-card-placa">PLACA #${escapeHtml(u.placa || 'PENDIENTE')}</span>
+            <h4 class="font-gobold">${escapeHtml(u.name)}</h4>
+            <span class="member-card-rank-badge ${u.isJefatura ? 'chat-badge-jefatura' : ''}">${escapeHtml(u.rank || 'Aspirante K9')}</span>
           </div>
         </div>
 
-        <div class="member-dog-assignment">
+        <div class="member-dog-pill-tactical">
+          <span style="font-size:1.1rem; flex-shrink:0;">🐕</span>
           ${assignedDog ? `
-            <img src="${assignedDog.photo || 'assets/images/k9_rex.jpg'}" class="member-dog-thumb" alt="${assignedDog.name}" loading="lazy" decoding="async" onerror="this.src='assets/images/emblem.jpg'">
-            <div>
-              <div style="font-size:0.72rem; color:var(--text-muted);">BINOMIO CANINO ASIGNADO</div>
-              <strong style="color:#fff; font-size:0.95rem; font-family:var(--font-tactical);">${assignedDog.name}</strong>
-              <span style="font-size:0.75rem; color:var(--police-cyan);"> [${assignedDog.tag || 'K9'}]</span>
-              <div style="font-size:0.72rem; color:var(--text-subtle);">${assignedDog.breed || 'Pastor Belga'}</div>
+            <div class="dog-pill-info">
+              <span class="dog-pill-name">${escapeHtml(assignedDog.name)}</span>
+              <span class="dog-pill-tag">[${escapeHtml(assignedDog.tag || 'K9')}]</span>
+              <span class="dog-pill-breed">· ${escapeHtml(assignedDog.breed || 'Pastor Belga')}</span>
             </div>
           ` : `
-            <span style="font-size:1.5rem; opacity:0.5;">🐕</span>
-            <div>
-              <div style="font-size:0.72rem; color:var(--text-muted);">ESTADO CANINO</div>
-              <span style="font-size:0.82rem; color:var(--text-subtle); font-style:italic;">Sin can K9 asignado</span>
-            </div>
+            <span class="dog-pill-empty">Sin can asignado</span>
           `}
         </div>
 
-        <div>
-          <div style="font-size:0.72rem; color:var(--tactical-gold); letter-spacing:0.06em; margin-bottom:0.4rem; font-weight:700;">CONDECORACIONES (${userBadges.length}):</div>
-          <div class="member-badges-row">
-            ${userBadges.length > 0 ? userBadges.map(b => `
-              <img src="${b.image || 'assets/images/medal_valor.jpg'}" class="member-badge-chip" title="${b.name} (${b.category})" alt="${b.name}" loading="lazy" decoding="async" onclick="window.inspectBadgeModal('${b.id}', '${u.name}')">
-            `).join('') : '<span style="font-size:0.78rem; color:var(--text-subtle);">Sin condecoraciones otorgadas</span>'}
+        ${userBadges.length > 0 ? `
+          <details class="member-badges-accordion">
+            <summary class="member-badges-trigger">
+              <span>🎖️ Condecoraciones (${userBadges.length})</span>
+              <span class="badges-trigger-chevron">▾</span>
+            </summary>
+            <div class="member-badges-row">
+              ${userBadges.map(b => `
+                <img src="${b.image || 'assets/images/medal_valor.jpg'}" class="member-badge-chip" title="${escapeHtml(b.name)} (${escapeHtml(b.category)})" alt="${escapeHtml(b.name)}" loading="lazy" decoding="async" onclick="window.inspectBadgeModal('${b.id}', '${escapeHtml(u.name)}')">
+              `).join('')}
+            </div>
+          </details>
+        ` : `
+          <div class="member-badges-none">
+            <span>🎖️ Sin condecoraciones otorgadas</span>
           </div>
-        </div>
+        `}
 
         ${isJef ? `
-          <div style="margin-top:auto; padding-top:1rem; border-top:1px solid var(--border-subtle); display:flex; gap:0.5rem;">
+          <div class="member-card-actions">
             <button class="btn-tactical btn-tactical-outline btn-tactical-sm" style="flex:1;" onclick="window.editMember('${u.id}')" title="Editar expediente completo">
-              ✏️ Editar Todo
+              ✏️ Editar
             </button>
             <button class="btn-tactical btn-tactical-sm" style="background:rgba(255,59,48,0.12); border:1px solid rgba(255,59,48,0.4); color:#ff5252;" onclick="window.deleteMember('${u.id}')" title="Dar de baja de la unidad">
               🗑️
@@ -1424,40 +1467,48 @@ function renderCanineGallery(container) {
   container.innerHTML = `
     <div style="margin-bottom:1.5rem;">
       <h3 class="font-tactical" style="font-size:1.35rem; color:#fff;">CUADRO DE HONOR Y PLANTILLA CANINA K9</h3>
-      <p style="font-size:0.85rem; color:var(--text-muted);">Los héroes de cuatro patas en servicio activo para la protección ciudadana</p>
+      <p style="font-size:0.85rem; color:var(--text-muted);">Canes adiestrados en servicio activo para la protección ciudadana</p>
     </div>
 
     <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:1.5rem;">
       ${dogs.map(dog => `
-        <div style="background:var(--bg-surface); border:1px solid var(--border-tactical); border-radius:14px; overflow:hidden; box-shadow:var(--shadow-elevation); transition:transform 0.2s, box-shadow 0.2s;" onmouseenter="this.style.transform='translateY(-4px)'; this.style.boxShadow='var(--shadow-glow-cyan)'" onmouseleave="this.style.transform='none'; this.style.boxShadow='var(--shadow-elevation)'">
+        <div style="background:var(--bg-surface); border:1px solid var(--border-tactical); border-radius:14px; overflow:hidden; box-shadow:var(--shadow-elevation); display:flex; flex-direction:column; transition:transform 0.2s, box-shadow 0.2s;" onmouseenter="this.style.transform='translateY(-4px)'; this.style.boxShadow='var(--shadow-glow-cyan)'" onmouseleave="this.style.transform='none'; this.style.boxShadow='var(--shadow-elevation)'">
           <div style="height:210px; width:100%; position:relative; overflow:hidden;">
-            <img src="${dog.photo}" alt="${dog.name}" style="width:100%; height:100%; object-fit:cover; transition:transform 0.5s;" onmouseenter="this.style.transform='scale(1.08)'" onmouseleave="this.style.transform='scale(1)'">
-            <span style="position:absolute; top:12px; left:12px; font-family:var(--font-tactical); font-size:0.75rem; background:rgba(0,0,0,0.8); border:1px solid var(--police-cyan); color:var(--police-cyan); padding:0.25rem 0.6rem; border-radius:6px; font-weight:700;">
-              ${dog.tag}
+            <img src="${dog.photo}" alt="${escapeHtml(dog.name)}" style="width:100%; height:100%; object-fit:cover; transition:transform 0.5s;" loading="lazy" onmouseenter="this.style.transform='scale(1.08)'" onmouseleave="this.style.transform='scale(1)'">
+            <span style="position:absolute; top:12px; left:12px; font-family:var(--font-tactical); font-size:0.75rem; background:rgba(0,0,0,0.85); backdrop-filter:blur(4px); border:1px solid var(--police-cyan); color:var(--police-cyan); padding:0.25rem 0.6rem; border-radius:6px; font-weight:700;">
+              ${escapeHtml(dog.tag)}
             </span>
             <span style="position:absolute; bottom:12px; right:12px;" class="k9-status-pill ${dog.healthStatus === 'Apto Operativo' ? 'status-apto' : dog.healthStatus === 'En Recuperación' ? 'status-baja' : 'status-entrenamiento'}">
-              ${dog.healthStatus}
+              ${escapeHtml(dog.healthStatus)}
             </span>
           </div>
 
-          <div style="padding:1.25rem;">
-            <h4 style="font-family:var(--font-tactical); font-size:1.35rem; color:#fff; margin-bottom:0.25rem;">${dog.name}</h4>
-            <div style="font-family:var(--font-headline); font-size:0.85rem; color:var(--tactical-gold); letter-spacing:0.06em; margin-bottom:0.75rem;">${dog.breed}</div>
+          <div style="padding:1.25rem; display:flex; flex-direction:column; flex:1;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:0.25rem;">
+              <h4 style="font-family:var(--font-tactical); font-size:1.35rem; color:#fff; margin:0;">${escapeHtml(dog.name)}</h4>
+              <span style="font-family:var(--font-headline); font-size:0.82rem; color:var(--tactical-gold); letter-spacing:0.04em;">${escapeHtml(dog.breed)}</span>
+            </div>
 
-            <div style="background:rgba(0,0,0,0.3); border:1px solid var(--border-subtle); border-radius:8px; padding:0.75rem; margin-bottom:1rem; font-size:0.82rem;">
+            <div style="background:rgba(0,0,0,0.3); border:1px solid var(--border-subtle); border-radius:8px; padding:0.65rem 0.85rem; margin:0.75rem 0 1rem; font-size:0.8rem;">
               <div style="display:flex; justify-content:space-between; margin-bottom:0.35rem;">
-                <span style="color:var(--text-subtle); font-family:var(--font-headline);">ESPECIALIDAD:</span>
-                <span style="color:var(--police-cyan); font-weight:600;">${dog.specialty}</span>
+                <span style="color:var(--text-subtle); font-family:var(--font-headline); font-size:0.72rem;">ESPECIALIDAD:</span>
+                <span style="color:var(--police-cyan); font-weight:600;">${escapeHtml(dog.specialty)}</span>
               </div>
               <div style="display:flex; justify-content:space-between;">
-                <span style="color:var(--text-subtle); font-family:var(--font-headline);">GUÍA ASIGNADO:</span>
-                <span style="color:#fff; font-weight:600;">${dog.handlerName || 'Sin asignar'}</span>
+                <span style="color:var(--text-subtle); font-family:var(--font-headline); font-size:0.72rem;">GUÍA ASIGNADO:</span>
+                <span style="color:#fff; font-weight:600;">${escapeHtml(dog.handlerName || 'Sin asignar')}</span>
               </div>
             </div>
 
-            <p style="font-size:0.8rem; color:var(--text-muted); line-height:1.4;">
-              ${dog.trainingNotes}
-            </p>
+            <details class="k9-notes-details" style="margin-top:auto;">
+              <summary class="k9-notes-summary">
+                <span>📋 Notas de Adiestramiento</span>
+                <span class="k9-notes-chevron">▾</span>
+              </summary>
+              <div class="k9-notes-content">
+                ${escapeHtml(dog.trainingNotes || 'Sin anotaciones adicionales de adiestramiento.')}
+              </div>
+            </details>
           </div>
         </div>
       `).join('')}
@@ -1671,18 +1722,13 @@ function renderMemberProfile() {
       <!-- Columna Izquierda: Credencial Táctica Oficial -->
       <div class="tactical-id-card">
         <div class="id-card-body">
-          <div class="id-card-avatar-wrap" onclick="window.openChangeAvatarModal('${user.id}')" title="Clic para cambiar foto de perfil" style="cursor:pointer;">
+          <div class="id-card-avatar-wrap" onclick="window.openChangeAvatarModal('${user.id}')" title="Clic para cambiar foto de perfil" style="cursor:pointer; margin-bottom:0.75rem;">
             <img src="${user.avatar}" alt="${user.name}" class="id-card-avatar-img" onerror="this.src='assets/images/emblem.jpg'">
             <div class="id-card-badge-chip">#${user.placa}</div>
             <div class="avatar-edit-overlay">
               <span style="font-size:1.25rem; line-height:1;">📷</span>
               <span style="font-size:0.62rem; margin-top:3px; font-weight:700;">CAMBIAR</span>
             </div>
-          </div>
-          <div style="margin-bottom:0.75rem;">
-            <button type="button" class="btn-tactical btn-tactical-outline btn-tactical-sm" onclick="window.openChangeAvatarModal('${user.id}')" style="font-size:0.72rem; padding:0.3rem 0.8rem; display:inline-flex; align-items:center; gap:0.4rem; justify-content:center; border-radius:6px; margin:0 auto;">
-              <span>📷</span> Cambiar Foto
-            </button>
           </div>
           <h3 class="id-card-name">${user.name}</h3>
           <div class="id-card-rank">${user.rank}</div>

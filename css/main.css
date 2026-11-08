@@ -1921,5 +1921,271 @@ textarea:focus {
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.45), 0 0 0 2px rgba(0, 229, 255, 0.2) !important;
 }
 
+/* ==========================================================================
+   OPTIMIZACIÓN VISUAL: ACCORDIONS, DISCLOSURES Y COMPONENTES LIMPIOS K9
+   ========================================================================== */
+
+/* Acordeones Tácticos para Normativas y Manuales */
+.tactical-accordion {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-tactical);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-elevation);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.tactical-accordion[open] {
+  border-color: rgba(0, 229, 255, 0.4);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 229, 255, 0.08);
+}
+
+.tactical-accordion-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  background: rgba(16, 24, 43, 0.6);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  gap: 0.75rem;
+  transition: background 0.15s ease;
+}
+
+.tactical-accordion-summary::-webkit-details-marker {
+  display: none;
+}
+
+.tactical-accordion-summary:hover {
+  background: rgba(0, 229, 255, 0.06);
+}
+
+.accordion-chevron {
+  color: var(--police-cyan);
+  font-size: 0.75rem;
+  transition: transform 0.2s ease;
+  display: inline-block;
+}
+
+.tactical-accordion[open] .accordion-chevron {
+  transform: rotate(90deg);
+}
+
+.accordion-title {
+  color: var(--tactical-gold);
+  font-size: 1rem;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+.accordion-count {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+}
+
+.tactical-accordion-content {
+  padding: 0 1.25rem 1.25rem 1.25rem;
+  border-top: 1px solid var(--border-subtle);
+  animation: fadeIn 0.2s ease;
+}
+
+/* Tarjetas de Artículo de Normativa */
+.normative-article-card {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--police-cyan);
+  padding: 0.85rem 1.1rem;
+  border-radius: 0 8px 8px 0;
+  transition: border-color var(--transition-fast), background 0.15s ease;
+}
+
+.normative-article-card:hover {
+  background: rgba(0, 229, 255, 0.03);
+  border-color: rgba(0, 229, 255, 0.3);
+  border-left-color: var(--police-cyan);
+}
+
+.normative-article-header {
+  font-family: var(--font-tactical);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 0.35rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.normative-article-num {
+  color: var(--police-cyan);
+}
+
+.normative-article-title {
+  color: #fff;
+}
+
+.normative-article-body {
+  font-size: 0.86rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* Chips de Comando para Manuales */
+.manual-command-chip {
+  background: rgba(10, 15, 29, 0.7);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 0.85rem;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.manual-command-chip:hover {
+  border-color: var(--police-cyan);
+  background: rgba(0, 229, 255, 0.03);
+}
+
+/* Tarjeta de Miembro Optimizada */
+.member-dog-pill-tactical {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: rgba(10, 15, 29, 0.7);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 0.55rem 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.dog-pill-info {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.dog-pill-name {
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.dog-pill-tag {
+  color: var(--police-cyan);
+  font-size: 0.75rem;
+  font-family: var(--font-tactical);
+}
+
+.dog-pill-breed {
+  color: var(--text-subtle);
+  font-size: 0.72rem;
+}
+
+.dog-pill-empty {
+  color: var(--text-subtle);
+  font-size: 0.78rem;
+  font-style: italic;
+}
+
+/* Acordeón de Condecoraciones en Miembro */
+.member-badges-accordion {
+  margin-top: 0.25rem;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 0.6rem;
+}
+
+.member-badges-trigger {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  color: var(--tactical-gold);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.member-badges-trigger::-webkit-details-marker {
+  display: none;
+}
+
+.badges-trigger-chevron {
+  transition: transform 0.2s ease;
+  font-size: 0.8rem;
+}
+
+.member-badges-accordion[open] .badges-trigger-chevron {
+  transform: rotate(180deg);
+}
+
+.member-badges-accordion .member-badges-row {
+  margin-top: 0.6rem;
+  animation: fadeIn 0.18s ease;
+}
+
+.member-badges-none {
+  font-size: 0.74rem;
+  color: var(--text-subtle);
+  margin-top: 0.4rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.member-card-actions {
+  margin-top: auto;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Notas de Adiestramiento en Canes */
+.k9-notes-details {
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 0.65rem;
+}
+
+.k9-notes-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  color: var(--police-cyan);
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.k9-notes-summary::-webkit-details-marker {
+  display: none;
+}
+
+.k9-notes-chevron {
+  transition: transform 0.2s ease;
+  font-size: 0.8rem;
+}
+
+.k9-notes-details[open] .k9-notes-chevron {
+  transform: rotate(180deg);
+}
+
+.k9-notes-content {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.65rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  animation: fadeIn 0.18s ease;
+}
+
+
 
 

@@ -303,7 +303,7 @@
               <h3 style="font-family:var(--font-headline); font-size:1.1rem; color:#fff; margin:0; letter-spacing:0.04em;">
                 BINOMIOS K9 EN SERVICIO ACTIVO (${activePatrols.length})
               </h3>
-              <span style="font-size:0.78rem; color:var(--police-cyan); letter-spacing:0.06em;">PATRULLAJE POLICIAL CANINO EN TIEMPO REAL · LOS SANTOS</span>
+              <span style="font-size:0.75rem; color:var(--text-muted); letter-spacing:0.04em;">Despliegue operativo en Los Santos</span>
             </div>
           </div>
           <div style="display:flex; align-items:center; gap:0.6rem;">
